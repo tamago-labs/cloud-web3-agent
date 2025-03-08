@@ -6,11 +6,11 @@ const Contact = () => {
     return (
         <>
  
-            <section className="  relative py-14 md:py-32 md:pb-24" id="about">
-                <div className=" mx-auto w-max-6xl">
+            <section className="  relative py-14 md:py-32 md:pb-24" id="contact">
+                <div className="px-1 mx-auto w-max-6xl">
                     <div>
                         <div className="heading mb-0 text-left flex flex-col  px-2">
-                            <h4 className="text-center text-3xl font-bold">About Us</h4>
+                            <h4 className="text-center text-3xl font-bold">Contact Us</h4>
                             <div className="  w-full max-w-[1000px] mx-auto text-center ">
                                 <p className="pt-2 sm:pt-5 pr-2 sm:pr-4 text-sm sm:text-base  ">
                                     Founded in 2022 as a Web3 software house specializing in developing applications on emerging blockchains and have achieved notable recognition and awards, solidifying our position as a leading player in the industry

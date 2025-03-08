@@ -16,11 +16,12 @@ const Hero = () => {
                         <div className='col-span-3 flex flex-col'>
 
                             <h2 className="text-3xl mx-auto   text-white font-bold md:text-[60px] xl:text-[70px] leading-[40px]  md:leading-[65px] xl:leading-[80px]"  >
+                                Cloud for 
                                 <span className="relative text-white after:absolute after:inset-x-0 after:bottom-0 after:h-1 md:after:h-1.5 after:w-full after:bg-gradient-to-r after:from-primary/10 after:via-white after:to-primary/10">
                                     {' '}
-                                    Dual-Layer
-                                </span>
-                                {` `}AI Execution
+                                    Web3
+                                </span> 
+                                {` `}Agents
                             </h2>
                             <div className=" px-1 text-center py-4 mt-[10px] max-w-2xl mx-auto text-sm sm:text-base lg:text-lg font-semibold">
                                 Having your AI agents seamlessly operate across on-chain and off-chain environments for any Web3 workflows

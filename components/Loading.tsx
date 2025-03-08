@@ -2,7 +2,7 @@
 
 const Loading = () => {
     return (
-        <div className="screen_loader fixed inset-0 z-[60] grid place-content-center bg-gray-950">
+        <div className="screen_loader fixed inset-0 z-[60] grid place-content-center bg-blue-600/200">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 xmlnsXlink="http://www.w3.org/1999/xlink"

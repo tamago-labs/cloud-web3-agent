@@ -5,10 +5,6 @@ import Contact from "@/components/Landing/Contact"
 
 
 export default function App() {
-
-
-
-
   return (
     <main>
       <Hero/>

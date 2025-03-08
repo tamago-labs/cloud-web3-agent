@@ -2,11 +2,11 @@ import Link from 'next/link';
   
 const Footer = ({ showAddress = true }: any) => {
     return (
-        <footer className="mt-auto bg-white dark:bg-transparent dark:bg-gradient-to-b dark:from-white/[0.03] dark:to-transparent">
+        <footer className="mt-auto  bg-transparent bg-gradient-to-b from-white/[0.03] to-transparent">
              
-            <div className="bg-gradient-to-r from-[#FCF1F4] to-[#EDFBF9] py-5 dark:border-t-2 dark:border-white/5 dark:bg-none">
-                <div className="container">
-                    <div className="  text-sm  dark:text-white flex flex-row">
+            <div className="bg-gradient-to-r from-[#FCF1F4] to-[#EDFBF9] py-5 border-t-2 border-white/5  bg-none">
+                <div className="mx-auto relative px-2 max-w-6xl">
+                    <div className="  text-sm   text-white flex flex-row">
                         <div className='flex-1'>
                             © {new Date().getFullYear() + ' '}
                             <Link href="https://tamagolabs.com" className="text-white transition ">

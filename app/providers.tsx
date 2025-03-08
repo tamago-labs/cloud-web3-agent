@@ -25,9 +25,13 @@ const components = {
 
         return (
             <View textAlign="center" padding={tokens.space.large}>
-                <Link href="/" className="font-bold text-white text-2xl mb-[40px] ">
-                    Copy<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Trade</span>
-                </Link> 
+                  <Link href="/" className="inline-flex">
+                    <div className="relative px-4 py-2 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-md flex items-center shadow-lg shadow-purple-900/20">
+                        <div className="absolute inset-0 bg-black opacity-20 rounded-md"></div>
+
+                        <h1 className="font-bold text-white text-lg relative z-10">Tamago Labs</h1>
+                    </div>
+                </Link>
             </View>
         );
     },
@@ -36,13 +40,12 @@ const components = {
 
         return (
             <View textAlign="center" padding={tokens.space.large}>
-                <Text color={tokens.colors.neutral[80]}>
-                    <span className='hidden md:inline-flex'>Copyright</span>© {new Date().getFullYear() + ' '}
+                <Text color={tokens.colors.white}>
+                    Secured by AWS Cognito
                 </Text>
             </View>
         );
     },
-
 };
 
 export function Providers({ children }: any) {
@@ -80,7 +83,6 @@ export function Providers({ children }: any) {
                         borderWidth: '0'
                     }
                 },
-
                 tabs: {
                     item: {
                         backgroundColor: "#08111566",
@@ -93,23 +95,16 @@ export function Providers({ children }: any) {
 
     return (
         <>
-            {pathname === "/account" ?
+            {showLoader ? (
+                <Loading />
+            ) :
                 <ThemeProvider theme={theme} >
-                    <View backgroundColor={"#030712"} className="min-h-screen">
+                    <View className="min-h-screen relative ">
                         <Authenticator components={components}>
                             {children}
                         </Authenticator>
                     </View>
                 </ThemeProvider>
-                :
-                <>
-                    {/* screen loader  */}
-                    {showLoader && (
-                        <Loading />
-                    )}
-                    {children}
-                </>
-
             }
         </>
     );
