@@ -10,7 +10,7 @@ const Hero = () => {
         <section className="bg-black bg-[url(/assets/images/bg-1.png)] bg-left sm:bg-bottom bg-cover sm:bg-no-repeat">
             <Header />
             <div className="py-24 dark:bg-gradient-to-r dark:from-[#B476E5]/10 dark:to-[#47BDFF]/10 lg:pt-32 lg:pb-30">
-                <div className='mx-auto relative max-w-6xl  min-h-[400px] md:min-h-[500px] flex flex-row'>
+                <div className='mx-auto relative max-w-6xl   min-h-[400px] md:min-h-[500px] flex flex-col'>
 
                     <div className='grid grid-cols-3 w-full'>
                         <div className='col-span-3 flex flex-col'>
@@ -27,6 +27,11 @@ const Hero = () => {
                                 Having your AI agents seamlessly operate across on-chain and off-chain environments for any Web3 workflows
                             </div>
                         </div>
+                    </div>
+                    <div className="flex p-4">
+                        <Link href="/dashboard"  className="bg-white cursor-pointer mx-auto px-8 py-3 text-base sm:text-lg rounded-lg font-semibold  text-slate-900 transition">
+                            Deploy Your First Agent
+                        </Link>
                     </div>
                 </div>
             </div>

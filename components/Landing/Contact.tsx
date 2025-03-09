@@ -11,9 +11,9 @@ const Contact = () => {
                     <div>
                         <div className="heading mb-0 text-left flex flex-col  px-2">
                             <h4 className="text-center text-3xl font-bold">Contact Us</h4>
-                            <div className="  w-full max-w-[1000px] mx-auto text-center ">
+                            <div className="  w-full max-w-[800px] text-white mx-auto text-center ">
                                 <p className="pt-2 sm:pt-5 pr-2 sm:pr-4 text-sm sm:text-base  ">
-                                    Founded in 2022 as a Web3 software house specializing in developing applications on emerging blockchains and have achieved notable recognition and awards, solidifying our position as a leading player in the industry
+                                    Founded in 2022 as a Web3 software house specializing in developing applications on emerging blockchains and have achieved notable recognition and awards
                                 </p>
                             </div>
                             <div className="  py-6 w-full md:max-w-[700px] mx-auto ">
