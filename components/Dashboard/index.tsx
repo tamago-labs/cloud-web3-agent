@@ -1,9 +1,13 @@
 import { LogOut, Plus } from "react-feather";
 import { signOut } from "aws-amplify/auth"
 import { useRouter } from "next/navigation";
+import WaitModal from "@/modals/wait";
+import { useState } from "react";
 
 // Portfolio Page Component
 const Portfolio = () => {
+
+    const [ modal, setModal ] = useState(true)
 
     const router = useRouter()
 
@@ -26,10 +30,15 @@ const Portfolio = () => {
     }
 
     return (
-        <div  >
+        <div>
+            <WaitModal
+                visible={modal}
+                close={() => setModal(false)}
+            />
 
-
-            {/* Main content */}
+            { false && (
+                <>
+                   {/* Main content */}
             <main className="container mx-auto px-6 py-8">
                 {/* Portfolio header */}
                 <div className="flex backdrop-blur-sm justify-between items-center mb-8">
@@ -180,6 +189,12 @@ const Portfolio = () => {
                     </div>
                 </div>
             </main>
+                </>
+            )
+
+            }
+
+         
         </div>
     );
 };
