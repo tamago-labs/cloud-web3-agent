@@ -1,19 +1,16 @@
-import { useState, useEffect } from 'react';
-// import { CloudArrowUpIcon, BoltIcon, CpuChipIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+"use client"
 
 const KeyBenefits = () => {
 
-    const [activeIndex, setActiveIndex] = useState(0);
-
     const benefits = [
         {
-            title: "One-Click Deployment",
-            description: "Deploy AI agents with a single click on managed infrastructure",
+            title: "No-Code Deployment",
+            description: "Deploy AI agents using prompts without any coding knowledge required",
             icon: "🚀"
         },
         {
-            title: "Web3-Ready No-Code",
-            description: "Setup AI agents on-chain and off-chain without writing Move or Solidity.",
+            title: "Cost-Effective Scaling",
+            description: "Pay only for what you use and automatic resource scaling when you grow",
             icon: "🛠️"
         },
         {
@@ -43,32 +40,9 @@ const KeyBenefits = () => {
     ];
 
 
-    const applications: any = [
-        {
-            title: "DeFi Trading",
-            description: "Create agents that monitor markets, execute trades, manage positions, and optimize yield across Aptos DeFi protocols."
-        },
-        {
-            title: "NFT Management",
-            description: "Deploy agents to track floor prices, automate purchases, list collections, and identify rare opportunities in NFT marketplaces."
-        },
-        {
-            title: "DAO Governance",
-            description: "Build agents that analyze proposals, vote according to strategies, and represent stakeholder interests in DAOs."
-        },
-        {
-            title: "Social Engagement",
-            description: "Design agents that interact with community members, distribute rewards, and manage token-gated content."
-        }
-    ]
+   
 
-    // Auto-rotate through applications
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         setActiveIndex((current) => (current + 1) % applications.length);
-    //     }, 3000);
-    //     return () => clearInterval(interval);
-    // }, [applications.length])
+    
 
     return (
         <section className="py-16 relative ">
@@ -159,15 +133,15 @@ const KeyBenefits = () => {
                         >
                             <div className="flex flex-col items-center mb-3">
                                 <h3 className="text-xl mx-auto text-gray-900 font-bold">{item.chain}</h3>
-                          <p className="text-gray-600 text-center">
-                                With {item.sdk}
-                            </p>
+                                <p className="text-gray-600 text-center">
+                                    With {item.sdk}
+                                </p>
                             </div>
                             {/* <div className="flex items-center">
                                 
                                 <span className={`${item.textColor} font-medium`}>{item.sdk}</span>
                             </div> */}
-                            
+
 
                             {index === 0 && (
                                 <div className='  font-medium text-gray-600 overflow-y-auto h-[100px]  text-sm'>
@@ -179,21 +153,21 @@ const KeyBenefits = () => {
                                     <p><b>LiquidSwap:</b> DEX operations</p>
                                     <p><b>Panora:</b> DEX aggregation operations</p>
                                     <p><b>Aries:</b> Lending & borrowing operations</p>
-                                    <p><b>Echo:</b> Staking operations</p> 
+                                    <p><b>Echo:</b> Staking operations</p>
                                 </div>
                             )
 
                             }
-                             {index === 1 && (
+                            {index === 1 && (
                                 <div className='  font-medium text-gray-600 overflow-y-auto h-[100px]  text-sm'>
-                                     <p>Supports <b>Cronos EVM</b> and <b>Cronos zkEVM</b></p>
-                                                <p>Simple and intuitive API for interacting with Cronos blockchain networks</p>
-                                                <p>Supports <b>token balances (native & CRC20), token transfers, wrapping, and swapping</b></p>
-                                                <p>Transaction queries by address or hash, and fetching transaction statuses</p>
-                                                <p>Smart contract ABI fetching by contract address
-                                                    <p>Wallet creation and balance management</p></p>
+                                    <p>Supports <b>Cronos EVM</b> and <b>Cronos zkEVM</b></p>
+                                    <p>Simple and intuitive API for interacting with Cronos blockchain networks</p>
+                                    <p>Supports <b>token balances (native & CRC20), token transfers, wrapping, and swapping</b></p>
+                                    <p>Transaction queries by address or hash, and fetching transaction statuses</p>
+                                    <p>Smart contract ABI fetching by contract address
+                                        <p>Wallet creation and balance management</p></p>
                                 </div>
-                            ) }
+                            )}
 
                         </div>
                     ))}
