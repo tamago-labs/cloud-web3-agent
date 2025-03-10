@@ -45,13 +45,17 @@ const HowItWorks = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
                         {steps.map((step, index) => (
-                            <div key={index} className="flex flex-col items-center">
-                                <div className={`${step.bgColor} w-12 h-16   rounded-full flex items-center justify-center mb-4 shadow-lg`}>
-                                    {/* {step.icon} */}<h1 className="font-bold text-xl">{index + 1}</h1>
-                                    <span className="sr-only">Step {index + 1}</span>
-                                </div>
+                            <div key={index} className="flex flex-col items-center cursor-default  transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
+                                
                                 <div className="bg-white rounded-xl shadow-md p-6 text-center h-full w-full">
-                                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{step.title}</h3>
+                                    <div className="flex flex-col">
+                                        <div className={`${step.bgColor} w-12 h-12 mx-auto   rounded-full flex items-center justify-center shadow-lg`}>
+                                            <h1 className="font-bold text-xl">{index + 1}</h1>
+                                            <span className="sr-only">Step {index + 1}</span>
+                                        </div>
+                                        <h3 className="text-xl  mb-1 mt-2 mx-auto  font-semibold text-gray-900  ">{step.title}</h3>
+                                    </div>
+
                                     <p className="text-gray-600">{step.description}</p>
                                 </div>
                                 <div className="md:hidden pt-4 text-purple-600 text-2xl font-bold my-2">
