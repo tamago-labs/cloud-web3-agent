@@ -7,26 +7,26 @@ const HowItWorks = () => {
     const steps = [
         {
 
-            title: "Setup",
-            description: "Simply provide a prompt describing what you want your AI agent to do and set parameters ",
+            title: "Deploy",
+            description: "Select your chain and SDK to deploy your AI agent on the cloud and start chatting to gain insights",
             bgColor: "bg-blue-600"
         },
         {
 
-            title: "Deployment",
-            description: "Our system automatically generates and configures the agent based on your requirements",
+            title: "Customize",
+            description: "Customize your agent to fit your workflow by choosing pre-built templates or providing prompts",
             bgColor: "bg-indigo-600"
         },
         {
 
-            title: "Running",
+            title: "Automate",
             description: "AI agents monitor on-chain and off-chain events such as price or liquidity changes and take automated actions",
             bgColor: "bg-purple-600"
         },
         {
 
-            title: "Coordination",
-            description: "AI agents can communicate with each other to coordinate tasks across multiple protocols",
+            title: "Coordinate",
+            description: "AI agents collaborate with each other to coordinate tasks across multiple protocols",
             bgColor: "bg-violet-600"
         }
     ];

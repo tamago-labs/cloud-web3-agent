@@ -1,4 +1,4 @@
-"use client"
+
 
 const KeyBenefits = () => {
 
@@ -36,19 +36,22 @@ const KeyBenefits = () => {
             bgColor: "bg-indigo-50",
             borderColor: "border-indigo-200",
             textColor: "text-indigo-600"
+        },
+        {
+            chain: "Solana",
+            sdk: "SendAI Solana Agent Kit"
         }
     ];
 
 
-   
 
-    
+
+
 
     return (
         <section className="py-16 relative ">
             <div className="max-w-6xl mx-auto px-4">
                 <div className="text-center mb-12">
-                    {/* <h2 className="text-3xl font-bold   mb-4">Key Benefits</h2> */}
                     <p className="text-base sm:text-xl text-white max-w-2xl mx-auto">
                         Simplifies building, deploying and managing AI agents for Web3 workflows with support for multiple blockchains
                     </p>
@@ -117,10 +120,10 @@ const KeyBenefits = () => {
                 </div>
             </div> */}
 
-            <div className="max-w-4xl mt-[60px] mx-auto">
-                <div className="text-center mb-6">
-                    <p className="text-base sm:text-xl text-white max-w-2xl mx-auto">
-                        Supported blockchains and capabilities
+            <div className="max-w-5xl mt-[60px] mx-auto">
+                <div className="text-center mb-6 mx-4">
+                    <p className="text-base sm:text-xl text-white  mx-auto">
+                    We provide managed infrastructure to deploy Web3 agents with your favorite SDK
                     </p>
                 </div>
 
@@ -137,10 +140,6 @@ const KeyBenefits = () => {
                                     With {item.sdk}
                                 </p>
                             </div>
-                            {/* <div className="flex items-center">
-                                
-                                <span className={`${item.textColor} font-medium`}>{item.sdk}</span>
-                            </div> */}
 
 
                             {index === 0 && (
@@ -168,6 +167,20 @@ const KeyBenefits = () => {
                                         <p>Wallet creation and balance management</p></p>
                                 </div>
                             )}
+
+                            {index === 2 && (
+                                <div className='  font-medium text-gray-600 overflow-y-auto h-[100px]  text-sm'>
+                                    <p>Swap tokens on <b>Jupiter Exchange</b></p>
+                                    <p>Execute limit orders and perp trades on <b>Drift</b> and <b>Adrena</b></p>
+                                    <p>Provide liquidity to <b>Raydium, Orca, or Meteora pools</b></p>
+                                    <p>Fetch real-time price feeds from <b>Pyth</b> and <b>CoinGecko</b></p>
+                                    <p>Lend assets via <b>Lulo</b></p>
+                                    <p>Stake SOL via <b>Jito, Solayer, or DeFi vaults</b></p>
+                                    <p>Automate yield strategies with <b>Drift</b> vaults</p>
+                                </div>
+                            )
+
+                            }
 
                         </div>
                     ))}
@@ -220,6 +233,19 @@ const KeyBenefits = () => {
                                                 <p>Transaction queries by address or hash, and fetching transaction statuses</p>
                                                 <p>Smart contract ABI fetching by contract address
                                                     <p>Wallet creation and balance management</p></p>
+                                            </div>
+                                        )
+                                        }
+
+                                        {index === 2 && (
+                                            <div className='line-clamp-4'>
+                                                <p>Swap tokens on <b>Jupiter Exchange</b></p>
+                                                <p>Execute limit orders and perp trades on <b>Drift</b> and <b>Adrena</b></p>
+                                                <p>Provide liquidity to <b>Raydium, Orca, or Meteora pools</b></p>
+                                                <p>Fetch real-time price feeds from <b>Pyth</b> and <b>CoinGecko</b></p>
+                                                <p>Lend assets via <b>Lulo</b></p>
+                                                <p>Stake SOL via <b>Jito, Solayer, or DeFi vaults</b></p>
+                                                <p>Automate yield strategies with <b>Drift</b> vaults</p>
                                             </div>
                                         )
                                         }
