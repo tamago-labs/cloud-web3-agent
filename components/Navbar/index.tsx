@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { Cast, LogOut, MessageSquare, Settings, Grid } from "react-feather"
+import { Cast, LogOut, MessageSquare, Settings, Grid, Plus, Home, BarChart, PieChart, RefreshCcw } from "react-feather"
 import { signOut } from "aws-amplify/auth"
 import { useRouter } from "next/navigation";
 
 
 const Navbar = () => {
+
 
 
     const router = useRouter()
@@ -29,21 +30,41 @@ const Navbar = () => {
             </Link>
 
             <div className="mt-[10px] flex flex-col">
-                <Link href="/dashboard" className="border-b-2  inline-flex border-t-2 px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <Grid className="mr-1.5" />
-                    Agents
+                <Link href="/dashboard" className="border-b-2 flex flex-row border-t-2 px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <PieChart className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Dashboard
+                    </div>
                 </Link>
-                <Link href="/dashboard/chat" className="border-b-2 inline-flex  px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <MessageSquare className="mr-1.5" />
-                    Chat
+                <Link href="/dashboard/new" className="border-b-2  flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <Plus className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        New Agent
+                    </div>
                 </Link>
-                <Link href="/dashboard/settings" className="border-b-2 inline-flex px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <Settings className="mr-1.5" />
-                    Settings
+                <Link href="/dashboard/chat" className="border-b-2 flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <MessageSquare className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Chat
+                    </div>
                 </Link>
-                <div onClick={handleSignOut} className="border-b-2 cursor-pointer inline-flex px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <LogOut className="mr-1.5" />
-                    Sign Out
+                <Link href="/dashboard/automation" className="border-b-2 flex flex-row  px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <RefreshCcw className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Automation
+                    </div>
+                </Link>
+                <Link href="/dashboard/settings" className="border-b-2 flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <Settings className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Settings
+                    </div>
+                </Link>
+                <div onClick={handleSignOut} className="border-b-2 cursor-pointer flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <LogOut className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Sign Out
+                    </div>
                 </div>
             </div>
 

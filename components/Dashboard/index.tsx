@@ -1,13 +1,13 @@
 import { LogOut, Plus } from "react-feather";
 import { signOut } from "aws-amplify/auth"
 import { useRouter } from "next/navigation";
-import WaitModal from "@/modals/wait";
+// import WaitModal from "@/modals/wait";
 import { useState } from "react";
 
 // Portfolio Page Component
 const Portfolio = () => {
 
-    const [ modal, setModal ] = useState(true)
+    // const [ modal, setModal ] = useState(true)
 
     const router = useRouter()
 
@@ -31,14 +31,9 @@ const Portfolio = () => {
 
     return (
         <div>
-            <WaitModal
-                visible={modal}
-                close={() => setModal(false)}
-            />
 
-            { false && (
-                <>
-                   {/* Main content */}
+
+            {/* Main content */}
             <main className="container mx-auto px-6 py-8">
                 {/* Portfolio header */}
                 <div className="flex backdrop-blur-sm justify-between items-center mb-8">
@@ -46,13 +41,13 @@ const Portfolio = () => {
                         <h1 className="text-3xl font-bold mb-2">Your Portfolio</h1>
                         <p className="text-gray-400">Track and manage your mirrored traders</p>
                     </div>
-                    <div className="flex space-x-3"> 
+                    <div className="flex space-x-3">
                         <button className="bg-gradient-to-r from-blue-600 cursor-pointer to-purple-600 hover:from-blue-500 hover:to-purple-500 px-4 py-2 rounded-lg font-medium transition flex items-center">
-                            <Plus  className="mr-1.5"/> 
+                            <Plus className="mr-1.5" />
                             Add Web Wallet
                         </button>
-                        <button onClick={handleSignOut}  className="bg-gradient-to-r cursor-pointer from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 px-4 py-2 rounded-lg font-medium transition flex items-center">
-                           <LogOut className="mr-1.5"/> 
+                        <button onClick={handleSignOut} className="bg-gradient-to-r cursor-pointer from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 px-4 py-2 rounded-lg font-medium transition flex items-center">
+                            <LogOut className="mr-1.5" />
                             Sign Out
                         </button>
                     </div>
@@ -189,12 +184,8 @@ const Portfolio = () => {
                     </div>
                 </div>
             </main>
-                </>
-            )
 
-            }
 
-         
         </div>
     );
 };
