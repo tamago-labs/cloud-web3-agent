@@ -31,8 +31,6 @@ const Portfolio = () => {
 
     return (
         <div>
-
-
             {/* Main content */}
             <main className="container mx-auto px-6 py-8">
                 {/* Portfolio header */}
