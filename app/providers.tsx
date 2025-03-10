@@ -17,6 +17,8 @@ import outputs from "@/amplify_outputs.json";
 import { usePathname } from 'next/navigation'
 import Link from "next/link"
 
+import CloudAgentProvider from "../hooks/useCloudAgent"
+
 Amplify.configure(outputs);
 
 const components = {
@@ -25,7 +27,7 @@ const components = {
 
         return (
             <View textAlign="center" padding={tokens.space.large}>
-                  <Link href="/" className="inline-flex">
+                <Link href="/" className="inline-flex">
                     <div className="relative px-4 py-2 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-md flex items-center shadow-lg shadow-purple-900/20">
                         <div className="absolute inset-0 bg-black opacity-20 rounded-md"></div>
 
@@ -94,7 +96,7 @@ export function Providers({ children }: any) {
     }
 
     return (
-        <>
+        <CloudAgentProvider>
             {showLoader ? (
                 <Loading />
             ) :
@@ -106,7 +108,7 @@ export function Providers({ children }: any) {
                     </View>
                 </ThemeProvider>
             }
-        </>
+        </CloudAgentProvider>
     );
 }
 

@@ -1,6 +1,19 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { createAgent } from "../functions/createAgent/resource"
 
 const schema = a.schema({
+  CreateAgent: a
+    .query()
+    .arguments({
+      name: a.string(),
+      userId: a.string(),
+      blockchain: a.string(),
+      sdkType: a.string()
+    })
+    .returns(a.boolean())
+    .handler(a.handler.function(createAgent))
+    .authorization((allow) => [allow.authenticated()])
+  ,
   User: a
     .model({
       username: a.string().required(),

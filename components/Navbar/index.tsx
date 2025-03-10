@@ -4,11 +4,15 @@ import Link from "next/link"
 import { Cast, LogOut, MessageSquare, Settings, Grid, Plus, Home, BarChart, PieChart, RefreshCcw } from "react-feather"
 import { signOut } from "aws-amplify/auth"
 import { useRouter } from "next/navigation";
-
+import { CloudAgentContext } from "@/hooks/useCloudAgent";
+import { useEffect, useContext, useState } from "react";
+import { getCurrentUser } from 'aws-amplify/auth';
 
 const Navbar = () => {
 
+    const [user, setUser] = useState<any>(undefined)
 
+    const { loadProfile } = useContext(CloudAgentContext)
 
     const router = useRouter()
 
@@ -20,6 +24,25 @@ const Navbar = () => {
             console.log('error signing out: ', error);
         }
     }
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const { username, userId, signInDetails } = await getCurrentUser();
+                setUser({
+                    username,
+                    userId,
+                    ...signInDetails
+                })
+            } catch (e) {
+                setUser(undefined)
+            }
+        })()
+    }, [])
+
+    useEffect(() => {
+        user && user.userId && loadProfile(user.userId)
+    }, [user])
 
     return (
         <div className="w-full relative h-full p-6 px-0 space-y-4 text-white text-lg bg-gradient-to-br from-blue-900/20 to-indigo-900/20  border-r border-white/10 backdrop-blur-sm ">
