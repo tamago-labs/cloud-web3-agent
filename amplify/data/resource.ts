@@ -49,7 +49,7 @@ const schema = a.schema({
     }).authorization((allow) => [
       allow.owner()
     ]),
-});
+}).authorization((allow) => [allow.resource(createAgent)]);
 
 export type Schema = ClientSchema<typeof schema>;
 
