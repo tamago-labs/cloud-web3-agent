@@ -1,7 +1,16 @@
 "use client"
 
-import React, { useState, useReducer } from 'react';
-import { ChevronDown, Zap, ArrowRight, Check } from 'react-feather';
+import React, { useState, useReducer, useCallback, useContext } from 'react';
+import { ChevronDown, Zap, ArrowRight, Check, Plus } from 'react-feather';
+import type { Schema } from "../../amplify/data/resource"
+import { Amplify } from "aws-amplify"
+import { generateClient } from "aws-amplify/api"
+import { Puff } from 'react-loading-icons'
+import { CloudAgentContext } from '@/hooks/useCloudAgent';
+import { useRouter } from "next/navigation";
+
+
+const client = generateClient<Schema>()
 
 const NewAgentOLD = () => {
 
@@ -177,6 +186,10 @@ const NewAgentOLD = () => {
 
 const NewAgent = () => {
 
+    const router = useRouter()
+
+    const { profile } = useContext(CloudAgentContext)
+
     const blockchains: any = [
         { id: 'aptos', name: 'Aptos', icon: "/assets/images/aptos-icon.png" },
         { id: 'solana', name: 'Solana', icon: "/assets/images/solana-icon.png" },
@@ -185,14 +198,14 @@ const NewAgent = () => {
 
     const sdkOptions: any = {
         aptos: [
-            { id: 'aptos-kit', name: 'Move Agent Kit', description: 'A comprehensive toolkit designed to simplify AI agents interactions with Move-based blockchains.' }
+            { id: 'aptos-kit', disabled: false, name: 'Move Agent Kit', description: 'A comprehensive toolkit designed to simplify AI agents interactions with Move-based blockchains.' }
         ],
         solana: [
-            { id: 'agent-kit', name: 'SendAI Solana Agent Kit', description: 'An open-source toolkit for connecting AI agents to Solana protocols.' },
+            { id: 'agent-kit', disabled: true, name: 'SendAI Solana Agent Kit', description: 'An open-source toolkit for connecting AI agents to Solana protocols.' },
         ],
 
         cronos: [
-            { id: 'cronos-kit', name: 'Crypto.com AI Agent SDK', description: 'Official Crypto.com AI agent toolkit for on-chain activities.' }
+            { id: 'cronos-kit', disabled: true, name: 'Crypto.com AI Agent SDK', description: 'Official Crypto.com AI agent toolkit for on-chain activities.' }
         ]
     };
 
@@ -200,11 +213,14 @@ const NewAgent = () => {
         (curVal: any, newVal: any) => ({ ...curVal, ...newVal }),
         {
             selectedBlockchain: undefined,
-            selectedSDK: undefined
+            selectedSDK: undefined,
+            agentName: "My Aptos Agent",
+            errorMessage: undefined,
+            loading: false
         }
     )
 
-    const { selectedBlockchain, selectedSDK } = values
+    const { agentName, selectedBlockchain, selectedSDK, errorMessage, loading } = values
 
     const handleBlockchainSelect = (blockchain: any) => {
         dispatch({
@@ -218,6 +234,51 @@ const NewAgent = () => {
             selectedSDK: sdk
         })
     };
+
+    const handleCreateAgent = useCallback(async () => {
+
+        dispatch({ errorMessage: undefined })
+
+        if (!agentName || agentName.length <= 3) {
+            dispatch({ errorMessage: "Invalid Agent Name" })
+            return
+        }
+
+        if (!profile || !profile.id) {
+            dispatch({ errorMessage: "Invalid User Session" })
+            return
+        }
+
+        dispatch({ loading: true })
+
+        try {
+
+            const { data } = await client.queries.CreateAgent({
+                name: agentName,
+                userId: profile.id ,
+                blockchain: selectedBlockchain,
+                sdkType: selectedSDK
+            })
+ 
+            if (data) {
+                dispatch({
+                    selectedBlockchain: undefined,
+                    selectedSDK: undefined,
+                    agentName: "My Aptos Agent",
+                    errorMessage: undefined,
+                    loading: false
+                })
+                router.push("/dashboard")
+            } else {
+                throw new Error("Unknow error. Please try again.")
+            }
+
+        } catch (error: any) {
+            console.log(error)
+            dispatch({ loading: false, errorMessage: error.message })
+        }
+
+    }, [selectedBlockchain, selectedSDK, agentName, profile])
 
     return (
         <div className="relative mx-auto px-6 py-8 max-w-4xl">
@@ -266,27 +327,88 @@ const NewAgent = () => {
                     {selectedBlockchain && sdkOptions[selectedBlockchain].map((sdk: any) => (
                         <div
                             key={sdk.id}
-                            className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedSDK === sdk.id
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-blue-300'
+                            className={`border rounded p-4 ${!sdk.disabled && "cursor-pointer"} transition-all ${selectedSDK === sdk.id
+                                ? 'border-white/10 bg-white/5'
+                                : 'border-white/10 hover:bg-white/5'
                                 }`}
-                            onClick={() => handleSDKSelect(sdk.id)}
+                            onClick={() => !sdk.disabled && handleSDKSelect(sdk.id)}
                         >
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="font-medium">{sdk.name}</h3>
-                                    <p className="text-sm text-gray-600">{sdk.description}</p>
+                                    <p className="text-sm text-gray-400">{sdk.description}</p>
                                 </div>
-                                {selectedSDK === sdk.id ? (
-                                    <Check size={20} className="text-blue-600" />
-                                ) : (
-                                    <ChevronDown size={20} className="text-gray-400" />
+                                {selectedSDK === sdk.id && (
+                                    <span className="bg-blue-900/30 px-2 my-auto py-1 ml-2 rounded border border-blue-600  text-blue-600 text-sm font-semibold flex items-center">
+                                        <Check size={16} className="mr-1" /> Selected
+                                    </span>
+                                )}
+                                {sdk.disabled && (
+                                    <span className="bg-transparent px-2 my-auto py-1 ml-2 rounded border border-gray-400  text-gray-400 text-sm font-semibold flex items-center">
+                                        Not available
+                                    </span>
                                 )}
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
+
+            {/* Step 3: Agent Information */}
+            <div className="mb-8 bg-gradient-to-br from-blue-900/40 to-indigo-900/40 border border-white/10 rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold mb-4">Step 3: Agent Information</h2>
+                <div className="space-y-4">
+                    <div className='grid grid-cols-7'>
+                        <div className='flex'>
+                            <label htmlFor="agent-name" className="block my-auto text-white text font-semibold ">
+                                Agent Name:
+                            </label>
+                        </div>
+
+                        <input
+                            id="agent-name"
+                            type="text"
+                            value={agentName}
+                            onChange={(e) => dispatch({ agentName: e.target.value })}
+                            className="w-full col-span-6 px-4 py-2 border border-white/10 rounded bg-white/5 focus:border-white/10 focus:ring-0 "
+                            placeholder="My Aptos Agent"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Create Button */}
+            <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-400">
+                    Additional configuration can be done in the Automation tab after creation.
+                </p>
+                <button
+                    onClick={handleCreateAgent}
+                    disabled={!selectedBlockchain || !selectedSDK || !agentName || loading}
+                    className={`flex items-center px-6 py-3 rounded-lg font-medium ${selectedBlockchain && selectedSDK && agentName
+                        ? 'bg-white text-slate-900 cursor-pointer '
+                        : 'bg-gray-300 text-slate-600  cursor-not-allowed'
+                        }`}
+                >
+                    {loading
+                        ?
+                        <Puff
+                            stroke="#000"
+                            className="w-5 h-5 mr-2"
+                        />
+                        :
+                        <Plus size={18} className="mr-2" />
+                    }
+                    Create Agent
+                    <ArrowRight size={18} className="ml-2" />
+                </button>
+            </div>
+
+            {errorMessage && (
+                <p className="text-sm text-center mt-2 text-blue-600">
+                    {errorMessage}
+                </p>
+            )}
 
         </div>
     )

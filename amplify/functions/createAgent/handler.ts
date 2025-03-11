@@ -28,9 +28,7 @@ export const handler: Schema["CreateAgent"]["functionHandler"] = async (event) =
             userId,
             blockchain,
             sdkType,
-            walletAddresses: [walletAddress],
-            configurations: {},
-            messages: []
+            walletAddresses: [walletAddress]
         })
 
         const agentId = data.id
