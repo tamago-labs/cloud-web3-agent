@@ -78,6 +78,8 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
     const finalized = output.messages.map((msg: any) => {
         const role = msg.additional_kwargs?.role || "user"
 
+        console.log("message:", msg)
+
         if (msg.kwargs?.type === "tool_result" || msg.type === "tool_result") {
             return {
                 role,
