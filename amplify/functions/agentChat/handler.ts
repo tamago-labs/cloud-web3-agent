@@ -77,11 +77,24 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
 
     const finalized = output.messages.map((msg: any) => {
         const role = msg.additional_kwargs?.role || "user"
-        return {
-            role,
-            content: msg.kwargs?.content || msg.content,
-            id: msg.kwargs?.id || msg.id
+
+        if (msg.kwargs?.type === "tool_result" || msg.type === "tool_result") {
+            return {
+                role,
+                content: msg.kwargs?.content || msg.content,
+                id: msg.kwargs?.id || msg.id,
+                type: msg.kwargs?.type || msg.type,
+                tool_use_id: msg.kwargs?.tool_use_id || msg.tool_use_id
+            }
+        } else {
+            return {
+                role,
+                content: msg.kwargs?.content || msg.content,
+                id: msg.kwargs?.id || msg.id
+            }
         }
+
+
     })
 
     return finalized
