@@ -36,7 +36,7 @@ export const handler: Schema["CreateAgent"]["functionHandler"] = async (event) =
         await client.models.Wallet.create({
             agentId,
             address: walletAddress,
-            key,
+            key : privateKey.toAIP80String(),
             isDefault: true
         })
 
