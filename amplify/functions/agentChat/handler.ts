@@ -75,13 +75,13 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
         }
     )
 
-    const finalized = output.messages.map((msg: any) => {
+    let finalized : any[] = []
+
+    output.messages.map((msg: any) => {
         const role = msg.additional_kwargs?.role || "user"
-
         console.log("message:", msg)
-
         if (msg?.tool_call_id) {
-            return {
+            finalized.push({
                 content: [
                     {
                         type: "tool_result",
@@ -91,17 +91,43 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
                 ],
                 role,
                 id: msg.kwargs?.id || msg.id
-            }
+            })
         } else {
-            return {
+            finalized.push({
                 role,
                 content: msg.kwargs?.content || msg.content,
                 id: msg.kwargs?.id || msg.id
-            }
+            })
         }
-
-
     })
+
+    // const finalized = output.messages.map((msg: any) => {
+    //     const role = msg.additional_kwargs?.role || "user"
+
+    //     console.log("message:", msg)
+
+    //     if (msg?.tool_call_id) {
+    //         return {
+    //             content: [
+    //                 {
+    //                     type: "tool_result",
+    //                     tool_use_id: msg.tool_call_id,
+    //                     content: msg.kwargs?.content || msg.content,
+    //                 }
+    //             ],
+    //             role,
+    //             id: msg.kwargs?.id || msg.id
+    //         }
+    //     } else {
+    //         return {
+    //             role,
+    //             content: msg.kwargs?.content || msg.content,
+    //             id: msg.kwargs?.id || msg.id
+    //         }
+    //     }
+    // })
+
+    console.log("final messages :", finalized)
 
     return finalized
 }
