@@ -56,7 +56,7 @@ const schema = a.schema({
       agent: a.belongsTo('Agent', "agentId"),
       address: a.string(),
       isDefault: a.boolean(),
-      key: a.json()
+      key: a.string()
     }).authorization((allow) => [
       allow.owner()
     ]),

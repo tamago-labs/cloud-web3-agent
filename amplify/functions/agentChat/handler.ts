@@ -29,7 +29,7 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
 
     console.log("walllet:", wallet)
 
-    const account = Account.fromPrivateKey({ privateKey : wallet.key.aptos });
+    const account = Account.fromPrivateKey({ privateKey : wallet.key });
     console.log(account.accountAddress.toString())
 
     return messages
