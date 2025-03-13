@@ -28,8 +28,8 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
     const wallet = wallets.data[0]
 
     console.log("walllet:", wallet)
-
-    const account = Account.fromPrivateKey({ privateKey : wallet.key });
+    const key = new Secp256k1PrivateKey(wallet.key)
+    const account = Account.fromPrivateKey({ privateKey : key });
     
     console.log("account:", account)
     
