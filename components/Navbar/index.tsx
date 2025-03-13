@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Cast, LogOut, MessageSquare, Settings, Grid, Plus, Home, BarChart, PieChart, RefreshCcw } from "react-feather"
+import { Cast, LogOut, MessageSquare, Settings, Grid, Plus, Home, BarChart, PieChart, RefreshCcw, Database } from "react-feather"
 import { signOut } from "aws-amplify/auth"
 import { useRouter } from "next/navigation";
 import { CloudAgentContext } from "@/hooks/useCloudAgent";
@@ -65,16 +65,28 @@ const Navbar = () => {
                         New Agent
                     </div>
                 </Link>
-                <Link href="/dashboard/chat" className="border-b-2 flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <MessageSquare className="mr-2 my-auto" />
-                    <div className="my-auto text-base">
-                        Chat
-                    </div>
-                </Link>
                 <Link href="/dashboard/automation" className="border-b-2 flex flex-row  px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
                     <RefreshCcw className="mr-2 my-auto" />
                     <div className="my-auto text-base">
                         Automation
+                    </div>
+                </Link>
+                {/* <Link href="/dashboard/automation" className="border-b-2 flex flex-row  px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <Database className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Conversation
+                    </div>
+                </Link> */}
+                <Link href="/dashboard/chat2" className="border-b-2 flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <MessageSquare className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Chat2
+                    </div>
+                </Link>
+                <Link href="/dashboard/automation2" className="border-b-2 flex flex-row  px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
+                    <RefreshCcw className="mr-2 my-auto" />
+                    <div className="my-auto text-base">
+                        Automation2
                     </div>
                 </Link>
                 <Link href="/dashboard/settings" className="border-b-2 flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">

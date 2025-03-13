@@ -1,7 +1,18 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createAgent } from "../functions/createAgent/resource"
+import { agentChat } from "../functions/agentChat/resource";
 
 const schema = a.schema({
+  AgentChat: a
+    .query()
+    .arguments({
+      messages: a.json(),
+      agentId: a.string()
+    })
+    .returns(a.json())
+    .handler(a.handler.function(agentChat))
+    .authorization((allow) => [allow.authenticated()])
+  ,
   CreateAgent: a
     .query()
     .arguments({
@@ -49,7 +60,10 @@ const schema = a.schema({
     }).authorization((allow) => [
       allow.owner()
     ]),
-}).authorization((allow) => [allow.resource(createAgent)]);
+}).authorization((allow) => [
+  allow.resource(createAgent),
+  allow.resource(agentChat)
+]);
 
 export type Schema = ClientSchema<typeof schema>;
 

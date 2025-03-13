@@ -28,8 +28,42 @@ const useDatabase = () => {
         }
     }
 
+    const listAgents = async (userId: string) => {
+        const list = await client.models.Agent.list({
+            filter: {
+                userId: {
+                    eq: userId
+                }
+            }
+        })
+
+        return list.data.sort((a: any, b: any) => { 
+            const timeA = new Date(a.createdAt).getTime();
+            const timeB = new Date(b.createdAt).getTime(); 
+            return timeB - timeA; // Descending order
+        })
+    }
+
+    const getMessages = async (agentId: string) => {
+        const result = await client.models.Agent.get({
+            id: agentId
+        })
+        return result?.data?.messages ? JSON.parse(String(result.data.messages)) : []
+    }
+
+    const saveMessages = async (agentId: string, messages: any) => {
+
+        await client.models.Agent.update({
+            id: agentId,
+            messages: JSON.stringify(messages)
+        })
+    }
+
     return {
-        getProfile
+        getProfile,
+        getMessages,
+        listAgents,
+        saveMessages
     }
 }
 
