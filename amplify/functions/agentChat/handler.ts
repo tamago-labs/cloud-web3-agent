@@ -80,13 +80,17 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
 
         console.log("message:", msg)
 
-        if (msg.kwargs?.type === "tool_result" || msg.type === "tool_result") {
+        if (msg?.tool_call_id) {
             return {
+                content: [
+                    {
+                        type: "tool_result",
+                        tool_call_id: msg.tool_call_id,
+                        content: msg.kwargs?.content || msg.content,
+                    }
+                ],
                 role,
-                content: msg.kwargs?.content || msg.content,
-                id: msg.kwargs?.id || msg.id,
-                type: msg.kwargs?.type || msg.type,
-                tool_use_id: msg.kwargs?.tool_use_id || msg.tool_use_id
+                id: msg.kwargs?.id || msg.id
             }
         } else {
             return {
