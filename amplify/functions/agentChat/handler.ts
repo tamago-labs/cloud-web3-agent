@@ -85,7 +85,7 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
                 content: [
                     {
                         type: "tool_result",
-                        tool_call_id: msg.tool_call_id,
+                        tool_use_id: msg.tool_call_id,
                         content: msg.kwargs?.content || msg.content,
                     }
                 ],
