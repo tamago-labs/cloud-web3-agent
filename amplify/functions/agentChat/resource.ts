@@ -11,5 +11,5 @@ export const agentChat = defineFunction({
   environment: {
     ANTHROPIC_API_KEY: secret('ANTHROPIC_API_KEY')
   },
-  timeoutSeconds: 300
+  timeoutSeconds: 600
 });
