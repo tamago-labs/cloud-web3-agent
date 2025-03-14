@@ -26,7 +26,7 @@ const client = generateClient<Schema>();
 export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => {
     console.log("event", JSON.stringify(event, null, 2))
 
-    const { messages, agentId } = event.arguments 
+    const { messages, agentId } : any = event.arguments 
 
     const { data }: any = await client.models.Agent.get({
         id: agentId
