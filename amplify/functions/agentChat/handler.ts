@@ -9,6 +9,7 @@ import { AIMessage, BaseMessage, ChatMessage, HumanMessage } from "@langchain/co
 import { createReactAgent } from "@langchain/langgraph/prebuilt"
 import { AgentRuntime, LocalSigner, createAptosTools } from "move-agent-kit"
 import { Account, SigningSchemeInput, Aptos, AptosConfig, Ed25519PrivateKey, Secp256k1PrivateKey, Network, PrivateKey, PrivateKeyVariants } from "@aptos-labs/ts-sdk"
+ 
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -25,8 +26,7 @@ const client = generateClient<Schema>();
 export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => {
     console.log("event", JSON.stringify(event, null, 2))
 
-    const messages: any = event.arguments.messages
-    const agentId: any = event.arguments.agentId
+    const { messages, agentId } = event.arguments 
 
     const { data }: any = await client.models.Agent.get({
         id: agentId
@@ -75,7 +75,7 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
         }
     )
 
-    let finalized : any[] = []
+    let finalized: any = []
 
     output.messages.map((msg: any) => {
         const role = msg.additional_kwargs?.role || "user"

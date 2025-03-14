@@ -8,9 +8,9 @@ const schema = a.schema({
     .arguments({
       messages: a.json(),
       agentId: a.string()
-    })
+    }) 
     .returns(a.json())
-    .handler(a.handler.function(agentChat).async())
+    .handler(a.handler.function(agentChat))
     .authorization((allow) => [allow.authenticated()])
   ,
   CreateAgent: a
