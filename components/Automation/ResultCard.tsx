@@ -1,6 +1,6 @@
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
-const ResultCard = ({ data }: any) => {
+const ResultCard = ({ data, agent }: any) => {
     // Check if the data is a string that needs to be parsed
     const responseData = typeof data === 'string' ? JSON.parse(data) : data;
 
@@ -96,7 +96,7 @@ const ResultCard = ({ data }: any) => {
                                 </CopyToClipboard>
                                 
                                 <a
-                                    href={`https://explorer.aptoslabs.com/txn/${transferTokenTransactionHash}`}
+                                    href={`https://explorer.aptoslabs.com/txn/${transferTokenTransactionHash}?network=${ agent.isTestnet ? "testnet" : "mainnet" }`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="ml-2 text-gray-600 hover:text-gray-800"

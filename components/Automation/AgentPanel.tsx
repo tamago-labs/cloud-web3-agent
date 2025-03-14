@@ -8,6 +8,8 @@ import { CloudAgentContext } from "@/hooks/useCloudAgent"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import ResultCard from "./ResultCard"
 
+import AgentSettingsModal from "../../modals/agentSettings"
+
 const AgentPanelOLD = ({ agent }: any) => {
 
     const { query } = useContext(CloudAgentContext)
@@ -374,7 +376,12 @@ const AgentPanelOLD = ({ agent }: any) => {
     )
 }
 
-const AgentPanel = ({ agent }: any) => {
+enum Modal {
+    NONE,
+    SETTINGS
+}
+
+const AgentPanel = ({ agent, increaseTick }: any) => {
 
     const { query } = useTest()
 
@@ -389,11 +396,12 @@ const AgentPanel = ({ agent }: any) => {
         {
             loading: false,
             message: "",
-            messages: []
+            messages: [],
+            modal: Modal.NONE
         }
     )
 
-    const { message, messages, loading } = values
+    const { message, messages, loading, modal } = values
 
     useEffect(() => {
         const scrollToBottom = () => {
@@ -496,7 +504,7 @@ const AgentPanel = ({ agent }: any) => {
                     let displayContent = item.content;
                     try {
                         const parsed = JSON.parse(item.content);
-                        return <ResultCard data={displayContent}/>
+                        return <ResultCard data={displayContent} agent={agent} />
                     } catch (e) {
 
                     }
@@ -584,75 +592,94 @@ const AgentPanel = ({ agent }: any) => {
 
 
     return (
-        <div className="grid grid-cols-7 h-full">
-            <div className="col-span-5 flex flex-col  overflow-y-scroll" ref={chatContainerRef} >
-                {/* Header */}
-                <div className="  p-4 border-b border-white/10 bg-gradient-to-br from-blue-900/30 to-indigo-900/30 flex items-center justify-between">
-                    <div className="flex items-center">
-                        <div className="   mr-3">
-                            <img src={"/assets/images/aptos-icon.png"} className='w-10 h-10 rounded-full ' />
-                        </div>
-                        <div>
-                            <h2 className="font-medium">
-                                {agent.name}
-                            </h2>
-                            <div className="flex items-center">
-                                {/* <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+        <>
+
+            <AgentSettingsModal
+                visible={modal === Modal.SETTINGS}
+                close={() => dispatch({ modal: Modal.NONE })}
+                agent={agent}
+                increaseTick={increaseTick}
+            />
+
+            <div className="grid grid-cols-7 h-full">
+                <div className="col-span-5 flex flex-col  overflow-y-scroll" ref={chatContainerRef} >
+                    {/* Header */}
+                    <div className="  p-4 border-b border-white/10 bg-gradient-to-br from-blue-900/30 to-indigo-900/30 flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="   mr-3">
+                                <img src={"/assets/images/aptos-icon.png"} className='w-10 h-10 rounded-full ' />
+                            </div>
+                            <div>
+                                <h2 className="font-medium">
+                                    {agent.name}
+                                </h2>
+                                <div className="flex items-center">
+                                    {/* <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                                <span className="text-xs text-gray-400 mr-1">Online • Move Agent Kit •</span> */}
-                                <span className="text-xs text-gray-400 mr-1">Move Agent Kit •</span>
-                                <span className="text-xs text-gray-400">{shortAddress(agent.walletAddresses[0], 10, -8)} </span>
+                                    <span className="text-xs text-gray-400 mr-1">Move Agent Kit •</span>
+                                    <span className="text-xs text-gray-400">{shortAddress(agent.walletAddresses[0], 10, -8)} </span>
+                                </div>
                             </div>
                         </div>
+                        <div className="flex items-center space-x-1">
+                            <button className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
+                                <Tool size={18} />
+                            </button>
+                            <button onClick={() => dispatch({ modal: Modal.SETTINGS })} className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
+                                <Settings size={18} />
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                        <button className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                            <Tool size={18} />
-                        </button>
-                        <button className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                            <Settings size={18} />
-                        </button>
-                    </div>
-                </div>
 
-                {/* Messages container */}
-                <div className="flex-1  p-4 space-y-4"  >
-                    {messages.map((message: any) => (
-                        <div
-                            key={message.id}
-                            className={`flex ${message.role === 'user' && !message.content[0]?.type ? 'justify-end' : 'justify-start'}`}
-                        >
+                    {/* Messages container */}
+                    <div className="flex-1  p-4 space-y-4"  >
+                        {messages.map((message: any) => (
                             <div
-                                className={`max-w-3/4 md:max-w-2/3 rounded-lg p-4 ${message.role === 'user' && !message.content[0]?.type
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-gray-800 border border-gray-200 shadow-sm'
-                                    }`}
+                                key={message.id}
+                                className={`flex ${message.role === 'user' && !message.content[0]?.type ? 'justify-end' : 'justify-start'}`}
                             >
-                                <div className="message-content overflow-hidden">
-                                    {renderMessageContent(message.content)}
-                                </div>
+                                <div
+                                    className={`max-w-3/4 md:max-w-2/3 rounded-lg p-4 ${message.role === 'user' && !message.content[0]?.type
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-white text-gray-800 border border-gray-200 shadow-sm'
+                                        }`}
+                                >
+                                    <div className="message-content overflow-hidden">
+                                        {renderMessageContent(message.content)}
+                                    </div>
 
-                                {/* Show wallet info if present */}
-                                {message.content && typeof message.content === 'string' &&
-                                    extractAddressFromMessage(message.content) && (
-                                        <div className="mt-2 p-2 bg-gray-100 rounded-md text-gray-800">
-                                            <div className="flex items-center space-x-2 text-sm">
-                                                <span className="font-semibold">Wallet:</span>
-                                                <span className="font-mono">
-                                                    {formatWalletAddress(extractAddressFromMessage(message.content))}
-                                                </span>
-                                                <CopyToClipboard text={extractAddressFromMessage(message.content) || ""}>
-                                                    <button className="p-1 cursor-pointer  text-gray-600 hover:text-gray-800">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    {/* Show wallet info if present */}
+                                    {message.content && typeof message.content === 'string' &&
+                                        extractAddressFromMessage(message.content) && (
+                                            <div className="mt-2 p-2 bg-gray-100 rounded-md text-gray-800">
+                                                <div className="flex items-center space-x-2 text-sm">
+                                                    <span className="font-semibold">Wallet:</span>
+                                                    <span className="font-mono">
+                                                        {formatWalletAddress(extractAddressFromMessage(message.content))}
+                                                    </span>
+                                                    <CopyToClipboard text={extractAddressFromMessage(message.content) || ""}>
+                                                        <button className="p-1 cursor-pointer  text-gray-600 hover:text-gray-800">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </button>
+                                                    </CopyToClipboard>
+                                                    <a
+                                                        href={`https://explorer.aptoslabs.com/account/${extractAddressFromMessage(message.content) || ""}?network=${agent.isTestnet ? "testnet" : "mainnet"}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="ml-2 text-gray-600 hover:text-gray-800"
+                                                    >
+                                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                         </svg>
-                                                    </button>
-                                                </CopyToClipboard>
+                                                    </a>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                {/* Show transaction link if present */}
-                                {/* {message.content && typeof message.content === 'string' && extractTransactionHash(message.content) && (
+                                    {/* Show transaction link if present */}
+                                    {/* {message.content && typeof message.content === 'string' && extractTransactionHash(message.content) && (
                                     <div className="mt-2 p-2 bg-green-50 rounded-md text-green-800">
                                         <div className="flex items-center space-x-2 text-sm">
                                             <span className="font-semibold">Transaction:</span>
@@ -670,47 +697,47 @@ const AgentPanel = ({ agent }: any) => {
                                         </div>
                                     </div>
                                 )} */}
-                            </div>
-                        </div>
-                    ))}
-
-                    {loading && (
-                        <div className="flex justify-start">
-                            <div className="bg-white text-gray-800 border border-gray-200 rounded-lg p-4 shadow-sm">
-                                <div className="flex space-x-2">
-                                    <RefreshCw size={24} className="mr-2 my-auto animate-spin text-blue-600" />
-                                    <span className="my-auto mr-2">Please wait...</span>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        ))}
 
-                </div>
+                        {loading && (
+                            <div className="flex justify-start">
+                                <div className="bg-white text-gray-800 border border-gray-200 rounded-lg p-4 shadow-sm">
+                                    <div className="flex space-x-2">
+                                        <RefreshCw size={24} className="mr-2 my-auto animate-spin text-blue-600" />
+                                        <span className="my-auto mr-2">Please wait...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-                {/* Input Area */}
-                <div className="  border-t border-white/10  bg-gradient-to-br from-blue-900/30 to-indigo-900/30  p-4">
-                    <div className="  mx-auto">
-                        <div className="relative flex items-center">
-                            <input
-                                type="text"
-                                value={message}
-                                disabled={loading}
-                                onChange={(e) => dispatch({ message: e.target.value })}
-                                className="  py-3 pl-4 pr-16  rounded-lg bg-black/30 border-none flex-1 focus:outline-none"
-                                placeholder="Ask your agent something..."
-                            />
-                            <button
-                                onClick={handleSendMessage}
-                                disabled={loading}
-                                className={`absolute right-2  inline-flex text-white px-4 py-2 bg-blue-600 cursor-pointer    hover:bg-blue-700 p-2 rounded-md`}
-                            >
-                                <Send size={18} className="my-auto mr-2" />
-                                {` Send`}
-                            </button>
-                        </div>
+                    </div>
 
-                        {/* Agent Capabilities */}
-                        {/* <div className="mt-4">
+                    {/* Input Area */}
+                    <div className="  border-t border-white/10  bg-gradient-to-br from-blue-900/30 to-indigo-900/30  p-4">
+                        <div className="  mx-auto">
+                            <div className="relative flex items-center">
+                                <input
+                                    type="text"
+                                    value={message}
+                                    disabled={loading}
+                                    onChange={(e) => dispatch({ message: e.target.value })}
+                                    className="  py-3 pl-4 pr-16  rounded-lg bg-black/30 border-none flex-1 focus:outline-none"
+                                    placeholder="Ask your agent something..."
+                                />
+                                <button
+                                    onClick={handleSendMessage}
+                                    disabled={loading}
+                                    className={`absolute right-2  inline-flex text-white px-4 py-2 bg-blue-600 cursor-pointer    hover:bg-blue-700 p-2 rounded-md`}
+                                >
+                                    <Send size={18} className="my-auto mr-2" />
+                                    {` Send`}
+                                </button>
+                            </div>
+
+                            {/* Agent Capabilities */}
+                            {/* <div className="mt-4">
                             <div className="flex items-center mb-2">
                                 <h3 className="text-sm font-medium text-gray-700">Agent Capabilities</h3>
                                 <ChevronDown size={16} className="ml-1 text-gray-500" />
@@ -727,11 +754,12 @@ const AgentPanel = ({ agent }: any) => {
                                 ))}
                             </div>
                         </div> */}
+                        </div>
                     </div>
-                </div>
 
+                </div>
             </div>
-        </div>
+        </>
     )
 }
 

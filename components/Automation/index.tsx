@@ -3,33 +3,41 @@
 
 import { CloudAgentContext } from '@/hooks/useCloudAgent';
 import useDatabase from '@/hooks/useDatabase';
-import React, { useState, useEffect, useReducer, useRef, useContext } from 'react';
+import React, { useState, useCallback, useEffect, useReducer, useRef, useContext } from 'react';
 import { Send, Plus, Settings, Download, Copy, Trash, ChevronDown, PlayCircle } from "react-feather"
 import AgentPanel from './AgentPanel';
 
 const Automation = () => {
 
-    const { listAgents } = useDatabase()
+    const { listAgents, getAgent } = useDatabase()
     const { profile } = useContext(CloudAgentContext)
     const [agents, setAgents] = useState<any[]>([])
 
     const [values, dispatch] = useReducer(
         (curVal: any, newVal: any) => ({ ...curVal, ...newVal }),
         {
-            selected: undefined
+            selected: undefined,
+            tick: 1
         }
     )
 
-    const { selected } = values
+    const { selected, tick } = values
 
     const setSelected = (entry: any) => {
         dispatch({ selected: entry })
     }
 
+    const increaseTick = useCallback(async () => {
+        dispatch({ tick: tick + 1 })
+        if (selected) {
+            const agent = await getAgent(selected.id)
+            dispatch({ selected: agent }) 
+        }
+    }, [tick, selected])
+
     useEffect(() => {
         profile && listAgents(profile.id).then(setAgents)
-    }, [profile])
-
+    }, [profile, tick])
 
     return (
         <div className="flex h-screen relative">
@@ -66,13 +74,14 @@ const Automation = () => {
                     </div>
                 }
 
-                { selected && (
+                {selected && (
                     <AgentPanel
                         agent={selected}
+                        increaseTick={increaseTick}
                     />
                 )}
 
-            </div> 
+            </div>
         </div>
     )
 }

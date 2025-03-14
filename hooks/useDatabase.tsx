@@ -37,10 +37,25 @@ const useDatabase = () => {
             }
         })
 
-        return list.data.sort((a: any, b: any) => { 
+        return list.data.sort((a: any, b: any) => {
             const timeA = new Date(a.createdAt).getTime();
-            const timeB = new Date(b.createdAt).getTime(); 
+            const timeB = new Date(b.createdAt).getTime();
             return timeB - timeA; // Descending order
+        })
+    }
+
+    const getAgent = async (agentId: string) => {
+        const result = await client.models.Agent.get({
+            id: agentId
+        })
+        return result.data
+    }
+
+    const updateAgent = async (agentId: string, name: string, isTestnet: boolean) => {
+        await client.models.Agent.update({
+            id: agentId,
+            name,
+            isTestnet
         })
     }
 
@@ -63,6 +78,8 @@ const useDatabase = () => {
         getProfile,
         getMessages,
         listAgents,
+        updateAgent,
+        getAgent,
         saveMessages
     }
 }

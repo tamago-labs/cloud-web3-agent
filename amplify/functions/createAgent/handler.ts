@@ -27,6 +27,7 @@ export const handler: Schema["CreateAgent"]["functionHandler"] = async (event) =
             name,
             userId,
             blockchain,
+            isTestnet: false,
             sdkType,
             walletAddresses: [walletAddress]
         })

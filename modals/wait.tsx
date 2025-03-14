@@ -37,11 +37,7 @@ const WaitModal = ({ visible, close }: any) => {
                             Close
                         </button>
                     </div>
-
-
-
                 </div>
-
 
             </div>
 
