@@ -201,7 +201,7 @@ const NewAgent = () => {
         {
             selectedBlockchain: undefined,
             selectedSDK: undefined,
-            agentName: undefined, 
+            agentName: undefined,
             errorMessage: undefined,
             loading: false,
             modal: false
@@ -213,11 +213,11 @@ const NewAgent = () => {
             listAgents(profile.id).then(
                 (agents) => {
                     const total = agents.length
-                    dispatch({ agentName : `My Agent #${total+1}` })
+                    dispatch({ agentName: `My Agent #${total + 1}` })
                 }
             )
         }
-    },[profile])
+    }, [profile])
 
     const { agentName, selectedBlockchain, selectedSDK, errorMessage, loading, modal } = values
 
@@ -267,7 +267,7 @@ const NewAgent = () => {
                     errorMessage: undefined,
                     loading: false,
                     modal: true
-                }) 
+                })
             } else {
                 throw new Error("Unknow error. Please try again.")
             }
@@ -302,14 +302,14 @@ const NewAgent = () => {
 
                     <div className="text-base sm:text-lg font-medium">
                         <p className="text-center">
-                        Your AI agent has been deployed. You will be redirected to the Automation tab to set up automations via chat
-                        </p> 
+                            Your AI agent has been deployed. You will be redirected to the Automation tab to set up automations via chat
+                        </p>
                         <div className="flex p-4">
                             <button onClick={next} className="bg-white cursor-pointer mx-auto px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
                                 OK
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </BaseModal>
 
@@ -335,7 +335,7 @@ const NewAgent = () => {
                                     <div className='flex flex-row'>
                                         <h3 className="font-medium my-auto">{blockchain.name}</h3>
                                         {selectedBlockchain === blockchain.id && (
-                                            <span className="bg-blue-900/30 px-2 my-auto py-1 ml-2 rounded border border-blue-600  text-blue-600 text-sm font-semibold flex items-center">
+                                            <span className="px-2 my-auto py-1 ml-2 border border-blue-600  text-white text-sm  font-medium flex items-center bg-blue-600 rounded-lg hover:bg-blue-700">
                                                 <Check size={16} className="mr-1" /> Selected
                                             </span>
                                         )}
@@ -371,7 +371,7 @@ const NewAgent = () => {
                                         <p className="text-sm text-gray-400">{sdk.description}</p>
                                     </div>
                                     {selectedSDK === sdk.id && (
-                                        <span className="bg-blue-900/30 px-2 my-auto py-1 ml-2 rounded border border-blue-600  text-blue-600 text-sm font-semibold flex items-center">
+                                        <span className="px-2 my-auto py-1 ml-2 border border-blue-600  text-white text-sm  font-medium flex items-center bg-blue-600 rounded-lg hover:bg-blue-700">
                                             <Check size={16} className="mr-1" /> Selected
                                         </span>
                                     )}
