@@ -41,6 +41,8 @@ const schema = a.schema({
       user: a.belongsTo('User', "userId"),
       name: a.string(),
       blockchain: a.string(),
+      isTestnet: a.boolean(),
+      additionalTools: a.json(),
       sdkType: a.string(),
       wallets: a.hasMany('Wallet', "agentId"),
       walletAddresses: a.string().array(),

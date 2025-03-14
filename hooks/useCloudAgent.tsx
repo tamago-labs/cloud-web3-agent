@@ -1,5 +1,9 @@
 import { createContext, useCallback, ReactNode, useContext, useEffect, useMemo, useReducer, useState } from "react"
 import useDatabase from "./useDatabase";
+import type { Schema } from "../amplify/data/resource"
+import { generateClient } from "aws-amplify/api"
+
+const client = generateClient<Schema>()
 
 export const CloudAgentContext = createContext<any>({})
 
@@ -33,10 +37,25 @@ const Provider = ({ children }: Props) => {
 
     }, [])
 
+    const query = async (agentId: string, messages: any) => {
+
+        console.log("querying...", agentId, messages)
+
+        const result: any = await client.queries.AgentChat({
+            agentId,
+            messages: JSON.stringify(messages)
+        })
+
+        console.log("result:", result, (new Date().toLocaleString()))
+
+        return JSON.parse(result.data)
+    }
+
     const cloudAgentContext: any = useMemo(
         () => ({
             profile,
-            loadProfile
+            loadProfile,
+            query
         }),
         [
             profile
