@@ -10,7 +10,7 @@ const schema = a.schema({
       agentId: a.string()
     })
     .returns(a.json())
-    .handler(a.handler.function(agentChat))
+    .handler(a.handler.function(agentChat).async())
     .authorization((allow) => [allow.authenticated()])
   ,
   CreateAgent: a
