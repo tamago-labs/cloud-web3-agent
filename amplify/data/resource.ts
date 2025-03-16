@@ -8,11 +8,18 @@ const schema = a.schema({
     .arguments({
       messages: a.json(),
       agentId: a.string()
-    }) 
+    })
     .returns(a.json())
     .handler(a.handler.function(agentChat))
     .authorization((allow) => [allow.authenticated()])
   ,
+  PromptEnhance: a.generation({
+    aiModel: a.ai.model("Claude 3.5 Sonnet"),
+    systemPrompt: 'You are a helpful assistant that completes prompts for automation tasks on the Web3 AI-agent platform.',
+  })
+    .arguments({ prompt: a.string() })
+    .returns(a.string())
+    .authorization((allow) => allow.authenticated()),
   CreateAgent: a
     .query()
     .arguments({
@@ -42,10 +49,17 @@ const schema = a.schema({
       name: a.string(),
       blockchain: a.string(),
       isTestnet: a.boolean(),
+      isActive: a.boolean(),
+      schedule: a.integer(),
+      lastRanAt: a.timestamp(),
+      promptInput: a.string(),
+      promptDecision: a.string(),
+      promptExecute: a.string(),
       additionalTools: a.json(),
       sdkType: a.string(),
       wallets: a.hasMany('Wallet', "agentId"),
       walletAddresses: a.string().array(),
+      listing: a.hasOne('Marketplace', "agentId"),
       configurations: a.json(),
       messages: a.json()
     })
@@ -61,6 +75,24 @@ const schema = a.schema({
       key: a.string()
     }).authorization((allow) => [
       allow.owner()
+    ]),
+  Marketplace: a
+    .model({
+      agentId: a.id().required(),
+      agent: a.belongsTo('Agent', "agentId"),
+      publicName: a.string(),
+      byName: a.string(),
+      description: a.string(),
+      isApproved: a.boolean(),
+      category: a.string(),
+      price: a.integer(),
+      redeployCount: a.integer(),
+      blockchain: a.string(),
+      sdkType: a.string(),
+      isTestnet: a.boolean(),
+      tags: a.string().array()
+    }).authorization((allow) => [
+      allow.authenticated()
     ]),
 }).authorization((allow) => [
   allow.resource(createAgent),
