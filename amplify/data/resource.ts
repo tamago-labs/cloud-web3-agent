@@ -37,6 +37,7 @@ const schema = a.schema({
       username: a.string().required(),
       role: a.enum(["USER", "MANAGER", "ADMIN"]),
       agents: a.hasMany('Agent', "userId"),
+      displayName: a.string()
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
@@ -60,7 +61,6 @@ const schema = a.schema({
       wallets: a.hasMany('Wallet', "agentId"),
       walletAddresses: a.string().array(),
       listing: a.hasOne('Marketplace', "agentId"),
-      configurations: a.json(),
       messages: a.json()
     })
     .authorization((allow) => [
@@ -80,10 +80,10 @@ const schema = a.schema({
     .model({
       agentId: a.id().required(),
       agent: a.belongsTo('Agent', "agentId"),
-      publicName: a.string(),
-      byName: a.string(),
+      publicName: a.string(), 
       description: a.string(),
       isApproved: a.boolean(),
+      isHidden: a.boolean(),
       category: a.string(),
       price: a.integer(),
       redeployCount: a.integer(),
