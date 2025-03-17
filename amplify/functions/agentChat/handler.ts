@@ -78,11 +78,65 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
         }
     )
 
+    // Override old messages
+    const finalized = parseLangchain(output.messages).map((msg: any) => {
+        const message = messages.find((i: any) => i.id === msg.id)
+        if (message) {
+            msg = message
+        }
+        return msg
+    })
+
+    // let finalized: any = []
+
+    // output.messages.map((msg: any) => {
+    //     const role = msg.additional_kwargs?.role || "user"
+    //     console.log("message:", msg)
+    //     if (msg?.tool_call_id) {
+    //         finalized.push({
+    //             content: [
+    //                 {
+    //                     type: "tool_result",
+    //                     tool_use_id: msg.tool_call_id,
+    //                     content: msg.kwargs?.content || msg.content,
+    //                 }
+    //             ],
+    //             role: "assistant",
+    //             id: msg.kwargs?.id || msg.id
+    //         })
+    //     } else {
+
+    //         const content = msg.kwargs?.content || msg.content
+
+    //         if (typeof content === 'string') {
+    //             finalized.push({
+    //                 role,
+    //                 content: msg.kwargs?.content || msg.content,
+    //                 id: msg.kwargs?.id || msg.id
+    //             })
+    //         } else {
+    //             finalized.push({
+    //                 role : "assistant",
+    //                 content: msg.kwargs?.content || msg.content,
+    //                 id: msg.kwargs?.id || msg.id
+    //             })
+    //         }
+
+    //     }
+    // })
+
+    console.log("final messages :", finalized)
+
+    return finalized
+}
+
+
+const parseLangchain = (messages: any) => {
     let finalized: any = []
 
-    output.messages.map((msg: any) => {
-        const role = msg.additional_kwargs?.role || "user"
-        console.log("message:", msg)
+    messages.map((msg: any) => {
+        const role = msg?.additional_kwargs && Object.keys(msg?.additional_kwargs).length === 0 ? "user" : "assistant"
+
         if (msg?.tool_call_id) {
             finalized.push({
                 content: [
@@ -92,31 +146,16 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
                         content: msg.kwargs?.content || msg.content,
                     }
                 ],
-                role: "assistant",
+                role: "user",
                 id: msg.kwargs?.id || msg.id
             })
         } else {
-
-            const content = msg.kwargs?.content || msg.content
-
-            if (typeof content === 'string') {
-                finalized.push({
-                    role,
-                    content: msg.kwargs?.content || msg.content,
-                    id: msg.kwargs?.id || msg.id
-                })
-            } else {
-                finalized.push({
-                    role : "assistant",
-                    content: msg.kwargs?.content || msg.content,
-                    id: msg.kwargs?.id || msg.id
-                })
-            }
-
+            finalized.push({
+                role,
+                content: msg.kwargs?.content || msg.content,
+                id: msg.kwargs?.id || msg.id
+            })
         }
     })
-
-    console.log("final messages :", finalized)
-
     return finalized
 }

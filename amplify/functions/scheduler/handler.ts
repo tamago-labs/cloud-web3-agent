@@ -145,43 +145,14 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
             }
         )
 
-        // let finalized: any = []
-
-        // finalOutput.messages.map((msg: any) => {
-        //     const role = msg.additional_kwargs?.role || "user"
-
-        //     if (msg?.tool_call_id) {
-        //         finalized.push({
-        //             content: [
-        //                 {
-        //                     type: "tool_result",
-        //                     tool_use_id: msg.tool_call_id,
-        //                     content: msg.kwargs?.content || msg.content,
-        //                 }
-        //             ],
-        //             role: "user",
-        //             id: msg.kwargs?.id || msg.id
-        //         })
-        //     } else {
-        //         const content = msg.kwargs?.content || msg.content
-
-        //         if (typeof content === 'string') {
-        //             finalized.push({
-        //                 role,
-        //                 content: msg.kwargs?.content || msg.content,
-        //                 id: msg.kwargs?.id || msg.id
-        //             })
-        //         } else {
-        //             finalized.push({
-        //                 role: "assistant",
-        //                 content: msg.kwargs?.content || msg.content,
-        //                 id: msg.kwargs?.id || msg.id
-        //             })
-        //         }
-        //     }
-        // })
-
-        const finalized = parseLangchain(finalOutput.messages)
+        // Override old messages
+        const finalized = parseLangchain(finalOutput.messages).map((msg: any) => {
+            const message = [...messages, userPrompt, dataResultMessage, executePrompt].find((i: any) => i.id === msg.id)
+            if (message) {
+                msg = message
+            }
+            return msg
+        })
 
         console.log("saving messages :", finalized)
         await client.models.Agent.update({
@@ -214,9 +185,9 @@ const extractOnlyLastMessage = (output: any) => {
     return last
 
 }
- 
 
-const parseLangchain = (messages : any) => {
+
+const parseLangchain = (messages: any) => {
     let finalized: any = []
 
     messages.map((msg: any) => {
@@ -235,8 +206,6 @@ const parseLangchain = (messages : any) => {
                 id: msg.kwargs?.id || msg.id
             })
         } else {
-            const content = msg.kwargs?.content || msg.content
-
             finalized.push({
                 role,
                 content: msg.kwargs?.content || msg.content,
