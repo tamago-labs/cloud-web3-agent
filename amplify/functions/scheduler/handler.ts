@@ -110,7 +110,7 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
       `,
     })
 
-    let messages: any = agent.messages || []
+    let messages: any = agent?.messages ? JSON.parse(String(agent.messages)) : []
 
     console.log("Existing messages : ", messages)
 
