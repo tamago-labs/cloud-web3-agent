@@ -145,41 +145,43 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
             }
         )
 
-        let finalized: any = []
+        // let finalized: any = []
 
-        finalOutput.messages.map((msg: any) => {
-            const role = msg.additional_kwargs?.role || "user"
+        // finalOutput.messages.map((msg: any) => {
+        //     const role = msg.additional_kwargs?.role || "user"
 
-            if (msg?.tool_call_id) {
-                finalized.push({
-                    content: [
-                        {
-                            type: "tool_result",
-                            tool_use_id: msg.tool_call_id,
-                            content: msg.kwargs?.content || msg.content,
-                        }
-                    ],
-                    role: "user",
-                    id: msg.kwargs?.id || msg.id
-                })
-            } else {
-                const content = msg.kwargs?.content || msg.content
+        //     if (msg?.tool_call_id) {
+        //         finalized.push({
+        //             content: [
+        //                 {
+        //                     type: "tool_result",
+        //                     tool_use_id: msg.tool_call_id,
+        //                     content: msg.kwargs?.content || msg.content,
+        //                 }
+        //             ],
+        //             role: "user",
+        //             id: msg.kwargs?.id || msg.id
+        //         })
+        //     } else {
+        //         const content = msg.kwargs?.content || msg.content
 
-                if (typeof content === 'string') {
-                    finalized.push({
-                        role,
-                        content: msg.kwargs?.content || msg.content,
-                        id: msg.kwargs?.id || msg.id
-                    })
-                } else {
-                    finalized.push({
-                        role: "assistant",
-                        content: msg.kwargs?.content || msg.content,
-                        id: msg.kwargs?.id || msg.id
-                    })
-                }
-            }
-        })
+        //         if (typeof content === 'string') {
+        //             finalized.push({
+        //                 role,
+        //                 content: msg.kwargs?.content || msg.content,
+        //                 id: msg.kwargs?.id || msg.id
+        //             })
+        //         } else {
+        //             finalized.push({
+        //                 role: "assistant",
+        //                 content: msg.kwargs?.content || msg.content,
+        //                 id: msg.kwargs?.id || msg.id
+        //             })
+        //         }
+        //     }
+        // })
+
+        const finalized = parseLangchain(finalOutput.messages)
 
         console.log("saving messages :", finalized)
         await client.models.Agent.update({
@@ -212,45 +214,35 @@ const extractOnlyLastMessage = (output: any) => {
     return last
 
 }
+ 
 
-function parseLangChainToGeneric(langchainMessages: any) {
-    return langchainMessages.map((message: any) => {
-        // Determine message type based on message structure instead of constructor name
-        let role = 'system'; // Default role
+const parseLangchain = (messages : any) => {
+    let finalized: any = []
 
-        // Check if it's a HumanMessage
-        if (message.hasOwnProperty('content') && !message.hasOwnProperty('tool_calls')) {
-            if (!message.hasOwnProperty('name')) {
-                role = 'user';
-            }
+    messages.map((msg: any) => {
+        const role = msg?.additional_kwargs && Object.keys(msg?.additional_kwargs).length === 0 ? "user" : "assistant"
+
+        if (msg?.tool_call_id) {
+            finalized.push({
+                content: [
+                    {
+                        type: "tool_result",
+                        tool_use_id: msg.tool_call_id,
+                        content: msg.kwargs?.content || msg.content,
+                    }
+                ],
+                role: "user",
+                id: msg.kwargs?.id || msg.id
+            })
+        } else {
+            const content = msg.kwargs?.content || msg.content
+
+            finalized.push({
+                role,
+                content: msg.kwargs?.content || msg.content,
+                id: msg.kwargs?.id || msg.id
+            })
         }
-
-        // Check if it's an AIMessage
-        if (message.hasOwnProperty('content') &&
-            (message.hasOwnProperty('tool_calls') ||
-                (message.additional_kwargs && message.additional_kwargs.role === 'assistant'))) {
-            role = 'assistant';
-        }
-
-        // Check if it's a ToolMessage
-        if (message.hasOwnProperty('name') && message.hasOwnProperty('content') &&
-            message.hasOwnProperty('tool_call_id')) {
-            role = 'assistant'; // Map tool messages to assistant role in target format
-        }
-
-        // Extract ID
-        let id = message.id ||
-            (message.additional_kwargs && message.additional_kwargs.id) ||
-            null;
-
-        // Use the content as is
-        let content = message.content;
-
-        // Create the generic message object
-        return {
-            role,
-            id,
-            content
-        };
-    });
+    })
+    return finalized
 }
