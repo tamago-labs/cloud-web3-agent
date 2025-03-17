@@ -174,7 +174,7 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
 
         await client.models.Agent.update({
             id: agent.id,
-            messages: finalized,
+            messages: JSON.stringify(finalized),
             lastRanAt: Math.floor(new Date().valueOf() / 1000)
         })
 
