@@ -145,29 +145,41 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
             }
         )
 
-        const finalized = parseLangChainToGeneric(finalOutput.messages)
+        let finalized: any = []
 
-        // let finalized: any = []
+        finalOutput.messages.map((msg: any) => {
+            const role = msg.additional_kwargs?.role || "user"
 
-        // finalOutput.messages.map((msg: any) => {
-        //     const role = msg.additional_kwargs?.role || "user"
+            if (msg?.tool_call_id) {
+                finalized.push({
+                    content: [
+                        {
+                            type: "tool_result",
+                            tool_use_id: msg.tool_call_id,
+                            content: msg.kwargs?.content || msg.content,
+                        }
+                    ],
+                    role: "user",
+                    id: msg.kwargs?.id || msg.id
+                })
+            } else {
+                const content = msg.kwargs?.content || msg.content
 
-        //     if (msg?.tool_call_id) {
-        //         finalized.push({
-        //             content: [
-        //                 {
-        //                     type: "tool_result",
-        //                     tool_use_id: msg.tool_call_id,
-        //                     content: msg.kwargs?.content || msg.content,
-        //                 }
-        //             ],
-        //             role: role,
-        //             id: msg.kwargs?.id || msg.id
-        //         })
-        //     } else {
-
-        //     } 
-        // })
+                if (typeof content === 'string') {
+                    finalized.push({
+                        role,
+                        content: msg.kwargs?.content || msg.content,
+                        id: msg.kwargs?.id || msg.id
+                    })
+                } else {
+                    finalized.push({
+                        role: "assistant",
+                        content: msg.kwargs?.content || msg.content,
+                        id: msg.kwargs?.id || msg.id
+                    })
+                }
+            }
+        })
 
         console.log("saving messages :", finalized)
         await client.models.Agent.update({
