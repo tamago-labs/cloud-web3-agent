@@ -201,43 +201,38 @@ const extractOnlyLastMessage = (output: any) => {
 
 }
 
-const parseLangChainToGeneric = (langchainMessages: any) => {
+function parseLangChainToGeneric(langchainMessages: any) {
     return langchainMessages.map((message: any) => {
-        // Extract the basic message type
-        const messageType = message.constructor.name;
+        // Determine message type based on message structure instead of constructor name
+        let role = 'system'; // Default role
 
-        // Set role based on message type
-        let role;
-        if (messageType === 'HumanMessage') {
-            role = 'user';
-        } else if (messageType === 'AIMessage') {
-            role = 'assistant';
-        } else if (messageType === 'ToolMessage') {
-            // Here we map ToolMessage to assistant role since the desired output format 
-            // doesn't seem to have a specific role for tool messages
-            role = 'assistant';
-        } else {
-            role = 'system'; // Default for any other message types
+        // Check if it's a HumanMessage
+        if (message.hasOwnProperty('content') && !message.hasOwnProperty('tool_calls')) {
+            if (!message.hasOwnProperty('name')) {
+                role = 'user';
+            }
         }
 
-        // Extract ID - different sources based on message type
-        let id;
-        if (message.id) {
-            id = message.id;
-        } else if (message.additional_kwargs && message.additional_kwargs.id) {
-            id = message.additional_kwargs.id;
-        } else {
-            id = null;
+        // Check if it's an AIMessage
+        if (message.hasOwnProperty('content') &&
+            (message.hasOwnProperty('tool_calls') ||
+                (message.additional_kwargs && message.additional_kwargs.role === 'assistant'))) {
+            role = 'assistant';
         }
 
-        // Handle content which can be a string or array
+        // Check if it's a ToolMessage
+        if (message.hasOwnProperty('name') && message.hasOwnProperty('content') &&
+            message.hasOwnProperty('tool_call_id')) {
+            role = 'assistant'; // Map tool messages to assistant role in target format
+        }
+
+        // Extract ID
+        let id = message.id ||
+            (message.additional_kwargs && message.additional_kwargs.id) ||
+            null;
+
+        // Use the content as is
         let content = message.content;
-
-        // For tool messages, we might want to use the tool's output as content
-        if (messageType === 'ToolMessage' && typeof content === 'string') {
-            // Tool messages typically have simple string content
-            content = content;
-        }
 
         // Create the generic message object
         return {
