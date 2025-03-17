@@ -158,7 +158,7 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
                             content: msg.kwargs?.content || msg.content,
                         }
                     ],
-                    role,
+                    role : "assistant",
                     id: msg.kwargs?.id || msg.id
                 })
             } else {
@@ -187,7 +187,7 @@ const extractOnlyLastMessage = (output: any) => {
     let last
 
     output.messages.map((msg: any) => {
-        const role = msg.additional_kwargs?.role || "user"
+        const role = msg.additional_kwargs?.role || (msg.role || "user")
         if (msg?.tool_call_id) {
 
         } else {

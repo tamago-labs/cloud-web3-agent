@@ -92,7 +92,7 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
                         content: msg.kwargs?.content || msg.content,
                     }
                 ],
-                role,
+                role : "assistant",
                 id: msg.kwargs?.id || msg.id
             })
         } else {
