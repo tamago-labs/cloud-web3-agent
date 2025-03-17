@@ -158,7 +158,7 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
                             content: msg.kwargs?.content || msg.content,
                         }
                     ],
-                    role : "assistant",
+                    role : role,
                     id: msg.kwargs?.id || msg.id
                 })
             } else if (msg?.tool_calls) {
