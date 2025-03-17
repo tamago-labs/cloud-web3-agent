@@ -161,6 +161,13 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
                     role : "assistant",
                     id: msg.kwargs?.id || msg.id
                 })
+            } else if (msg?.tool_calls) {
+                console.log("tool_calls message:", msg)
+                finalized.push({
+                    role : "assistant",
+                    content: msg.kwargs?.content || msg.content,
+                    id: msg.kwargs?.id || msg.id
+                })
             } else {
                 const content = msg.kwargs?.content || msg.content
                 console.log("message:", msg)
