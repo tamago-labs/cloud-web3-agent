@@ -125,7 +125,9 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
         }
     )
 
-    console.log("output: ", output)
+    const lastMessage = extractOnlyLastMessage(output)
+
+    console.log("Last message: ", lastMessage)
 
     // let finalized: any = []
 
@@ -154,5 +156,26 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
     // })
 
     // console.log("final messages :", finalized)
+
+}
+
+const extractOnlyLastMessage = (output: any) => {
+
+    let last
+
+    output.messages.map((msg: any) => {
+        const role = msg.additional_kwargs?.role || "user"
+        if (msg?.tool_call_id) {
+
+        } else {
+            last = {
+                role,
+                content: msg.kwargs?.content || msg.content,
+                id: msg.kwargs?.id || msg.id
+            }
+        }
+    })
+
+    return last
 
 }
