@@ -145,47 +145,29 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
             }
         )
 
-        let finalized: any = []
+        const finalized = parseLangChainToGeneric(finalOutput.messages)
 
-        finalOutput.messages.map((msg: any) => {
-            const role = msg.additional_kwargs?.role || "user"
-            if (msg?.tool_call_id) {
-                finalized.push({
-                    content: [
-                        {
-                            type: "tool_result",
-                            tool_use_id: msg.tool_call_id,
-                            content: msg.kwargs?.content || msg.content,
-                        }
-                    ],
-                    role : role,
-                    id: msg.kwargs?.id || msg.id
-                })
-            } else if (msg?.tool_calls) {
-                console.log("tool_calls message:", msg)
-                finalized.push({
-                    role : "assistant",
-                    content: msg.kwargs?.content || msg.content,
-                    id: msg.kwargs?.id || msg.id
-                })
-            } else {
-                const content = msg.kwargs?.content || msg.content
-                console.log("message:", msg)
-                if (typeof content === 'string') {
-                    finalized.push({
-                        role,
-                        content: msg.kwargs?.content || msg.content,
-                        id: msg.kwargs?.id || msg.id
-                    })
-                } else {
-                    finalized.push({
-                        role : "assistant",
-                        content: msg.kwargs?.content || msg.content,
-                        id: msg.kwargs?.id || msg.id
-                    })
-                }
-            }
-        })
+        // let finalized: any = []
+
+        // finalOutput.messages.map((msg: any) => {
+        //     const role = msg.additional_kwargs?.role || "user"
+
+        //     if (msg?.tool_call_id) {
+        //         finalized.push({
+        //             content: [
+        //                 {
+        //                     type: "tool_result",
+        //                     tool_use_id: msg.tool_call_id,
+        //                     content: msg.kwargs?.content || msg.content,
+        //                 }
+        //             ],
+        //             role: role,
+        //             id: msg.kwargs?.id || msg.id
+        //         })
+        //     } else {
+
+        //     } 
+        // })
 
         console.log("saving messages :", finalized)
         await client.models.Agent.update({
@@ -208,7 +190,7 @@ const extractOnlyLastMessage = (output: any) => {
 
         } else {
             last = {
-                role : "assistant",
+                role: "assistant",
                 content: msg.kwargs?.content || msg.content,
                 id: msg.kwargs?.id || msg.id
             }
@@ -217,4 +199,51 @@ const extractOnlyLastMessage = (output: any) => {
 
     return last
 
+}
+
+const parseLangChainToGeneric = (langchainMessages: any) => {
+    return langchainMessages.map((message: any) => {
+        // Extract the basic message type
+        const messageType = message.constructor.name;
+
+        // Set role based on message type
+        let role;
+        if (messageType === 'HumanMessage') {
+            role = 'user';
+        } else if (messageType === 'AIMessage') {
+            role = 'assistant';
+        } else if (messageType === 'ToolMessage') {
+            // Here we map ToolMessage to assistant role since the desired output format 
+            // doesn't seem to have a specific role for tool messages
+            role = 'assistant';
+        } else {
+            role = 'system'; // Default for any other message types
+        }
+
+        // Extract ID - different sources based on message type
+        let id;
+        if (message.id) {
+            id = message.id;
+        } else if (message.additional_kwargs && message.additional_kwargs.id) {
+            id = message.additional_kwargs.id;
+        } else {
+            id = null;
+        }
+
+        // Handle content which can be a string or array
+        let content = message.content;
+
+        // For tool messages, we might want to use the tool's output as content
+        if (messageType === 'ToolMessage' && typeof content === 'string') {
+            // Tool messages typically have simple string content
+            content = content;
+        }
+
+        // Create the generic message object
+        return {
+            role,
+            id,
+            content
+        };
+    });
 }
