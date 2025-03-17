@@ -92,43 +92,29 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
                         content: msg.kwargs?.content || msg.content,
                     }
                 ],
-                role : "assistant",
+                role: "assistant",
                 id: msg.kwargs?.id || msg.id
             })
         } else {
-            finalized.push({
-                role,
-                content: msg.kwargs?.content || msg.content,
-                id: msg.kwargs?.id || msg.id
-            })
+
+            const content = msg.kwargs?.content || msg.content
+
+            if (typeof content === 'string') {
+                finalized.push({
+                    role,
+                    content: msg.kwargs?.content || msg.content,
+                    id: msg.kwargs?.id || msg.id
+                })
+            } else {
+                finalized.push({
+                    role : "assistant",
+                    content: msg.kwargs?.content || msg.content,
+                    id: msg.kwargs?.id || msg.id
+                })
+            }
+
         }
     })
-
-    // const finalized = output.messages.map((msg: any) => {
-    //     const role = msg.additional_kwargs?.role || "user"
-
-    //     console.log("message:", msg)
-
-    //     if (msg?.tool_call_id) {
-    //         return {
-    //             content: [
-    //                 {
-    //                     type: "tool_result",
-    //                     tool_use_id: msg.tool_call_id,
-    //                     content: msg.kwargs?.content || msg.content,
-    //                 }
-    //             ],
-    //             role,
-    //             id: msg.kwargs?.id || msg.id
-    //         }
-    //     } else {
-    //         return {
-    //             role,
-    //             content: msg.kwargs?.content || msg.content,
-    //             id: msg.kwargs?.id || msg.id
-    //         }
-    //     }
-    // })
 
     console.log("final messages :", finalized)
 

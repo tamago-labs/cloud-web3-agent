@@ -162,16 +162,25 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
                     id: msg.kwargs?.id || msg.id
                 })
             } else {
-                finalized.push({
-                    role,
-                    content: msg.kwargs?.content || msg.content,
-                    id: msg.kwargs?.id || msg.id
-                })
+                const content = msg.kwargs?.content || msg.content
+
+                if (typeof content === 'string') {
+                    finalized.push({
+                        role,
+                        content: msg.kwargs?.content || msg.content,
+                        id: msg.kwargs?.id || msg.id
+                    })
+                } else {
+                    finalized.push({
+                        role : "assistant",
+                        content: msg.kwargs?.content || msg.content,
+                        id: msg.kwargs?.id || msg.id
+                    })
+                }
             }
         })
 
         console.log("saving messages :", finalized)
-
         await client.models.Agent.update({
             id: agent.id,
             messages: JSON.stringify(finalized),
@@ -187,12 +196,12 @@ const extractOnlyLastMessage = (output: any) => {
     let last
 
     output.messages.map((msg: any) => {
-        const role = msg.additional_kwargs?.role || (msg.role || "user")
+        // const role = msg.additional_kwargs?.role || (msg.role || "user")
         if (msg?.tool_call_id) {
 
         } else {
             last = {
-                role,
+                role : "assistant",
                 content: msg.kwargs?.content || msg.content,
                 id: msg.kwargs?.id || msg.id
             }
