@@ -125,37 +125,60 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
         }
     )
 
-    const lastMessage = extractOnlyLastMessage(output)
+    const dataResultMessage: any = extractOnlyLastMessage(output)
 
-    console.log("Last message: ", lastMessage)
+    if (dataResultMessage && dataResultMessage.role === "assistant" && dataResultMessage.content) {
 
-    // let finalized: any = []
+        const executePrompt = {
+            role: 'user',
+            content: [
+                "Based on the following condition:",
+                `${agent.promptDecision}`,
+                "Execute the following if the condition is met:",
+                `${agent.promptExecute}`,
+            ].join("\n")
+        }
 
-    // output.messages.map((msg: any) => {
-    //     const role = msg.additional_kwargs?.role || "user"
-    //     console.log("message:", msg)
-    //     if (msg?.tool_call_id) {
-    //         finalized.push({
-    //             content: [
-    //                 {
-    //                     type: "tool_result",
-    //                     tool_use_id: msg.tool_call_id,
-    //                     content: msg.kwargs?.content || msg.content,
-    //                 }
-    //             ],
-    //             role,
-    //             id: msg.kwargs?.id || msg.id
-    //         })
-    //     } else {
-    //         finalized.push({
-    //             role,
-    //             content: msg.kwargs?.content || msg.content,
-    //             id: msg.kwargs?.id || msg.id
-    //         })
-    //     }
-    // })
+        const finalOutput = await reactAgent.invoke(
+            {
+                messages: [...messages, userPrompt, dataResultMessage, executePrompt]
+            }
+        )
 
-    // console.log("final messages :", finalized)
+        let finalized: any = []
+
+        finalOutput.messages.map((msg: any) => {
+            const role = msg.additional_kwargs?.role || "user"
+            if (msg?.tool_call_id) {
+                finalized.push({
+                    content: [
+                        {
+                            type: "tool_result",
+                            tool_use_id: msg.tool_call_id,
+                            content: msg.kwargs?.content || msg.content,
+                        }
+                    ],
+                    role,
+                    id: msg.kwargs?.id || msg.id
+                })
+            } else {
+                finalized.push({
+                    role,
+                    content: msg.kwargs?.content || msg.content,
+                    id: msg.kwargs?.id || msg.id
+                })
+            }
+        })
+
+        console.log("saving messages :", finalized)
+
+        await client.models.Agent.update({
+            id: agent.id,
+            messages: finalized,
+            lastRanAt: Math.floor(new Date().valueOf() / 1000)
+        })
+
+    }
 
 }
 
