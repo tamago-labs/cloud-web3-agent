@@ -1,6 +1,7 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createAgent } from "../functions/createAgent/resource"
 import { agentChat } from "../functions/agentChat/resource";
+import { scheduler } from "../functions/scheduler/resource"
 
 const schema = a.schema({
   AgentChat: a
@@ -89,14 +90,14 @@ const schema = a.schema({
       redeployCount: a.integer(),
       blockchain: a.string(),
       sdkType: a.string(),
-      isTestnet: a.boolean(),
       tags: a.string().array()
     }).authorization((allow) => [
       allow.authenticated()
     ]),
 }).authorization((allow) => [
   allow.resource(createAgent),
-  allow.resource(agentChat)
+  allow.resource(agentChat),
+  allow.resource(scheduler)
 ]);
 
 export type Schema = ClientSchema<typeof schema>;
