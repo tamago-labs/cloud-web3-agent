@@ -163,7 +163,7 @@ const runAgent = async (agent: Schema["Agent"]["type"]) => {
                 })
             } else {
                 const content = msg.kwargs?.content || msg.content
-
+                console.log("message:", msg)
                 if (typeof content === 'string') {
                     finalized.push({
                         role,
