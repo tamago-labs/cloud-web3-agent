@@ -9,7 +9,7 @@ import { AIMessage, BaseMessage, ChatMessage, HumanMessage } from "@langchain/co
 import { createReactAgent } from "@langchain/langgraph/prebuilt"
 import { AgentRuntime, LocalSigner, createAptosTools } from "move-agent-kit"
 import { Account, SigningSchemeInput, Aptos, AptosConfig, Ed25519PrivateKey, Secp256k1PrivateKey, Network, PrivateKey, PrivateKeyVariants } from "@aptos-labs/ts-sdk"
- 
+
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -26,7 +26,7 @@ const client = generateClient<Schema>();
 export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => {
     console.log("event", JSON.stringify(event, null, 2))
 
-    const { messages, agentId } : any = event.arguments 
+    const { messages, agentId }: any = event.arguments
 
     const { data }: any = await client.models.Agent.get({
         id: agentId
@@ -37,7 +37,7 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
 
     // Initialize Aptos configuration
     const aptosConfig = new AptosConfig({
-        network: Network.MAINNET,
+        network: data.isTestnet ? Network.TESTNET : Network.MAINNET,
     })
 
     const aptos = new Aptos(aptosConfig)
@@ -47,7 +47,7 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
         privateKey: new Secp256k1PrivateKey(PrivateKey.formatPrivateKey(wallet.key, PrivateKeyVariants.Secp256k1)),
     })
 
-    const signer = new LocalSigner(account, Network.MAINNET)
+    const signer = new LocalSigner(account, data.isTestnet ? Network.TESTNET : Network.MAINNET)
     const aptosAgent = new AgentRuntime(signer, aptos)
     const tools = createAptosTools(aptosAgent)
 
@@ -66,7 +66,10 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
 
 		The response also contains token/token[] which contains the name and address of the token and the decimals.
 		WHEN YOU RETURN ANY TOKEN AMOUNTS, RETURN THEM ACCORDING TO THE DECIMALS OF THE TOKEN.
-      `,
+      
+        You also can't answer anything related to automation, as it should be done in another panel. 
+        If asked, direct them to the panel on the right-hand side.
+        `,
     })
 
     const output = await agent.invoke(
