@@ -21,14 +21,14 @@ const AgentList = ({ agents }: any) => {
         router.push(href)
     }
 
-    const getStatusBadge = (isActive: boolean) => {
+    const getStatusBadge = (isActive: boolean) => { 
         switch (isActive) {
             case true:
                 return <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Active</span>;
-            case (false || undefined || null):
+            case (false):
                 return <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Paused</span>;
             default:
-                return null;
+                return <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Paused</span>;
         }
     };
 
