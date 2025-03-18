@@ -62,6 +62,8 @@ const ResultCard = ({ data, agent }: any) => {
             );
         }
 
+
+
         // Transaction response
         if ('transferTokenTransactionHash' in responseData) {
             const { transferTokenTransactionHash } = responseData;
@@ -86,17 +88,17 @@ const ResultCard = ({ data, agent }: any) => {
                             <div className="flex items-center mt-1">
                                 <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono text-gray-800">{shortHash}</code>
                                 <CopyToClipboard text={transferTokenTransactionHash || ""}>
-                                    <button 
-                                    className="ml-2 text-gray-600 cursor-pointer hover:text-gray-800"
-                                >
-                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                    </svg>
-                                </button>
+                                    <button
+                                        className="ml-2 text-gray-600 cursor-pointer hover:text-gray-800"
+                                    >
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
                                 </CopyToClipboard>
-                                
+
                                 <a
-                                    href={`https://explorer.aptoslabs.com/txn/${transferTokenTransactionHash}?network=${ agent.isTestnet ? "testnet" : "mainnet" }`}
+                                    href={`https://explorer.aptoslabs.com/txn/${transferTokenTransactionHash}?network=${agent.isTestnet ? "testnet" : "mainnet"}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="ml-2 text-gray-600 hover:text-gray-800"
@@ -116,19 +118,17 @@ const ResultCard = ({ data, agent }: any) => {
 
         // Generic success response
         return (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-green-100 rounded-full p-2">
-                        <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
+            <div className="bg-blue-50 border border-blue-200 p-3 rounded-md my-2  ">
+                <div className="flex flex-col ">
+                    <div className="flex items-center">
+                        <span className="inline-block h-4 w-4 bg-green-500 rounded-full mr-2"></span>
+                        <span className="font-semibold text-gray-700">Result</span>
                     </div>
-                    <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Success</p>
-                        <pre className="mt-1 text-sm overflow-auto max-w-xs">
-                            {JSON.stringify(responseData, null, 2)}
-                        </pre>
-                    </div>
+                    <pre className="bg-blue-100 rounded p-2 mt-2   overflow-x-auto text-sm">
+                        {typeof responseData === 'string'
+                            ? responseData
+                            : JSON.stringify(responseData, null, 2)}
+                    </pre> 
                 </div>
             </div>
         );

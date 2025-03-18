@@ -7,7 +7,7 @@ import useDatabase from "@/hooks/useDatabase"
 import { CloudAgentContext } from "@/hooks/useCloudAgent"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import ResultCard from "./ResultCard"
-
+import AutomatedTask from "./AutomatedTask"
 import AgentSettingsModal from "../../modals/agentSettings"
 
 const AgentPanelOLD = ({ agent }: any) => {
@@ -758,6 +758,11 @@ const AgentPanel = ({ agent, increaseTick }: any) => {
                     </div>
 
                 </div>
+
+                <div className="col-span-2">
+                        <AutomatedTask/>
+                </div>
+
             </div>
         </>
     )
