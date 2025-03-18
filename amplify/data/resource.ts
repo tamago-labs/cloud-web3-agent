@@ -1,56 +1,128 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { createAgent } from "../functions/createAgent/resource"
+import { deployAgent } from "../functions/deployAgent/resource"
+import { agentChat } from "../functions/agentChat/resource";
+import { scheduler } from "../functions/scheduler/resource"
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any user authenticated via an API key can "create", "read",
-"update", and "delete" any "Todo" records.
-=========================================================================*/
 const schema = a.schema({
-  Todo: a
-    .model({
-      content: a.string(),
+  AgentChat: a
+    .query()
+    .arguments({
+      messages: a.json(),
+      agentId: a.string()
     })
-    .authorization((allow) => [allow.publicApiKey()]),
-});
+    .returns(a.json())
+    .handler(a.handler.function(agentChat))
+    .authorization((allow) => [allow.authenticated()])
+  ,
+  PromptEnhance: a.generation({
+    aiModel: a.ai.model("Claude 3.5 Sonnet"),
+    systemPrompt: 'You are a helpful assistant that completes prompts for automation tasks on the Web3 AI-agent platform.',
+  })
+    .arguments({ prompt: a.string() })
+    .returns(a.string())
+    .authorization((allow) => allow.authenticated()),
+  CreateAgent: a
+    .query()
+    .arguments({
+      name: a.string(),
+      userId: a.string(),
+      blockchain: a.string(),
+      sdkType: a.string()
+    })
+    .returns(a.boolean())
+    .handler(a.handler.function(createAgent))
+    .authorization((allow) => [allow.authenticated()])
+  ,
+  DeployAgent: a
+    .query()
+    .arguments({
+      name: a.string(),
+      userId: a.string(),
+      blockchain: a.string(),
+      sdkType: a.string(),
+      isTestnet: a.boolean(),
+      promptInput: a.string(),
+      promptDecision: a.string(),
+      promptExecute: a.string()
+    })
+    .returns(a.boolean())
+    .handler(a.handler.function(deployAgent))
+    .authorization((allow) => [allow.authenticated()])
+  ,
+  User: a
+    .model({
+      username: a.string().required(),
+      role: a.enum(["USER", "MANAGER", "ADMIN"]),
+      agents: a.hasMany('Agent', "userId"),
+      displayName: a.string()
+    })
+    .authorization((allow) => [
+      allow.authenticated().to(["read"]),
+      allow.owner()
+    ]),
+  Agent: a
+    .model({
+      userId: a.id().required(),
+      user: a.belongsTo('User', "userId"),
+      name: a.string(),
+      blockchain: a.string(),
+      isTestnet: a.boolean(),
+      isActive: a.boolean(),
+      schedule: a.integer(),
+      lastRanAt: a.timestamp(),
+      promptInput: a.string(),
+      promptDecision: a.string(),
+      promptExecute: a.string(),
+      additionalTools: a.json(),
+      sdkType: a.string(),
+      wallets: a.hasMany('Wallet', "agentId"),
+      walletAddresses: a.string().array(),
+      listing: a.hasOne('Marketplace', "agentId"),
+      messages: a.json()
+    })
+    .authorization((allow) => [
+      allow.authenticated()
+    ]),
+  Wallet: a
+    .model({
+      agentId: a.id().required(),
+      agent: a.belongsTo('Agent', "agentId"),
+      address: a.string(),
+      isDefault: a.boolean(),
+      key: a.string()
+    }).authorization((allow) => [
+      allow.owner()
+    ]),
+  Marketplace: a
+    .model({
+      agentId: a.id().required(),
+      agent: a.belongsTo('Agent', "agentId"),
+      publicName: a.string(), 
+      description: a.string(),
+      isApproved: a.boolean(),
+      isHidden: a.boolean(),
+      category: a.string(),
+      price: a.integer(),
+      redeployCount: a.integer(),
+      blockchain: a.string(),
+      sdkType: a.string(),
+      tags: a.string().array()
+    }).authorization((allow) => [
+      allow.authenticated()
+    ]),
+}).authorization((allow) => [
+  allow.resource(createAgent),
+  allow.resource(deployAgent),
+  allow.resource(agentChat),
+  allow.resource(scheduler)
+]);
 
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
-    apiKeyAuthorizationMode: {
-      expiresInDays: 30,
-    },
+    defaultAuthorizationMode: "userPool"
   },
-});
-
-/*== STEP 2 ===============================================================
-Go to your frontend source code. From your client-side code, generate a
-Data client to make CRUDL requests to your table. (THIS SNIPPET WILL ONLY
-WORK IN THE FRONTEND CODE FILE.)
-
-Using JavaScript or Next.js React Server Components, Middleware, Server 
-Actions or Pages Router? Review how to generate Data clients for those use
-cases: https://docs.amplify.aws/gen2/build-a-backend/data/connect-to-API/
-=========================================================================*/
-
-/*
-"use client"
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
-
-const client = generateClient<Schema>() // use this Data client for CRUDL requests
-*/
-
-/*== STEP 3 ===============================================================
-Fetch records from the database and use them in your frontend component.
-(THIS SNIPPET WILL ONLY WORK IN THE FRONTEND CODE FILE.)
-=========================================================================*/
-
-/* For example, in a React component, you can use this snippet in your
-  function's RETURN statement */
-// const { data: todos } = await client.models.Todo.list()
-
-// return <ul>{todos.map(todo => <li key={todo.id}>{todo.content}</li>)}</ul>
+}); 
