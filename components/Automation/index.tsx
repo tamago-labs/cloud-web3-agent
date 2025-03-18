@@ -90,7 +90,7 @@ const AutomationNew = () => {
 
     const [selectedAgent, setSelectedAgent] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<any>('dataIngestion');
-    const { getTools } = useTest()
+    // const { getTools } = useTest()
 
     const agents = [
         {
