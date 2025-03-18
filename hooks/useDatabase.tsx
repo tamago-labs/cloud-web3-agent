@@ -44,6 +44,22 @@ const useDatabase = () => {
         })
     }
 
+    const listMarketplace = async () => {
+        const list = await client.models.Marketplace.list({
+            filter: {
+                isApproved: {
+                    eq: true
+                }
+            }
+        })
+
+        return list.data.sort((a: any, b: any) => {
+            const timeA = new Date(a.createdAt).getTime();
+            const timeB = new Date(b.createdAt).getTime();
+            return timeB - timeA; // Descending order
+        })
+    }
+
     const getAgent = async (agentId: string) => {
         const result = await client.models.Agent.get({
             id: agentId
@@ -126,7 +142,8 @@ const useDatabase = () => {
         setAgentActive,
         saveAgentAutomation,
         addToMarketplace,
-        saveMarketplace
+        saveMarketplace,
+        listMarketplace
     }
 }
 

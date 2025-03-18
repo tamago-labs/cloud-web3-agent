@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createAgent } from "../functions/createAgent/resource"
+import { deployAgent } from "../functions/deployAgent/resource"
 import { agentChat } from "../functions/agentChat/resource";
 import { scheduler } from "../functions/scheduler/resource"
 
@@ -31,6 +32,22 @@ const schema = a.schema({
     })
     .returns(a.boolean())
     .handler(a.handler.function(createAgent))
+    .authorization((allow) => [allow.authenticated()])
+  ,
+  DeployAgent: a
+    .query()
+    .arguments({
+      name: a.string(),
+      userId: a.string(),
+      blockchain: a.string(),
+      sdkType: a.string(),
+      isTestnet: a.boolean(),
+      promptInput: a.string(),
+      promptDecision: a.string(),
+      promptExecute: a.string()
+    })
+    .returns(a.boolean())
+    .handler(a.handler.function(deployAgent))
     .authorization((allow) => [allow.authenticated()])
   ,
   User: a
@@ -96,6 +113,7 @@ const schema = a.schema({
     ]),
 }).authorization((allow) => [
   allow.resource(createAgent),
+  allow.resource(deployAgent),
   allow.resource(agentChat),
   allow.resource(scheduler)
 ]);

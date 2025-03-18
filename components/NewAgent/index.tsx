@@ -157,7 +157,7 @@ const NewAgent = () => {
 
                     <div className="text-base sm:text-lg font-medium">
                         <p className="text-center">
-                            Your AI agent has been deployed. You will be redirected to the Automation tab to set up automations via chat
+                        Your AI agent has been deployed. You will be redirected to the Dashboard.
                         </p>
                         <div className="flex p-4">
                             <button onClick={next} className="bg-white cursor-pointer mx-auto px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
