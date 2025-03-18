@@ -59,6 +59,48 @@ const useDatabase = () => {
         })
     }
 
+    const setAgentActive = async (agentId: string, isActive: boolean) => {
+        await client.models.Agent.update({
+            id: agentId,
+            isActive
+        })
+    }
+
+    const saveAgentAutomation = async ({ agentId, promptInput, schedule, promptDecision, promptExecute }: { agentId: string, promptInput: string, schedule: number, promptDecision: string, promptExecute: string }) => {
+        await client.models.Agent.update({
+            id: agentId,
+            promptInput,
+            schedule,
+            promptDecision,
+            promptExecute
+        })
+    }
+
+    const addToMarketplace = async ({ agentId, publicName, description, category, price, blockchain, sdkType }: { agentId: string, publicName: string, description: string, category: string, price: number, blockchain: string, sdkType: string }) => {
+        await client.models.Marketplace.create({
+            agentId,
+            publicName,
+            description,
+            isApproved: false,
+            isHidden: false,
+            category,
+            price,
+            blockchain,
+            sdkType
+        })
+    }
+
+    const saveMarketplace = async ({ listingId, publicName, description, category, price, isHidden }: { listingId: string, publicName: string, description: string, category: string, price: number, isHidden: boolean }) => {
+        await client.models.Marketplace.update({
+            id: listingId,
+            publicName,
+            description,
+            category,
+            price,
+            isHidden
+        })
+    }
+
     const getMessages = async (agentId: string) => {
         const result = await client.models.Agent.get({
             id: agentId
@@ -80,7 +122,11 @@ const useDatabase = () => {
         listAgents,
         updateAgent,
         getAgent,
-        saveMessages
+        saveMessages,
+        setAgentActive,
+        saveAgentAutomation,
+        addToMarketplace,
+        saveMarketplace
     }
 }
 

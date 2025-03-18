@@ -125,7 +125,7 @@ const KeyBenefits = () => {
             <div className="max-w-5xl mt-[60px] mx-auto">
                 <div className="text-center mb-6 mx-4">
                     <p className="text-base sm:text-xl text-white  mx-auto">
-                        We provide managed infrastructure to deploy Web3 agents with your favorite SDK
+                        Managed infrastructure to deploy Web3 agents with your favorite SDK
                     </p>
                 </div>
 

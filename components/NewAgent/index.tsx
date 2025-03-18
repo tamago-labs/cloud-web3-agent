@@ -10,10 +10,14 @@ import { CloudAgentContext } from '@/hooks/useCloudAgent';
 import { useRouter } from "next/navigation";
 import BaseModal from '@/modals/base';
 import useDatabase from '@/hooks/useDatabase';
+import CheckMarketplaceModal from '@/modals/checkMarketplace';
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 const client = generateClient<Schema>()
- 
+
 const NewAgent = () => {
+ 
+    const [checkMarketplaceModal, setMarketplaceModal ] = useState<boolean>(true)
 
     const { listAgents } = useDatabase()
 
@@ -126,11 +130,18 @@ const NewAgent = () => {
 
     const next = () => {
         dispatch({ modal: false })
-        router.push("/dashboard/automation")
+        router.push("/dashboard")
     }
 
     return (
         <>
+
+            <CheckMarketplaceModal
+                visible={checkMarketplaceModal}
+                close={() => setMarketplaceModal(false)}
+            />
+
+
             <BaseModal
                 visible={modal}
             >
@@ -256,7 +267,7 @@ const NewAgent = () => {
                 {/* Create Button */}
                 <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-400">
-                        Additional configuration can be done in the Automation tab after creation.
+                        Additional configuration can be done after creation.
                     </p>
                     <button
                         onClick={handleCreateAgent}
@@ -285,6 +296,7 @@ const NewAgent = () => {
                         {errorMessage}
                     </p>
                 )}
+ 
 
             </div>
         </>
