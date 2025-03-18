@@ -8,6 +8,7 @@ import type { Schema } from "../../amplify/data/resource"
 import { CloudAgentContext } from '@/hooks/useCloudAgent';
 import { useRouter } from "next/navigation";
 import BaseModal from '@/modals/base';
+import { SpinningCircles } from 'react-loading-icons'
 
 const client = generateClient<Schema>()
 
@@ -34,49 +35,46 @@ const Marketplace = () => {
         }
 
         setLoading(true)
+        setModal(true)
 
         try {
 
-            const agentName = item.displayName
+            const agentName = item.publicName
             const blockchain = item.blockchain
             const sdkType = item.sdkType
             const userId = profile.id
 
-            const targetAgent : any = await item.agent()
+            const targetAgent: any = await item.agent()
 
             const { data } = await client.queries.DeployAgent({
                 name: agentName,
                 userId,
                 blockchain,
                 sdkType,
-                isTestnet: targetAgent.data.isTestnet
-                
+                isTestnet: targetAgent.data.isTestnet,
+                promptInput: targetAgent.data.promptInput,
+                promptDecision: targetAgent.data.promptDecision,
+                promptExecute: targetAgent.data.promptExecute
             })
 
-            // const { data } = await client.queries.CreateAgent({
-            //     name: agentName,
-            //     userId: profile.id,
-            //     blockchain: selectedBlockchain,
-            //     sdkType: selectedSDK
-            // })
+            if (data) {
 
-            // if (data) {
-            //     dispatch({
-            //         selectedBlockchain: undefined,
-            //         selectedSDK: undefined,
-            //         agentName: "My Aptos Agent",
-            //         errorMessage: undefined,
-            //         loading: false,
-            //         modal: true
-            //     })
-            // } else {
-            //     throw new Error("Unknow error. Please try again.")
-            // }
+                const currentCount = item.redeployCount || 0
 
-            setModal(true)
+                await client.models.Marketplace.update({
+                    id: item.id,
+                    redeployCount: currentCount + 1
+                })
+
+            } else {
+                throw new Error("Unknow error. Please try again.")
+            }
+
+
 
         } catch (error: any) {
             console.log(error)
+            alert("Unknow error. Please try again.")
         }
 
         setLoading(false)
@@ -178,24 +176,36 @@ const Marketplace = () => {
             >
                 <div className="px-2 sm:px-6 pt-5 pb-4">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl  font-semibold">Agent Created Successfully</h3>
-                        <button onClick={next} className="text-gray-400 cursor-pointer hover:text-white">
+                        <h3 className="text-xl  font-semibold">
+                            {loading ? "Deploying New Agent" : "Agent Created Successfully"}
+                        </h3>
+                        <button onClick={() => {
+                            !loading && next()
+                        }} className="text-gray-400 cursor-pointer hover:text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
 
-                    <div className="text-base sm:text-lg font-medium">
-                        <p className="text-center">
-                            Your AI agent has been deployed. You will be redirected to the Dashboard.
-                        </p>
-                        <div className="flex p-4">
-                            <button onClick={next} className="bg-white cursor-pointer mx-auto px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
-                                OK
-                            </button>
+                    {!loading && (
+                        <div className="text-base sm:text-lg font-medium">
+                            <p className="text-center">
+                                Your AI agent has been deployed. You will be redirected to the Dashboard.
+                            </p>
+                            <div className="flex p-4">
+                                <button onClick={next} className="bg-white cursor-pointer mx-auto px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                    OK
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
+
+                    {loading && (
+                        <div className="text-base sm:text-lg p-4 font-medium">
+                            <SpinningCircles className='mx-auto' />
+                        </div>
+                    )}
                 </div>
             </BaseModal>
 
