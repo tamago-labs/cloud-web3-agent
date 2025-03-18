@@ -6,6 +6,7 @@ import { useState, useContext, useEffect } from "react";
 import AgentList from "./AgentList"
 import useDatabase from "@/hooks/useDatabase";
 import { CloudAgentContext } from "@/hooks/useCloudAgent";
+import DashboardModal from "@/modals/dashboard";
 
 
 // Portfolio Page Component
@@ -194,6 +195,8 @@ const Portfolio = () => {
 
 const Dashboard = () => {
 
+    const [modal, setModal] = useState(false)
+
     const { listAgents } = useDatabase()
     const { profile } = useContext(CloudAgentContext)
     const [agents, setAgents] = useState<any[]>([])
@@ -201,6 +204,17 @@ const Dashboard = () => {
     useEffect(() => {
         profile && listAgents(profile.id).then(setAgents)
     }, [profile])
+
+    useEffect(() => {
+
+        if (localStorage.getItem("welcome")) {
+
+        } else {
+            localStorage.setItem("welcome", "on")
+            setModal(true)
+        }
+
+    },[])
 
     // const examples = [
     //     {
@@ -243,6 +257,11 @@ const Dashboard = () => {
     return (
         <>
 
+            <DashboardModal
+                visible={modal}
+                close={() => setModal(false)}
+            />
+
             {/* Main content */}
             <main className="container mx-auto px-6 py-8">
                 {/* header */}
@@ -252,10 +271,10 @@ const Dashboard = () => {
                         <p className="text-gray-400">Track and manage your Web3 AI agent</p>
                     </div>
                     <div className="flex space-x-3">
-                        <button className="bg-gradient-to-r from-blue-600 cursor-pointer to-purple-600 hover:from-blue-500 hover:to-purple-500 px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        {/* <button className="bg-gradient-to-r from-blue-600 cursor-pointer to-purple-600 hover:from-blue-500 hover:to-purple-500 px-4 py-2 rounded-lg font-medium transition flex items-center">
                             <Book className="mr-1.5" />
                             Documentation
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
