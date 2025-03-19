@@ -8,7 +8,7 @@ import { CloudAgentContext } from "@/hooks/useCloudAgent"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import ResultCard from "../Automation/ResultCard"
 
-const ChatPanel = ({ agent, increaseTick }: any) => {
+const ChatPanel = ({ agent }: any) => {
 
     // const { query } = useTest()
     const { query } = useContext(CloudAgentContext)
@@ -22,11 +22,12 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
         {
             loading: false,
             message: "",
-            messages: []
+            messages: [],
+            tick: 1
         }
     )
 
-    const { message, messages, loading } = values
+    const { message, messages, loading, tick } = values
 
     useEffect(() => {
         const scrollToBottom = () => {
@@ -47,7 +48,7 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
 
     useEffect(() => {
         agent && prepareMessages(agent)
-    }, [agent])
+    }, [agent, tick])
 
     const prepareMessages = useCallback(async (agent: any) => {
 
@@ -158,16 +159,27 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
             // const result: any = await query([...messages, userPrompt])
             console.log("result:", result)
             // Override old messages
-            const updated = result.map((msg: any) => {
-                const message = messages.find((i: any) => i.id === msg.id)
-                if (message) {
-                    msg = message
-                }
-                return msg
-            })
+            // const updated = result.map((msg: any) => {
+            //     const message = messages.find((i: any) => i.id === msg.id)
+            //     if (message) {
+            //         msg = message
+            //     }
+            //     return msg
+            // })
 
-            await saveMessages(agent.id, updated)
-            dispatch({ messages: updated })
+            // await saveMessages(agent.id, updated)
+            if (result) {
+                dispatch({ messages: result })
+            } else {
+                alert("Connection timeout: Reload the page again after 15 seconds to see the new messages ")
+                // wait for 10 sec and load message again
+                setTimeout(() => {
+                    dispatch({
+                        tick: tick + 1
+                    })
+                }, 10000)
+            }
+
 
         } catch (e) {
             console.log(e)
@@ -177,7 +189,7 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
             loading: false
         })
 
-    }, [message, messages, agent])
+    }, [message, messages, agent, tick])
 
     return (
         <div className="grid grid-cols-7 h-full">
@@ -262,32 +274,32 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
                                 </div>
                             </div>
                         </div>
-                    )} 
+                    )}
                 </div>
                 {/* Input Area */}
                 <div className="  border-t border-white/10  bg-gradient-to-br from-blue-900/30 to-indigo-900/30  p-4">
-                        <div className="  mx-auto">
-                            <div className="relative flex items-center">
-                                <input
-                                    type="text"
-                                    value={message}
-                                    disabled={loading}
-                                    onChange={(e) => dispatch({ message: e.target.value })}
-                                    className="  py-3 pl-4 pr-16  rounded-lg bg-black/30 border-none flex-1 focus:outline-none"
-                                    placeholder="Chat with your agent..."
-                                />
-                                <button
-                                    onClick={handleSendMessage}
-                                    disabled={loading}
-                                    className={`absolute right-2  inline-flex text-white px-4 py-2 bg-blue-600 cursor-pointer    hover:bg-blue-700 p-2 rounded-md`}
-                                >
-                                    <Send size={18} className="my-auto mr-2" />
-                                    {` Send`}
-                                </button>
-                            </div>
+                    <div className="  mx-auto">
+                        <div className="relative flex items-center">
+                            <input
+                                type="text"
+                                value={message}
+                                disabled={loading}
+                                onChange={(e) => dispatch({ message: e.target.value })}
+                                className="  py-3 pl-4 pr-16  rounded-lg bg-black/30 border-none flex-1 focus:outline-none"
+                                placeholder="Chat with your agent..."
+                            />
+                            <button
+                                onClick={handleSendMessage}
+                                disabled={loading}
+                                className={`absolute right-2  inline-flex text-white px-4 py-2 bg-blue-600 cursor-pointer    hover:bg-blue-700 p-2 rounded-md`}
+                            >
+                                <Send size={18} className="my-auto mr-2" />
+                                {` Send`}
+                            </button>
+                        </div>
 
-                            {/* Agent Capabilities */}
-                            {/* <div className="mt-4">
+                        {/* Agent Capabilities */}
+                        {/* <div className="mt-4">
                             <div className="flex items-center mb-2">
                                 <h3 className="text-sm font-medium text-gray-700">Agent Capabilities</h3>
                                 <ChevronDown size={16} className="ml-1 text-gray-500" />
@@ -304,8 +316,8 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
                                 ))}
                             </div>
                         </div> */}
-                        </div>
                     </div>
+                </div>
             </div>
 
 

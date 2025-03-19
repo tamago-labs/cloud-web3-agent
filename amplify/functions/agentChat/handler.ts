@@ -89,6 +89,11 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
  
     console.log("final messages :", finalized)
 
+    await client.models.Agent.update({
+        id: agentId,
+        messages: JSON.stringify(finalized)
+    })
+
     return finalized
 }
 
