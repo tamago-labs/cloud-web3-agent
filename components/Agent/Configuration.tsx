@@ -2,6 +2,13 @@ import useDatabase from "@/hooks/useDatabase"
 import BaseModal from "@/modals/base"
 import { useState, useEffect, useReducer, useCallback } from "react"
 import { Info, DollarSign, Plus, Minus, ChevronDown, ChevronUp, Play, Pause, X } from "react-feather"
+import { generateClient } from "aws-amplify/api";
+import { Schema } from "../../amplify/data/resource";
+import { createAIHooks } from "@aws-amplify/ui-react-ai";
+import { SpinningCircles } from 'react-loading-icons'
+
+const client = generateClient<Schema>({ authMode: "userPool" });
+const { useAIGeneration } = createAIHooks(client);
 
 enum Section {
     CONFIG,
@@ -16,6 +23,8 @@ enum Prompt {
 }
 
 const Configuration = ({ agent, increaseTick }: any) => {
+
+    const [{ data, isLoading, hasError }, promptEnhance] = useAIGeneration("PromptEnhance");
 
     const { addToMarketplace, updateAgent, setAgentActive, saveAgentAutomation, saveMarketplace } = useDatabase()
 
@@ -34,11 +43,12 @@ const Configuration = ({ agent, increaseTick }: any) => {
             agentName: "",
             isTestnet: false,
             isListing: false,
-            listing: undefined
+            listing: undefined,
+            processingPrompt: Prompt.INPUT
         }
     )
 
-    const { isListing, listing, isTestnet, agentName, modal, section, prompt, schedule, isActive, promptInput, promptDecision, promptExecute, errorMessage } = values
+    const { processingPrompt, isListing, listing, isTestnet, agentName, modal, section, prompt, schedule, isActive, promptInput, promptDecision, promptExecute, errorMessage } = values
 
     // Categories available in the marketplace
     const categories = [
@@ -234,8 +244,72 @@ const Configuration = ({ agent, increaseTick }: any) => {
     }, [listing, increaseTick])
 
 
+    const onEnhance = useCallback(async (promptType: Prompt, promptA: string, promptB: string, promptC: string) => {
+
+        dispatch({ processingPrompt : promptType })
+        const prompt = promptType === Prompt.INPUT ? promptA : promptType === Prompt.DECISION ? promptB : promptC
+
+        promptEnhance({
+            prompt: [
+                `Help correct following prompt and return only prompt`,
+                prompt
+            ].join("\n")
+        })
+
+    }, [])
+
+    useEffect(() => {
+
+        if ( data && isLoading === false) {  
+            const matches = data.match(/"([^"]+)"/g);
+            if (matches && matches[0]) {
+                const newPrompt = matches[0].replaceAll(`"`, ``) 
+                if (processingPrompt === Prompt.INPUT) {
+                    dispatch({
+                        promptInput: newPrompt
+                    })
+                } else if (processingPrompt === Prompt.DECISION) {
+                    dispatch({
+                        promptDecision: newPrompt
+                    })
+                } else  if (processingPrompt === Prompt.EXECUTE) {
+                    dispatch({
+                        promptExecute: newPrompt
+                    })
+                }
+            }
+
+        }
+            
+    },[data, processingPrompt, isLoading ])
+
     return (
         <>
+
+            <BaseModal
+                visible={isLoading}
+            >
+                <div className="px-2 sm:px-6 pt-5 pb-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl  font-semibold">
+                            Please wait for a moment...
+                        </h3>
+                        <button onClick={() => {
+                             
+                        }} className="text-gray-400 cursor-pointer hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div> 
+
+                    {isLoading && (
+                        <div className="text-base sm:text-lg p-4 font-medium">
+                            <SpinningCircles className='mx-auto' />
+                        </div>
+                    )}
+                </div>
+            </BaseModal>
 
             <BaseModal
                 visible={modal !== undefined}
@@ -376,6 +450,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                 </label>
                                 {prompt === Prompt.INPUT && (
                                     <textarea
+                                        disabled={isLoading}
                                         className="w-full h-32 p-3 text-sm border border-white/10 rounded-md  bg-white/5 focus:border-white/10 focus:ring-0"
                                         placeholder={`Enter your prompt...`}
                                         value={promptInput}
@@ -384,6 +459,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                 )}
                                 {prompt === Prompt.DECISION && (
                                     <textarea
+                                        disabled={isLoading}
                                         className="w-full h-32 p-3 text-sm border border-white/10 rounded-md  bg-white/5 focus:border-white/10 focus:ring-0"
                                         placeholder={`Enter your prompt...`}
                                         value={promptDecision}
@@ -392,6 +468,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                 )}
                                 {prompt === Prompt.EXECUTE && (
                                     <textarea
+                                        disabled={isLoading}
                                         className="w-full h-32 p-3 text-sm border border-white/10 rounded-md  bg-white/5 focus:border-white/10 focus:ring-0"
                                         placeholder={`Enter your prompt...`}
                                         value={promptExecute}
@@ -407,6 +484,10 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                     {prompt === Prompt.EXECUTE && `${promptExecute.length} characters`}
                                 </div>
                                 <button
+                                    disabled={isLoading}
+                                    onClick={() => {
+                                        onEnhance(prompt, promptInput, promptDecision, promptExecute)
+                                    }}
                                     className="bg-gradient-to-r cursor-pointer my-auto ml-auto   from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 px-4 py-2 rounded-lg font-medium transition flex items-center">
                                     Enhance this prompt
                                 </button>
@@ -605,8 +686,8 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                             <div className="mt-2 text-sm text-red-700">
                                                 <ul className="list-disc pl-5 space-y-1">
                                                     <li>Your agent listing was not approved yet.</li>
-                                                     
-                                                    
+
+
                                                 </ul>
                                             </div>
                                         </div>

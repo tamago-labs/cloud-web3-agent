@@ -12,7 +12,6 @@ import { SpinningCircles } from 'react-loading-icons'
 
 const client = generateClient<Schema>()
 
-
 const Marketplace = () => {
 
     const router = useRouter()
