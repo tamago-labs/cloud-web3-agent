@@ -27,6 +27,14 @@ During creation, a unique wallet key is generated on the backend and securely st
 
 Hence, the agent can be listed on the marketplace, the admin can manually approve it through the AWS Amplify database console. After approval, others can redeploy the agent and make payments as needed.
 
+## Use Cases
+
+Imagine being able to deploy the following agents with ease and minimal setup costs:
+
+- **Collateral Monitor Agent** - Automatically monitors borrow positions and prevents liquidations by maintaining healthy collateral ratios, adding more collateral when needed.
+- **DeFi Yield Optimizer Agent** - Automatically monitors and moves funds between protocols for the highest APY.
+- **DEX Arbitrage Agent** - Identifies and executes arbitrage opportunities across multiple DEXes.
+
 ## Automation
 
 Automation allows users to define prompts that trigger actions at specific times. It operates through three key prompts:
