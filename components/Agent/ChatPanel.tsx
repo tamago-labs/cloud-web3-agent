@@ -155,23 +155,12 @@ const ChatPanel = ({ agent }: any) => {
 
         try {
 
-            const result: any = await query(agent.id, [...messages, userPrompt])
-            // const result: any = await query([...messages, userPrompt])
-            console.log("result:", result)
-            // Override old messages
-            // const updated = result.map((msg: any) => {
-            //     const message = messages.find((i: any) => i.id === msg.id)
-            //     if (message) {
-            //         msg = message
-            //     }
-            //     return msg
-            // })
-
-            // await saveMessages(agent.id, updated)
+            const result: any = await query(agent.id, [...messages, userPrompt]) 
+            console.log("result:", result) 
             if (result) {
                 dispatch({ messages: result })
             } else {
-                alert("Connection timeout: Reload the page again after 15 seconds to see the new messages ")
+                alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
                 // wait for 10 sec and load message again
                 setTimeout(() => {
                     dispatch({

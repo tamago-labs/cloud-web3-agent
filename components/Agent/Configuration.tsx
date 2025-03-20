@@ -381,6 +381,10 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                     Save
                                 </button>
 
+                                <button onClick={onUpdate} className="bg-white cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                    Delete Conversation
+                                </button>
+
                             </div>
 
 

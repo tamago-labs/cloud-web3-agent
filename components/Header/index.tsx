@@ -24,7 +24,7 @@ const Header = () => {
                 </Link>
                 {/* Desktop Navigation */}
                 <nav className="hidden md:flex justify-between space-x-[60px] my-auto ">
-                    <Link href="#" className={` `}>
+                    <Link href="#how-it-works" className={` `}>
                         How It Works
                     </Link>
                     <Link href="https://github.com/tamago-labs/cloud-web3-agent" target="_blank" className={`  `}>
