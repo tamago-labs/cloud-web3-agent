@@ -15,15 +15,45 @@ The project is under heavy development, with analytics data currently mocked and
 
 ## Overview
 
-This template equips you with a foundational Next.js application integrated with AWS Amplify, streamlined for scalability and performance. It is ideal for developers looking to jumpstart their project with pre-configured AWS services like Cognito, AppSync, and DynamoDB.
+The system uses the AWS Amplify Stack to efficiently manage and run AI agents without the need for dedicated API services for the client. Agent-related data is stored in a database, while on-chain transactions rely on the SDK. This approach helps us stay lean and focus on improvements for the AI agent's core logic.
+
+![Untitled Diagram drawio (16)](https://github.com/user-attachments/assets/8c904cec-5c41-4eb4-929d-5c52cfba7b3f)
+
+During creation, a unique wallet key is generated on the backend and securely stored in the cloud, along with the selected blockchain and SDK data. The AI agent can then be invoked as follows:
+
+- **Chat Interface:** Enables interaction to explore the agent's capabilities based on the selected SDK, deposit funds, trial operations, or perform initial interactions like borrowing assets from a lending protocol.
+
+- **Automation Schedule:** – Allows programming automation by providing a set of prompts to run periodically, such as monitoring borrow positions or executing swaps at a predefined rate.
+
+Hence, the agent can be listed on the marketplace, the admin can manually approve it through the AWS Amplify database console. After approval, others can redeploy the agent and make payments as needed.
+
+## Automation
+
+Automation allows users to define prompts that trigger actions at specific times. It operates through three key prompts:
+
+- **Input Processing Prompt** – Gathers necessary information such as current exchange rates and active positions to monitor.
+
+- **Decision-Making Prompt** – Assesses collected data against a specified condition. For example, “Check if the APT/USDT rate is above 4.5.”
+
+- **Execution Prompt** – If the condition is met, the agent executes the on-chain action via the SDK.
+
+All interactions between programmed prompts and the AI agent are stored in the database and can be reviewed later through the chat interface.
 
 ## Deploying to AWS
 
-For detailed instructions on deploying your application, refer to the [deployment section](https://docs.amplify.aws/nextjs/start/quickstart/nextjs-app-router-client-components/#deploy-a-fullstack-app-to-aws) of our documentation.
+The entire project is packaged within the AWS Amplify stack, which automates the setup of essential AWS services, including:
 
-## Security
+- **Amplify Database** – A real-time database for storing AI agents and account information.
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+- **AWS AI Kit** – Enhances automation prompts using managed Claude on AWS.
+
+- **AWS Lambda** – Serverless backend functions handling all SDK interactions.
+
+- **AWS Cognito** – Managed authentication supporting Google and other providers.
+
+- **Next.js Frontend** – The main frontend and dashboard interface.
+
+For detailed instructions on deploying, refer to the [deployment section](https://docs.amplify.aws/nextjs/start/quickstart/nextjs-app-router-client-components/#deploy-a-fullstack-app-to-aws)
 
 ## License
 
