@@ -65,24 +65,7 @@ const Navbar = () => {
                         New Agent
                     </div>
                 </Link>
-                {/* <Link href="/dashboard/automation" className="border-b-2 flex flex-row  px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <RefreshCcw className="mr-2 my-auto" />
-                    <div className="my-auto text-base">
-                        Automation
-                    </div>
-                </Link>  */}
-                {/* <Link href="/dashboard/chat2" className="border-b-2 flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <MessageSquare className="mr-2 my-auto" />
-                    <div className="my-auto text-base">
-                        Chat2
-                    </div>
-                </Link> */}
-                {/* <Link href="/dashboard/automation2" className="border-b-2 flex flex-row  px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
-                    <RefreshCcw className="mr-2 my-auto" />
-                    <div className="my-auto text-base">
-                        Automation2
-                    </div>
-                </Link> */}
+              
                 <Link href="/dashboard/marketplace" className="border-b-2  flex flex-row px-4 w-full py-4 font-medium  border-white/10 hover:bg-white/5">
                     <DownloadCloud className="mr-2 my-auto" />
                     <div className="my-auto text-base">
