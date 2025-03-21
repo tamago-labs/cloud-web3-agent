@@ -2,8 +2,7 @@ import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createAgent } from "../functions/createAgent/resource"
 import { deployAgent } from "../functions/deployAgent/resource"
 import { agentChat } from "../functions/agentChat/resource";
-import { scheduler } from "../functions/scheduler/resource"
-import { agentCronosFunctionHandler } from "../functions/agentCronos/resource"
+import { scheduler } from "../functions/scheduler/resource" 
 
 const schema = a.schema({
   AgentChat: a
@@ -16,15 +15,6 @@ const schema = a.schema({
     .handler(a.handler.function(agentChat))
     .authorization((allow) => [allow.authenticated()])
   ,
-  AgentCronos: a
-    .query()
-    .arguments({
-      name: a.string(),
-    })
-    .returns(a.string())
-    .handler(a.handler.function(agentCronosFunctionHandler))
-    .authorization((allow) => [allow.guest()])
-    ,
   PromptEnhance: a.generation({
     aiModel: a.ai.model("Claude 3.5 Sonnet"),
     systemPrompt: 'You are a helpful assistant that completes prompts for automation tasks on the Web3 AI-agent platform.',
