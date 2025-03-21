@@ -65,12 +65,12 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 p-6 rounded-xl border border-white/10 backdrop-blur-sm">
                         <div className="text-gray-400 mb-1">Total Value</div>
-                        <div className="text-2xl font-bold">$12,456.78</div>
+                        <div className="text-2xl font-bold">$0.0</div>
                         <div className="text-green-400 text-sm mt-1 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
                             </svg>
-                            +14.5% (30d)
+                            +0.0% (30d)
                         </div>
                     </div>
                     <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 p-6 rounded-xl border border-white/10 backdrop-blur-sm">
@@ -82,12 +82,12 @@ const Dashboard = () => {
                     </div>
                     <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 p-6 rounded-xl border border-white/10 backdrop-blur-sm">
                         <div className="text-gray-400 mb-1">Net Profit</div>
-                        <div className="text-2xl font-bold">$876.32</div>
+                        <div className="text-2xl font-bold">$0.0</div>
                         <div className="text-green-400 text-sm mt-1 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
                             </svg>
-                            +7.2% (7d)
+                            +0.0% (7d)
                         </div>
                     </div>
                 </div>

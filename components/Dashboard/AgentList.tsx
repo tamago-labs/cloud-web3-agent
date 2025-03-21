@@ -5,8 +5,6 @@ import { secondsToDDHHMMSS } from "../../helpers"
 
 const AgentList = ({ agents }: any) => {
 
-    console.log("agents: ", agents)
-
     const router = useRouter()
 
     const getId = (name: string) => {
@@ -21,7 +19,7 @@ const AgentList = ({ agents }: any) => {
         router.push(href)
     }
 
-    const getStatusBadge = (isActive: boolean) => { 
+    const getStatusBadge = (isActive: boolean) => {
         switch (isActive) {
             case true:
                 return <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Active</span>;
@@ -71,7 +69,7 @@ const AgentList = ({ agents }: any) => {
 
                             let countdown = "In 0d"
 
-                            if (agent.isActive && agent.lastRanAt) { 
+                            if (agent.isActive && agent.lastRanAt) {
                                 const diffTime = ((agent.lastRanAt + agent.schedule) * 1000) - (new Date()).valueOf()
                                 const totals = Math.floor(diffTime / 1000)
                                 const { days, hours, minutes } = secondsToDDHHMMSS(totals)
@@ -109,12 +107,12 @@ const AgentList = ({ agents }: any) => {
                                 </td> */}
                                     <td className="p-4">
                                         {mock && (
-                                            <span className={mock.profit >= 0 ? "text-green-400" : "text-red-400"}>
-                                                {mock.profit >= 0 ? "+" : ""}{mock.profit}%
+                                            <span className={true ? "text-green-400" : "text-red-400"}>
+                                                {true ? "+" : ""}{0}%
                                             </span>
                                         )}
                                     </td>
-                                   
+
                                     <td className="p-4">
                                         <div className="flex space-x-1">
                                             {mock && mock.assets.map((asset) => (
@@ -124,10 +122,10 @@ const AgentList = ({ agents }: any) => {
                                             ))}
                                         </div>
                                     </td>
-                                     <td className="p-4">
+                                    <td className="p-4">
                                         {mock && (
                                             <span  >
-                                               ${mock.value.toLocaleString()}
+                                                ${(0).toLocaleString()}
                                             </span>
                                         )}
                                     </td>
