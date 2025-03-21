@@ -1,0 +1,5 @@
+[
+    { "id": "aptos", "name": "Aptos", "icon": "/assets/images/aptos-icon.png" },
+    { "id": "solana", "name": "Solana", "icon": "/assets/images/solana-icon.png" },
+    { "id": "cronos", "name": "Cronos", "icon": "/assets/images/cronos-icon.png" }
+]

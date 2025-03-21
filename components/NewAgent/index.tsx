@@ -12,12 +12,14 @@ import BaseModal from '@/modals/base';
 import useDatabase from '@/hooks/useDatabase';
 import CheckMarketplaceModal from '@/modals/checkMarketplace';
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import sdkOptionsJSON from "../../data/sdkOptions.json"
+import blockchainsJSON from "../../data/blockchains.json"
 
 const client = generateClient<Schema>()
 
 const NewAgent = () => {
- 
-    const [checkMarketplaceModal, setMarketplaceModal ] = useState<boolean>(true)
+
+    const [checkMarketplaceModal, setMarketplaceModal] = useState<boolean>(true)
 
     const { listAgents } = useDatabase()
 
@@ -25,24 +27,8 @@ const NewAgent = () => {
 
     const { profile } = useContext(CloudAgentContext)
 
-    const blockchains: any = [
-        { id: 'aptos', name: 'Aptos', icon: "/assets/images/aptos-icon.png" },
-        { id: 'solana', name: 'Solana', icon: "/assets/images/solana-icon.png" },
-        { id: 'cronos', name: 'Cronos', icon: "/assets/images/cronos-icon.png" }
-    ];
-
-    const sdkOptions: any = {
-        aptos: [
-            { id: 'aptos-kit', disabled: false, name: 'Move Agent Kit', description: 'A comprehensive toolkit designed to simplify AI agents interactions with Move-based blockchains.' }
-        ],
-        solana: [
-            { id: 'agent-kit', disabled: true, name: 'SendAI Solana Agent Kit', description: 'An open-source toolkit for connecting AI agents to Solana protocols.' },
-        ],
-
-        cronos: [
-            { id: 'cronos-kit', disabled: true, name: 'Crypto.com AI Agent SDK', description: 'Official Crypto.com AI agent toolkit for on-chain activities.' }
-        ]
-    };
+    const blockchains: any = blockchainsJSON 
+    const sdkOptions: any = sdkOptionsJSON
 
     const [values, dispatch] = useReducer(
         (curVal: any, newVal: any) => ({ ...curVal, ...newVal }),
@@ -157,7 +143,7 @@ const NewAgent = () => {
 
                     <div className="text-base sm:text-lg font-medium">
                         <p className="text-center">
-                        Your AI agent has been deployed. You will be redirected to the Dashboard.
+                            Your AI agent has been deployed. You will be redirected to the Dashboard.
                         </p>
                         <div className="flex p-4">
                             <button onClick={next} className="bg-white cursor-pointer mx-auto px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
@@ -296,7 +282,7 @@ const NewAgent = () => {
                         {errorMessage}
                     </p>
                 )}
- 
+
 
             </div>
         </>

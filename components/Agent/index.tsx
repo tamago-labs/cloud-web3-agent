@@ -64,37 +64,7 @@ const Agent = ({ agentId }: any) => {
             />
 
             {agent && (
-                <div className="flex flex-row">
-                    {/* <div className="h-24 px-6 py-4 border-b border-white/10 flex flex-col bg-gradient-to-br from-blue-900/30 to-indigo-900/30">
-                        <div className="flex    justify-between items-center mb-8">
-
-                            <div className="mt-0.5 ">
-                                <div className="flex flex-row">
-                                    <div className="w-8 h-8 my-auto bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full mr-3 flex items-center justify-center text-sm font-bold">
-                                        {getId(agent.name)}
-                                    </div>
-                                    <h1 className="text-2xl my-auto font-bold">
-                                        {agent.name}
-                                    </h1>
-                                </div>
-
-                                <p className="text-gray-400 mt-2 inline-flex">
-                                    <span className="w-2 h-2 my-auto bg-green-500 rounded-full mr-2"></span>
-                                    <span className="text-sm text-gray-400 mr-1">Active • Move Agent Kit •</span>
-                                    <span className="text-sm text-gray-400">{shortAddress(agent?.walletAddresses[0], 10, -8)} </span>
-                                </p>
-                            </div>
-                            <div className="ml-auto  flex items-center space-x-3">
-
-                                <button className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                                    <Tool size={22} />
-                                </button>
-                                <button onClick={() => dispatch({ modal: Modal.SETTINGS })} className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                                    <Settings size={22} />
-                                </button>
-                            </div>
-                        </div>
-                    </div> */}
+                <div className="flex flex-row"> 
                     <div className="flex-1">
                         <div className="h-[90px] px-6 py-4 border-b border-white/10 flex flex-col  bg-blue-900/30 ">
                             <div className="flex  justify-between items-center  ">

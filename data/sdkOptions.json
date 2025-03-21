@@ -1,0 +1,26 @@
+{
+    "aptos": [
+        {
+            "id": "aptos-kit",
+            "disabled": false,
+            "name": "Move Agent Kit",
+            "description": "A comprehensive toolkit designed to simplify AI agents interactions with Move-based blockchains."
+        }
+    ],
+    "solana": [
+        {
+            "id": "agent-kit",
+            "disabled": true,
+            "name": "SendAI Solana Agent Kit",
+            "description": "An open-source toolkit for connecting AI agents to Solana protocols."
+        }
+    ],
+    "cronos": [
+        {
+            "id": "cronos-kit",
+            "disabled": true,
+            "name": "Crypto.com AI Agent SDK",
+            "description": "Official Crypto.com AI agent toolkit for on-chain activities."
+        }
+    ]
+}
