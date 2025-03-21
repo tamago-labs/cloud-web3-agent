@@ -16,13 +16,15 @@ const schema = a.schema({
     .handler(a.handler.function(agentChat))
     .authorization((allow) => [allow.authenticated()])
   ,
-  sayHello: a
+  AgentCronos: a
     .query()
     .arguments({
       name: a.string(),
     })
     .returns(a.string())
-    .handler(a.handler.function(agentCronosFunctionHandler)),
+    .handler(a.handler.function(agentCronosFunctionHandler))
+    .authorization((allow) => [allow.guest()])
+    ,
   PromptEnhance: a.generation({
     aiModel: a.ai.model("Claude 3.5 Sonnet"),
     systemPrompt: 'You are a helpful assistant that completes prompts for automation tasks on the Web3 AI-agent platform.',
