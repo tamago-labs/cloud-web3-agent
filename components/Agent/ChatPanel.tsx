@@ -230,26 +230,7 @@ const ChatPanel = ({ agent }: any) => {
                                             </div>
                                         </div>
                                     )}
-
-                                {/* Show transaction link if present */}
-                                {/* {message.content && typeof message.content === 'string' && extractTransactionHash(message.content) && (
-                                    <div className="mt-2 p-2 bg-green-50 rounded-md text-green-800">
-                                        <div className="flex items-center space-x-2 text-sm">
-                                            <span className="font-semibold">Transaction:</span>
-                                            <a
-                                                href={`https://explorer.aptoslabs.com/txn/${message.transactionHash}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="font-mono text-blue-600 hover:underline"
-                                            >
-                                                {formatWalletAddress(message.transactionHash)}
-                                            </a>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                )} */}
+ 
                             </div>
                         </div>
                     ))}

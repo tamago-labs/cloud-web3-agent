@@ -1,6 +1,6 @@
 "use client"
 
-import { PlayCircle, Copy, Download, Settings, Tool, Send, RefreshCw, FastForward } from "react-feather"
+import { PlayCircle, Copy, Download, Settings, Tool, Send, RefreshCw, FastForward, Play } from "react-feather"
 import { shortAddress } from "@/helpers"
 import { useEffect, useState, useReducer, useCallback } from "react"
 import Loading from "../Loading"
@@ -11,6 +11,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 import Configuration from "./Configuration"
 import { secondsToDDHHMMSS } from "../../helpers"
 import { useInterval } from "@/hooks/useInterval";
+import { getStatusBadge, getSdkName } from "@/helpers/getter"
 
 enum Modal {
     NONE,
@@ -64,53 +65,51 @@ const Agent = ({ agentId }: any) => {
             />
 
             {agent && (
-                <div className="flex flex-row"> 
+                <div className="flex flex-row">
                     <div className="flex-1">
                         <div className="h-[90px] px-6 py-4 border-b border-white/10 flex flex-col  bg-blue-900/30 ">
-                            <div className="flex  justify-between items-center  ">
-
-                                <div className="my-auto">
-                                    <div className="flex flex-row">
-                                        <div className="w-8 h-8 my-auto bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full mr-3 flex items-center justify-center text-sm font-bold">
+                            <div className="flex justify-between items-center my-auto">
+                                <div className="flex flex-row    w-full ">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 my-auto bg-gradient-to-br from-indigo-600/40 to-purple-600/40 rounded-full mr-3 flex items-center justify-center text-white font-bold shadow-md">
                                             {getId(agent.name)}
                                         </div>
-                                        <h1 className="text-2xl my-auto font-bold">
+                                        <h1 className="text-2xl my-auto font-bold text-white">
                                             {agent.name}
                                         </h1>
+                                        {/* <span className="ml-2   bg-blue-600 text-white px-2.5 py-1 rounded-full text-xs font-medium shadow-sm">
+                                            {getSdkName(agent.blockchain, agent.sdkType)}
+                                        </span> */}
                                     </div>
-                                    <p className="text-gray-400 mt-2 inline-flex">
-                                        <span className={`w-2 h-2 my-auto ${agent.isActive ? "bg-green-500" : "bg-orange-400"} rounded-full mr-2`}></span>
-                                        <span className="text-sm my-auto text-gray-400 mr-1">{agent.isActive ? "Active" : "Paused"} • Move Agent Kit •</span>
-                                        <CopyToClipboard text={agent?.walletAddresses[0] || ""}>
-                                            <div className="flex flex-row my-auto cursor-pointer hover:underline ">
-                                                <span className="text-sm my-auto text-gray-400">{shortAddress(agent?.walletAddresses[0], 10, -8)} </span>
-                                                <button className="p-1 my-auto cursor-pointer  text-gray-400">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    {/* <div className=" ml-auto  flex items-center">
+                                        <div className="flex items-center bg-indigo-900  border border-indigo-700 px-3 py-1.5 rounded-md text-sm  transition-colors duration-200 cursor-pointer shadow-sm  ">
+                                            <CopyToClipboard text={agent?.walletAddresses[0] || ""}>
+                                                <div className="flex items-center group">
+                                                    <span className="text-xs text-gray-200">{shortAddress(agent?.walletAddresses[0], 10, -8)}</span>
+                                                    <button className="ml-2 text-gray-400 group-hover:text-white transition-colors duration-200">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </CopyToClipboard>
+                                           
+                                        </div>
+                                         {agent.blockchain === "aptos" && (
+                                                <a href={`https://explorer.aptoslabs.com/account/${agent?.walletAddresses[0] || ""}?network=${agent.isTestnet ? "testnet" : "mainnet"}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="ml-2  my-auto text-gray-200 "
+                                                >
+                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                     </svg>
-                                                </button>
-                                            </div>
-                                        </CopyToClipboard>
-                                        <a
-                                            href={`https://explorer.aptoslabs.com/account/${agent?.walletAddresses[0] || ""}?network=${agent.isTestnet ? "testnet" : "mainnet"}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="  my-auto text-gray-400 "
-                                        >
-                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                            </svg>
-                                        </a>
-                                    </p>
+                                                </a>
+                                            )
+
+                                            }
+                                    </div> */}
                                 </div>
-                                {/* <div className="ml-auto  flex items-center space-x-3">
-                                    <button className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                                        <Tool size={22} />
-                                    </button>
-                                    <button onClick={() => dispatch({ modal: Modal.SETTINGS })} className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                                        <Settings size={22} />
-                                    </button>
-                                </div> */}
                             </div>
                         </div>
                         <div className="h-[calc(100vh-90px)] ">
@@ -121,17 +120,35 @@ const Agent = ({ agentId }: any) => {
                         </div>
                     </div>
                     <div className="flex-1">
-                        <div className="h-[90px] px-6 py-4 border-b border-white/10 flex flex-col  bg-blue-900/30 ">
-                            <div className="flex  my-auto justify-between items-center ">
-                                <div className="ml-auto my-auto flex items-center space-x-3">
-                                    {/* <button className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                                        <Tool size={22} />
-                                    </button> */}
-                                    {/* <button onClick={() => dispatch({ modal: Modal.SETTINGS })} className="bg-white/5 cursor-pointer hover:bg-white/10 px-2 py-2 rounded text-sm transition">
-                                        <Settings size={22} />
-                                    </button> */}
-                                    <AgentCountdown agent={agent} />
+                        <div className="h-[90px] px-3  border-b border-white/10 flex flex-col  bg-blue-900/30 ">
+                            {/* <AgentCountdown agent={agent} /> */}
+                            <div className=" ml-auto my-auto px-4 flex items-center">
+                                <div className="flex items-center bg-indigo-900  border border-indigo-700 px-3 py-1.5 rounded-md text-sm  transition-colors duration-200 cursor-pointer shadow-sm  ">
+                                    <CopyToClipboard text={agent?.walletAddresses[0] || ""}>
+                                        <div className="flex items-center group">
+                                            <span className="text-xs text-gray-200 ">{shortAddress(agent?.walletAddresses[0], 10, -8)}</span>
+                                            <button className="ml-2 text-gray-400 group-hover:text-white transition-colors duration-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </CopyToClipboard>
+
                                 </div>
+                                {agent.blockchain === "aptos" && (
+                                    <a href={`https://explorer.aptoslabs.com/account/${agent?.walletAddresses[0] || ""}?network=${agent.isTestnet ? "testnet" : "mainnet"}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center bg-indigo-900 ml-2 border text-gray-400 hover:text-gray-200 border-indigo-700 px-3 py-1.5 rounded-md text-sm  transition-colors duration-200 cursor-pointer shadow-sm  "
+                                    >
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                )
+
+                                }
                             </div>
                         </div>
                         <div className="h-[calc(100vh-90px)] ">
@@ -187,9 +204,72 @@ const AgentCountdown = ({ agent }: any) => {
         calculateTimeLeft(agent)
     }, 1000)
 
+    const isRunning = false
+
     return (
-        <div className="flex flex-row text-white items-end justify-center space-x-2">
-            <div className="text-lg my-auto font-semibold text-white ">Next Run In</div>
+        <div className="flex flex-row w-full text-white items-center justify-between p-4  ">
+            {/* Left side - Control buttons */}
+            <div className="flex items-center space-x-3">
+                {isRunning ? (
+                    <button
+                        // onClick={handleStop}
+                        className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="6" y="6" width="12" height="12" strokeWidth="2" />
+                        </svg>
+                        <span className="font-medium">Stop Automation</span>
+                    </button>
+                ) : (
+                    <button
+                        // onClick={handleStart}
+                        className="flex items-center space-x-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
+                    >
+                        <Play size={20} />
+                        <span className="font-medium">Start Automation</span>
+                    </button>
+                )}
+
+                <div className="flex items-center px-3 py-1 bg-gray-800 rounded-md">
+                    <div className={`w-3 h-3 rounded-full mr-2 ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className="text-sm font-medium">{isRunning ? 'Running' : 'Stopped'}</span>
+                </div>
+            </div>
+
+
+            {/* Right side - Timer */}
+            <div className="flex items-center space-x-4">
+                <div className="text-lg font-semibold text-white">Next Run In</div>
+                <div className="flex items-center space-x-3">
+                    <div className="flex flex-col items-center">
+                        <div className="bg-indigo-900 border border-indigo-700 rounded-md px-3 py-2 text-xl font-bold text-white min-w-[3rem] text-center">
+                            {timeLeft.hours}
+                        </div>
+                        <span className="text-xs text-gray-400 mt-1 uppercase">Hours</span>
+                    </div>
+
+                    <div className="text-2xl font-bold text-indigo-500 -mt-5">:</div>
+
+                    <div className="flex flex-col items-center">
+                        <div className="bg-indigo-900 border border-indigo-700 rounded-md px-3 py-2 text-xl font-bold text-white min-w-[3rem] text-center">
+                            {timeLeft.minutes}
+                        </div>
+                        <span className="text-xs text-gray-400 mt-1 uppercase">Minutes</span>
+                    </div>
+
+                    <div className="text-2xl font-bold text-indigo-500 -mt-5">:</div>
+
+                    <div className="flex flex-col items-center">
+                        <div className="bg-indigo-900 border border-indigo-700 rounded-md px-3 py-2 text-xl font-bold text-white min-w-[3rem] text-center">
+                            {timeLeft.seconds}
+                        </div>
+                        <span className="text-xs text-gray-400 mt-1 uppercase">Seconds</span>
+                    </div>
+                </div>
+            </div>
+
+
+            {/* <div className="text-lg my-auto font-semibold text-white ">Next Run In</div>
             <div className="flex items-center">
                 <div className="flex flex-col items-center">
                     <div className="bg-gray-800 rounded-md px-2 py-1 text-lg font-medium text-white">
@@ -200,18 +280,18 @@ const AgentCountdown = ({ agent }: any) => {
                 <span className="mx-1 text-gray-400 text-xl">:</span>
                 <div className="flex flex-col items-center">
                     <div className="bg-gray-800 rounded-md px-2 py-1 text-lg font-medium text-white">
-                    {timeLeft.minutes}
+                        {timeLeft.minutes}
                     </div>
                     <span className="text-sm text-gray-400 mt-1">Mins</span>
                 </div>
                 <span className="mx-1 text-gray-400 text-xl">:</span>
                 <div className="flex flex-col items-center">
                     <div className="bg-gray-800 rounded-md px-2 py-1 text-lg font-medium text-white">
-                    {timeLeft.seconds}
+                        {timeLeft.seconds}
                     </div>
                     <span className="text-sm text-gray-400 mt-1">Secs</span>
                 </div>
-            </div>
+            </div> */}
 
         </div>
     );

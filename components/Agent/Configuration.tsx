@@ -1,7 +1,7 @@
 import useDatabase from "@/hooks/useDatabase"
 import BaseModal from "@/modals/base"
 import { useState, useEffect, useReducer, useCallback } from "react"
-import { Info, DollarSign, Plus, Minus, ChevronDown, ChevronUp, Play, Pause, X } from "react-feather"
+import { Info, DollarSign, Plus, Minus, ChevronDown, ChevronUp, Play, Pause, X, Trash } from "react-feather"
 import { generateClient } from "aws-amplify/api";
 import { Schema } from "../../amplify/data/resource";
 import { createAIHooks } from "@aws-amplify/ui-react-ai";
@@ -376,12 +376,13 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                 </div>
                             </div>
 
-                            <div className="flex col-span-2   space-x-2">
+                            <div className="flex col-span-2 justify-between space-x-2">
                                 <button onClick={onUpdate} className="bg-white cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
                                     Save
                                 </button>
 
-                                <button onClick={onUpdate} className="bg-white cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                <button onClick={onUpdate} className="bg-white inline-flex cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                    <Trash className="mr-1"/>
                                     Delete Conversation
                                 </button>
 

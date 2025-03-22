@@ -13,13 +13,19 @@ import Link from "next/link";
 const Dashboard = () => {
 
     const [modal, setModal] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const { listAgents } = useDatabase()
     const { profile } = useContext(CloudAgentContext)
     const [agents, setAgents] = useState<any[]>([])
 
     useEffect(() => {
-        profile && listAgents(profile.id).then(setAgents)
+        profile && listAgents(profile.id).then(
+            (agents) => {
+                setAgents(agents)
+                setLoading(false)
+            }
+        )
     }, [profile])
 
     useEffect(() => {
@@ -95,6 +101,7 @@ const Dashboard = () => {
                 {/* Agent List */}
                 <AgentList
                     agents={agents}
+                    loading={loading}
                 />
 
                 {/* Performance chart card */}

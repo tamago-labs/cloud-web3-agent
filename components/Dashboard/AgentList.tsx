@@ -1,9 +1,15 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation";
-import { Plus, DownloadCloud } from "react-feather";
+import { Plus, DownloadCloud, RefreshCw } from "react-feather";
 import { secondsToDDHHMMSS } from "../../helpers"
+import { getStatusBadge, getSdkName } from "@/helpers/getter"; 
 
-const AgentList = ({ agents }: any) => {
+interface IAgentList {
+    agents: any
+    loading: boolean
+}
+
+const AgentList = ({ agents, loading }: IAgentList) => {
 
     const router = useRouter()
 
@@ -19,16 +25,6 @@ const AgentList = ({ agents }: any) => {
         router.push(href)
     }
 
-    const getStatusBadge = (isActive: boolean) => {
-        switch (isActive) {
-            case true:
-                return <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Active</span>;
-            case (false):
-                return <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Paused</span>;
-            default:
-                return <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Paused</span>;
-        }
-    };
 
     const mockData = [
         { id: 1, trader: "0x7fa9...82c3", value: 3600, allocation: 30, profit: 32.4, assets: ["APT", "USDC"], status: "active" },
@@ -56,16 +52,15 @@ const AgentList = ({ agents }: any) => {
                     <thead>
                         <tr className="bg-black/20  ">
                             <th className="text-left p-4 font-medium text-gray-400">Name</th>
-                            {/* <th className="text-left p-4 font-medium text-gray-400">Network</th> */}
+                            <th className="text-left p-4 font-medium text-gray-400">Powered by</th>
                             <th className="text-left p-4 font-medium text-gray-400">Profit/Loss</th>
-                            <th className="text-left p-4 font-medium text-gray-400">Assets</th>
                             <th className="text-left p-4 font-medium text-gray-400">Value</th>
                             <th className="text-left p-4 font-medium text-gray-400">Status</th>
                             <th className="text-left p-4 font-medium text-gray-400">Next Run</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {agents.map((agent: any, index: number) => {
+                        {!loading && agents.map((agent: any, index: number) => {
 
                             let countdown = "In 0d"
 
@@ -106,6 +101,18 @@ const AgentList = ({ agents }: any) => {
                                     </span> 
                                 </td> */}
                                     <td className="p-4">
+                                        <div className="flex space-x-1">
+                                            {/* {mock && mock.assets.map((asset) => (
+                                                <span key={asset} className="bg-blue-900/30 px-2 py-1 rounded text-xs">
+                                                    {asset}
+                                                </span>
+                                            ))} */}
+                                            <span className="bg-blue-900/30 px-2 py-1 rounded text-xs">
+                                                { getSdkName(agent.blockchain, agent.sdkType) }
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
                                         {mock && (
                                             <span className={true ? "text-green-400" : "text-red-400"}>
                                                 {true ? "+" : ""}{0}%
@@ -113,15 +120,7 @@ const AgentList = ({ agents }: any) => {
                                         )}
                                     </td>
 
-                                    <td className="p-4">
-                                        <div className="flex space-x-1">
-                                            {mock && mock.assets.map((asset) => (
-                                                <span key={asset} className="bg-blue-900/30 px-2 py-1 rounded text-xs">
-                                                    {asset}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </td>
+
                                     <td className="p-4">
                                         {mock && (
                                             <span  >
@@ -148,6 +147,16 @@ const AgentList = ({ agents }: any) => {
                             )
                         })}
                     </tbody>
+                    {loading && (
+                        <div className="flex  ml-2 ">
+                            <div className="  text-gray-200 my-auto  p-4 shadow-sm">
+                                <div className="flex space-x-2 ">
+                                    <RefreshCw size={24} className="mr-2 my-auto animate-spin text-gray-200" />
+                                    <span className="my-auto mr-2">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </table>
             </div>
         </div>
