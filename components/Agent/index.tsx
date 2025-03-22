@@ -181,7 +181,7 @@ const Agent = ({ agentId }: any) => {
     )
 }
 
-const AgentCountdown = ({ agent }: any) => {
+export const AgentCountdown = ({ agent, onPause, onStart }: any) => {
 
     const [timeLeft, setTimeLeft] = useState<any>({
         hours: 0,
@@ -218,16 +218,14 @@ const AgentCountdown = ({ agent }: any) => {
         calculateTimeLeft(agent)
     }, 1000)
 
-    const isRunning = false
-
     return (
-        <div className="flex flex-row w-full text-white items-center justify-between p-4  ">
+        <div className="flex flex-row w-full text-white items-center justify-between p-4 px-0 ">
             {/* Left side - Control buttons */}
             <div className="flex items-center space-x-3">
-                {isRunning ? (
+                {agent.isActive ? (
                     <button
-                        // onClick={handleStop}
-                        className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200"
+                        onClick={onPause}
+                        className="flex items-center  cursor-pointer space-x-2 px-4 py-2 bg-white hover:bg-gray-200 text-gray-900 rounded-md transition-colors duration-200"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <rect x="6" y="6" width="12" height="12" strokeWidth="2" />
@@ -236,8 +234,8 @@ const AgentCountdown = ({ agent }: any) => {
                     </button>
                 ) : (
                     <button
-                        // onClick={handleStart}
-                        className="flex items-center space-x-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
+                        onClick={onStart}
+                        className="flex items-center cursor-pointer space-x-1 px-4 py-2 bg-white hover:bg-gray-200  text-gray-900 rounded-md transition-colors duration-200"
                     >
                         <Play size={20} />
                         <span className="font-medium">Start Automation</span>
@@ -245,8 +243,8 @@ const AgentCountdown = ({ agent }: any) => {
                 )}
 
                 <div className="flex items-center px-3 py-1 bg-gray-800 rounded-md">
-                    <div className={`w-3 h-3 rounded-full mr-2 ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                    <span className="text-sm font-medium">{isRunning ? 'Running' : 'Stopped'}</span>
+                    <div className={`w-3 h-3 rounded-full mr-2 ${agent.isActive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className="text-sm font-medium">{agent.isActive ? 'Running' : 'Stopped'}</span>
                 </div>
             </div>
 
