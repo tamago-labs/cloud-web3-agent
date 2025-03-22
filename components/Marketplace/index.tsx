@@ -45,6 +45,8 @@ const Marketplace = () => {
 
             const targetAgent: any = await item.agent()
 
+            // TODO: add subnetwork
+
             const { data } = await client.queries.DeployAgent({
                 name: agentName,
                 userId,

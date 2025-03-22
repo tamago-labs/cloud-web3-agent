@@ -14,7 +14,7 @@ const client = generateClient<Schema>();
 
 export const handler: Schema["DeployAgent"]["functionHandler"] = async (event) => {
 
-    const { name, userId, blockchain, sdkType, isTestnet, promptInput, promptExecute, promptDecision }: any = event.arguments
+    const { name, userId, blockchain, sdkType, isTestnet, subnetwork, promptInput, promptExecute, promptDecision }: any = event.arguments
 
     try {
         // Generate a key for Aptos
@@ -28,6 +28,7 @@ export const handler: Schema["DeployAgent"]["functionHandler"] = async (event) =
             userId,
             blockchain,
             isTestnet,
+            subnetwork,
             sdkType,
             walletAddresses: [walletAddress],
             promptInput,
