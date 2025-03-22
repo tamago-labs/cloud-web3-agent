@@ -7,13 +7,17 @@ import useDatabase from "@/hooks/useDatabase"
 import { CloudAgentContext } from "@/hooks/useCloudAgent"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import ResultCard from "../Automation/ResultCard"
+import MessagesAptos from "./MessagesAptos"
+import { getSdkName } from "@/helpers/getter"
+import BaseModal from "@/modals/base"
 
-const ChatPanel = ({ agent }: any) => {
+
+const ChatPanel = ({ agent, increaseTick }: any) => {
 
     // const { query } = useTest()
     const { query } = useContext(CloudAgentContext)
 
-    const { saveMessages, getMessages } = useDatabase()
+    const { getMessages, clearMessages } = useDatabase()
 
     const chatContainerRef: any = useRef(null)
 
@@ -23,11 +27,13 @@ const ChatPanel = ({ agent }: any) => {
             loading: false,
             message: "",
             messages: [],
-            tick: 1
+            tick: 1,
+            tokenCount: 0,
+            modal: undefined
         }
     )
 
-    const { message, messages, loading, tick } = values
+    const { modal, message, messages, loading, tick, tokenCount } = values
 
     useEffect(() => {
         const scrollToBottom = () => {
@@ -53,11 +59,8 @@ const ChatPanel = ({ agent }: any) => {
     const prepareMessages = useCallback(async (agent: any) => {
 
         // TODO: Add resource
-
         const messages = await getMessages(agent.id)
-
         console.log("messages: ", messages)
-
         // TODO: Add system prompts
 
         dispatch({
@@ -66,72 +69,18 @@ const ChatPanel = ({ agent }: any) => {
 
     }, [])
 
-    const renderMessageContent = (content: any) => {
-        if (typeof content === 'string') {
-            return <p className="whitespace-pre-wrap">{content}</p>;
-        }
-
-        if (Array.isArray(content)) {
-            return content.map((item, index) => {
-                if (item.type === 'text') {
-                    return <p key={index} className="whitespace-pre-wrap">{item.text}</p>;
+    useEffect(() => {
+        if (messages) {
+            let tokenCount = 0
+            console.log(messages)
+            messages.map((item: any) => {
+                if (item.content) {
+                    tokenCount = tokenCount + (item.content.length * 1.3)
                 }
-
-                if (item.type === 'tool_use') {
-                    return (
-                        <div key={index} className="bg-blue-50 p-3 rounded-md my-2 border border-blue-200">
-                            <div className="flex items-center">
-                                <span className="inline-block h-4 w-4 bg-blue-500 rounded-full mr-2"></span>
-                                <span className="font-semibold text-blue-700">Using tool: {item.name}</span>
-                            </div>
-                            {item.input && (item.input.input !== '' && item.input.input !== "{}") && (
-                                <pre className="bg-blue-100 p-2 mt-2 rounded overflow-x-auto text-sm">
-                                    {JSON.stringify(item.input, null, 2)}
-                                </pre>
-                            )}
-                        </div>
-                    );
-                }
-                if (item.type === 'tool_result') {
-                    let displayContent = item.content;
-                    try {
-                        const parsed = JSON.parse(item.content);
-                        return <ResultCard data={displayContent} agent={agent} />
-                    } catch (e) {
-
-                    }
-                    return <div key={index} className="bg-gray-50 p-3 rounded-md my-2 border border-gray-200">
-                        <div className="flex items-center">
-                            <span className="inline-block h-4 w-4 bg-green-500 rounded-full mr-2"></span>
-                            <span className="font-semibold text-gray-700">Result</span>
-                        </div>
-                        <pre className="bg-gray-100 p-2 mt-2 rounded overflow-x-auto text-sm">
-                            {typeof displayContent === 'string'
-                                ? displayContent
-                                : JSON.stringify(displayContent, null, 2)}
-                        </pre>
-                    </div>
-                }
-
-                return null;
-            });
+            })
+            dispatch({ tokenCount })
         }
-
-        return null;
-    };
-
-    const formatWalletAddress = (address: any) => {
-        if (!address || typeof address !== 'string' || address.length < 10) return address;
-        return `${address.substring(0, 10)}...${address.substring(address.length - 8)}`;
-    };
-
-    const extractAddressFromMessage = (content: any) => {
-        if (typeof content === 'string') {
-            const match = content.match(/0x[a-fA-F0-9]{64}/);
-            return match ? match[0] : null;
-        }
-        return null;
-    }
+    }, [messages])
 
     const handleSendMessage = useCallback(async () => {
         if (!message || message.length < 2) {
@@ -155,18 +104,21 @@ const ChatPanel = ({ agent }: any) => {
 
         try {
 
-            const result: any = await query(agent.id, [...messages, userPrompt]) 
-            console.log("result:", result) 
-            if (result) {
-                dispatch({ messages: result })
-            } else {
-                alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
-                // wait for 10 sec and load message again
-                setTimeout(() => {
-                    dispatch({
-                        tick: tick + 1
-                    })
-                }, 10000)
+
+            if (agent.blockchain === "aptos") {
+                const result: any = await query(agent.id, [...messages, userPrompt])
+                console.log("result:", result)
+                if (result) {
+                    dispatch({ messages: result })
+                } else {
+                    alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
+                    // wait for 10 sec and load message again
+                    setTimeout(() => {
+                        dispatch({
+                            tick: tick + 1
+                        })
+                    }, 10000)
+                }
             }
 
 
@@ -180,72 +132,83 @@ const ChatPanel = ({ agent }: any) => {
 
     }, [message, messages, agent, tick])
 
+    const onClear = useCallback(async () => {
+        await clearMessages(agent.id)
+        increaseTick()
+        dispatch({ modal: "Deleted successfully" })
+    },[agent, increaseTick])
+
     return (
         <div className="grid grid-cols-7 h-full">
+
+            <BaseModal
+                visible={modal !== undefined}
+            >
+                <div className="px-2 sm:px-6 pt-5 pb-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl  font-semibold">Status Update</h3>
+                        <button onClick={() => dispatch({ modal: undefined })} className="text-gray-400 cursor-pointer hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div className="text-base sm:text-lg font-medium">
+                        <p className="text-center">
+                            {modal}
+                        </p>
+                        <div className="flex p-4">
+                            <button onClick={() => dispatch({ modal: undefined })} className="bg-white cursor-pointer mx-auto px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </BaseModal>
+
             <div className="col-span-7 flex flex-col  overflow-y-scroll" ref={chatContainerRef} >
 
-                {/* Messages container */}
-                <div className="flex-1  p-4 space-y-4 "  >
-                    {messages.map((message: any) => (
-                        <div
-                            key={message.id}
-                            className={`flex ${message.role === 'user' && !message.content[0]?.type ? 'justify-end' : 'justify-start'}`}
-                        >
-                            <div
-                                className={`max-w-3/4 md:max-w-2/3 rounded-lg p-4 ${message.role === 'user' && !message.content[0]?.type
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-gray-800 border border-gray-200 shadow-sm'
-                                    }`}
+                <div className="border-b border-white/10 bg-gradient-to-br from-blue-900/30 to-indigo-900/30 p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <div className="ml-auto flex space-x-2">
+                                <span className="flex items-center h-[28px] my-auto bg-indigo-900  border text-gray-200 border-indigo-700 px-3 rounded-md text-xs shadow-sm  ">
+                                    {getSdkName(agent.blockchain, agent.sdkType)}
+                                </span>
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-400">
+                            Limit: 5,000 tokens per conversation
+                        </p>
+                        <div className="flex items-center space-x-3">
+
+                            {/* Token Count */}
+                            <div className="flex items-center bg-black/30 px-3 py-1.5 rounded-lg">
+                                <span className="text-sm text-gray-200 font-medium">{(tokenCount).toLocaleString()} tokens</span>
+                            </div>
+
+                            {/* Delete Conversation Button */}
+                            <button
+                                onClick={onClear}
+                                className="flex items-center bg-red-500/20 cursor-pointer hover:bg-red-600/30 text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg transition-colors duration-200"
                             >
-                                <div className="message-content overflow-hidden">
-                                    {renderMessageContent(message.content)}
+                                <div className="w-4 h-4 mr-2">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
                                 </div>
-
-                                {/* Show wallet info if present */}
-                                {message.content && typeof message.content === 'string' &&
-                                    extractAddressFromMessage(message.content) && (
-                                        <div className="mt-2 p-2 bg-gray-100 rounded-md text-gray-800">
-                                            <div className="flex items-center space-x-2 text-sm">
-                                                <span className="font-semibold">Wallet:</span>
-                                                <span className="font-mono">
-                                                    {formatWalletAddress(extractAddressFromMessage(message.content))}
-                                                </span>
-                                                <CopyToClipboard text={extractAddressFromMessage(message.content) || ""}>
-                                                    <button className="p-1 cursor-pointer  text-gray-600 hover:text-gray-800">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                                        </svg>
-                                                    </button>
-                                                </CopyToClipboard>
-                                                <a
-                                                    href={`https://explorer.aptoslabs.com/account/${extractAddressFromMessage(message.content) || ""}?network=${agent.isTestnet ? "testnet" : "mainnet"}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="ml-2 text-gray-600 hover:text-gray-800"
-                                                >
-                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    )}
- 
-                            </div>
+                                <span className="text-sm font-medium">Clear Chat</span>
+                            </button>
                         </div>
-                    ))}
-
-                    {loading && (
-                        <div className="flex justify-start">
-                            <div className="bg-white text-gray-800 border border-gray-200 rounded-lg p-4 shadow-sm">
-                                <div className="flex space-x-2">
-                                    <RefreshCw size={24} className="mr-2 my-auto animate-spin text-blue-600" />
-                                    <span className="my-auto mr-2">Please wait...</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
+
+                {/* Messages container */}
+                {agent.blockchain === "aptos" && <MessagesAptos messages={messages} agent={agent} loading={loading} />}
+
+
                 {/* Input Area */}
                 <div className="  border-t border-white/10  bg-gradient-to-br from-blue-900/30 to-indigo-900/30  p-4">
                     <div className="  mx-auto">

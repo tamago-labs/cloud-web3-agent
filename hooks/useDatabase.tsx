@@ -76,6 +76,13 @@ const useDatabase = () => {
         })
     }
 
+    const clearMessages = async (agentId: string) => {
+        await client.models.Agent.update({
+            id: agentId,
+            messages: JSON.stringify([])
+        })
+    }
+
     const setAgentActive = async (agentId: string, isActive: boolean) => {
         await client.models.Agent.update({
             id: agentId,
@@ -140,6 +147,7 @@ const useDatabase = () => {
         updateAgent,
         getAgent,
         saveMessages,
+        clearMessages,
         setAgentActive,
         saveAgentAutomation,
         addToMarketplace,

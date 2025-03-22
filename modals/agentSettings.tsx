@@ -21,7 +21,7 @@ const AgentSettingsModal = ({ visible, close, agent, increaseTick }: any) => {
             return
         }
 
-        await updateAgent(agent.id, name, isTestnet)
+        // await updateAgent(agent.id, name, isTestnet)
 
         increaseTick()
         close()
