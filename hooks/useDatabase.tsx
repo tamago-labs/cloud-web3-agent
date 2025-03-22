@@ -67,11 +67,12 @@ const useDatabase = () => {
         return result.data
     }
 
-    const updateAgent = async (agentId: string, name: string, isTestnet: boolean) => {
+    const updateAgent = async (agentId: string, name: string, isTestnet: boolean, subnetwork: string) => {
         await client.models.Agent.update({
             id: agentId,
             name,
-            isTestnet
+            isTestnet,
+            subnetwork
         })
     }
 

@@ -69,7 +69,7 @@ const Agent = ({ agentId }: any) => {
                     <div className="flex-1">
                         <div className="h-[90px] px-6 py-4 border-b border-white/10 flex flex-col  bg-blue-900/30 ">
                             <div className="flex justify-between items-center my-auto">
-                                <div className="flex flex-row    w-full ">
+                                <div className="flex flex-row w-full ">
                                     <div className="flex items-center">
                                         <div className="w-10 h-10 my-auto bg-gradient-to-br from-indigo-600/40 to-purple-600/40 rounded-full mr-3 flex items-center justify-center text-white font-bold shadow-md">
                                             {getId(agent.name)}
@@ -81,6 +81,14 @@ const Agent = ({ agentId }: any) => {
                                             {getSdkName(agent.blockchain, agent.sdkType)}
                                         </span> */}
                                     </div>
+                                    {/* <div className="ml-auto flex space-x-2">
+                                        <span className="flex capitalize items-center h-[28px] my-auto bg-indigo-900 border text-gray-200 border-indigo-700 px-3 rounded-md text-xs shadow-sm  ">
+                                            {agent.blockchain}
+                                        </span>
+                                        <span className="flex items-center h-[28px] my-auto bg-indigo-900  border text-gray-200 border-indigo-700 px-3 rounded-md text-xs shadow-sm  ">
+                                            {getSdkName(agent.blockchain, agent.sdkType)}
+                                        </span>
+                                    </div> */}
                                     {/* <div className=" ml-auto  flex items-center">
                                         <div className="flex items-center bg-indigo-900  border border-indigo-700 px-3 py-1.5 rounded-md text-sm  transition-colors duration-200 cursor-pointer shadow-sm  ">
                                             <CopyToClipboard text={agent?.walletAddresses[0] || ""}>
@@ -122,7 +130,13 @@ const Agent = ({ agentId }: any) => {
                     <div className="flex-1">
                         <div className="h-[90px] px-3  border-b border-white/10 flex flex-col  bg-blue-900/30 ">
                             {/* <AgentCountdown agent={agent} /> */}
-                            <div className=" ml-auto my-auto px-4 flex items-center">
+                            <div className=" ml-auto my-auto px-4 flex items-center space-x-2">
+                                {/* <span className="flex capitalize items-center h-[28px] my-auto bg-indigo-900 border text-gray-200 border-indigo-700 px-3 rounded-md text-xs shadow-sm  ">
+                                    {agent.blockchain}
+                                </span> */}
+                                {/* <span className="flex items-center h-[28px] my-auto bg-indigo-900  border text-gray-200 border-indigo-700 px-3 rounded-md text-xs shadow-sm  ">
+                                    {getSdkName(agent.blockchain, agent.sdkType)}
+                                </span> */}
                                 <div className="flex items-center bg-indigo-900  border border-indigo-700 px-3 py-1.5 rounded-md text-sm  transition-colors duration-200 cursor-pointer shadow-sm  ">
                                     <CopyToClipboard text={agent?.walletAddresses[0] || ""}>
                                         <div className="flex items-center group">
@@ -140,7 +154,7 @@ const Agent = ({ agentId }: any) => {
                                     <a href={`https://explorer.aptoslabs.com/account/${agent?.walletAddresses[0] || ""}?network=${agent.isTestnet ? "testnet" : "mainnet"}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center bg-indigo-900 ml-2 border text-gray-400 hover:text-gray-200 border-indigo-700 px-3 py-1.5 rounded-md text-sm  transition-colors duration-200 cursor-pointer shadow-sm  "
+                                        className="flex items-center bg-indigo-900 border text-gray-400 hover:text-gray-200 border-indigo-700 px-3 py-1.5 rounded-md text-sm  transition-colors duration-200 cursor-pointer shadow-sm  "
                                     >
                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

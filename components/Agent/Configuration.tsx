@@ -1,7 +1,7 @@
 import useDatabase from "@/hooks/useDatabase"
 import BaseModal from "@/modals/base"
 import { useState, useEffect, useReducer, useCallback } from "react"
-import { Info, DollarSign, Plus, Minus, ChevronDown, ChevronUp, Play, Pause, X, Trash } from "react-feather"
+import { Info, DollarSign, Plus, Minus, ChevronDown, ChevronUp, Play, Pause, X, Trash, Save } from "react-feather"
 import { generateClient } from "aws-amplify/api";
 import { Schema } from "../../amplify/data/resource";
 import { createAIHooks } from "@aws-amplify/ui-react-ai";
@@ -41,6 +41,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
             errorMessage: undefined,
             modal: undefined,
             agentName: "",
+            subnetwork: "evm",
             isTestnet: false,
             isListing: false,
             listing: undefined,
@@ -48,7 +49,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
         }
     )
 
-    const { processingPrompt, isListing, listing, isTestnet, agentName, modal, section, prompt, schedule, isActive, promptInput, promptDecision, promptExecute, errorMessage } = values
+    const { processingPrompt, isListing, listing, isTestnet, subnetwork, agentName, modal, section, prompt, schedule, isActive, promptInput, promptDecision, promptExecute, errorMessage } = values
 
     // Categories available in the marketplace
     const categories = [
@@ -68,6 +69,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                 isTestnet: agent?.isTestnet || false,
                 schedule: agent?.schedule || 86400,
                 isActive: agent?.isActive || false,
+                subnetwork: agent?.subnetwork || "evm",
                 promptInput: agent?.promptInput || "",
                 promptDecision: agent?.promptDecision || "",
                 promptExecute: agent?.promptExecute || ""
@@ -123,12 +125,12 @@ const Configuration = ({ agent, increaseTick }: any) => {
             return
         }
 
-        await updateAgent(agent.id, agentName, isTestnet)
+        await updateAgent(agent.id, agentName, isTestnet, subnetwork)
 
         increaseTick()
         dispatch({ modal: "Saved successfully" })
 
-    }, [agent, agentName, isTestnet])
+    }, [agent, agentName, isTestnet, subnetwork])
 
     const onSave = useCallback(async () => {
 
@@ -246,7 +248,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
 
     const onEnhance = useCallback(async (promptType: Prompt, promptA: string, promptB: string, promptC: string) => {
 
-        dispatch({ processingPrompt : promptType })
+        dispatch({ processingPrompt: promptType })
         const prompt = promptType === Prompt.INPUT ? promptA : promptType === Prompt.DECISION ? promptB : promptC
 
         promptEnhance({
@@ -260,10 +262,10 @@ const Configuration = ({ agent, increaseTick }: any) => {
 
     useEffect(() => {
 
-        if ( data && isLoading === false) {  
+        if (data && isLoading === false) {
             const matches = data.match(/"([^"]+)"/g);
             if (matches && matches[0]) {
-                const newPrompt = matches[0].replaceAll(`"`, ``) 
+                const newPrompt = matches[0].replaceAll(`"`, ``)
                 if (processingPrompt === Prompt.INPUT) {
                     dispatch({
                         promptInput: newPrompt
@@ -272,7 +274,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                     dispatch({
                         promptDecision: newPrompt
                     })
-                } else  if (processingPrompt === Prompt.EXECUTE) {
+                } else if (processingPrompt === Prompt.EXECUTE) {
                     dispatch({
                         promptExecute: newPrompt
                     })
@@ -280,8 +282,8 @@ const Configuration = ({ agent, increaseTick }: any) => {
             }
 
         }
-            
-    },[data, processingPrompt, isLoading ])
+
+    }, [data, processingPrompt, isLoading])
 
     return (
         <>
@@ -295,13 +297,13 @@ const Configuration = ({ agent, increaseTick }: any) => {
                             Please wait for a moment...
                         </h3>
                         <button onClick={() => {
-                             
+
                         }} className="text-gray-400 cursor-pointer hover:text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
-                    </div> 
+                    </div>
 
                     {isLoading && (
                         <div className="text-base sm:text-lg p-4 font-medium">
@@ -352,6 +354,31 @@ const Configuration = ({ agent, increaseTick }: any) => {
                     {section === Section.SETTINGS && (
                         <div className="grid grid-cols-2 mt-4 gap-6 ">
 
+                            {/* <div className="col-span-1">
+                                <label htmlFor="name" className="block   text-sm font-medium text-gray-400">
+                                    Blockchain
+                                </label>
+                                <div
+                                    className="mt-1 block w-full capitalize text-white font-semibold  text-base bg-transparent "
+
+                                >
+                                    {agent.blockchain}
+                                </div>
+                            </div>
+
+                            <div className="col-span-1">
+                                <label htmlFor="name" className="block   text-sm font-medium text-gray-400">
+                                    SDK Type
+                                </label>
+                                <div
+                                    className="mt-1 block w-full capitalize text-white font-semibold  text-base bg-transparent "
+
+                                >
+                                    {agent.blockchain}
+                                </div>
+                            </div> */}
+
+
                             <div className="col-span-1">
                                 <label htmlFor="name" className="block   text-sm font-medium text-gray-400">
                                     Agent Name
@@ -366,9 +393,20 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                     placeholder="e.g., DeFi Yield Optimizer"
                                 />
                             </div>
+                            {agent.blockchain === "cronos" && (
+                                <div className="col-span-1">
+                                    <label htmlFor="description" className="block text-sm font-medium text-gray-400">
+                                        Network
+                                    </label>
+                                    <div className="inline-flex space-x-2 py-2">
+                                        <button onClick={() => dispatch({ subnetwork: "evm" })} className={`cursor-pointer ${subnetwork !== "evm" ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>EVM</button>
+                                        <button onClick={() => dispatch({ subnetwork: "zkevm" })} className={`cursor-pointer ${subnetwork !== "zkevm" ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>zkEVM</button>
+                                    </div>
+                                </div>
+                            )}
                             <div className="col-span-1">
                                 <label htmlFor="description" className="block text-sm font-medium text-gray-400">
-                                    Network
+                                    Use Testnet
                                 </label>
                                 <div className="inline-flex space-x-2 py-2">
                                     <button onClick={() => dispatch({ isTestnet: false })} className={`cursor-pointer ${isTestnet ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Mainnet</button>
@@ -377,14 +415,15 @@ const Configuration = ({ agent, increaseTick }: any) => {
                             </div>
 
                             <div className="flex col-span-2 justify-between space-x-2">
-                                <button onClick={onUpdate} className="bg-white cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                <button onClick={onUpdate} className="bg-white inline-flex cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                    <Save className="mr-2" />
                                     Save
                                 </button>
 
-                                <button onClick={onUpdate} className="bg-white inline-flex cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
-                                    <Trash className="mr-1"/>
+                                {/* <button onClick={onUpdate} className="bg-white inline-flex cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
+                                    <Trash className="mr-1" />
                                     Delete Conversation
-                                </button>
+                                </button> */}
 
                             </div>
 
