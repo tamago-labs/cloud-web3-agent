@@ -18,7 +18,7 @@
     "cronos": [
         {
             "id": "cronos-kit",
-            "disabled": true,
+            "disabled": false,
             "name": "Crypto.com AI Agent SDK",
             "description": "Official Crypto.com AI agent toolkit for on-chain activities."
         }

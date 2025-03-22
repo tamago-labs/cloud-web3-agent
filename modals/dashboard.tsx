@@ -18,12 +18,9 @@ const DashboardModal = ({ visible, close }: any) => {
 
                 <div className="text-base sm:text-lg font-medium space-y-4">
                     <p className="text-left">
-                        We're in the early stages of development. Some analytics data are currently mock values and no agents require actual payment at this time.
+                        We're in the early stages of development. No agents require actual payment at this time.
                     </p>
-
-                    <p className="text-left">
-                        Stay tuned for updates as we refine the platform.
-                    </p>
+ 
 
                     <div className="flex p-2">
                         <button onClick={close} className="bg-white cursor-pointer mx-auto px-4 py-2 rounded-lg font-medium  text-slate-900 transition">

@@ -31,6 +31,7 @@ export const handler: Schema["CreateAgent"]["functionHandler"] = async (event) =
                 userId,
                 blockchain,
                 isTestnet: false,
+                subnetwork: "mainnet",
                 sdkType,
                 walletAddresses: [walletAddress]
             })
@@ -54,6 +55,7 @@ export const handler: Schema["CreateAgent"]["functionHandler"] = async (event) =
                 userId,
                 blockchain,
                 isTestnet: false,
+                subnetwork: "mainnet",
                 sdkType,
                 walletAddresses: [wallet.data.address]
             })

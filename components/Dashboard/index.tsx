@@ -1,4 +1,4 @@
-import { LogOut, Plus, Book, Info } from "react-feather";
+import { LogOut, Plus, Book, Info, ExternalLink } from "react-feather";
 import { signOut } from "aws-amplify/auth"
 import { useRouter } from "next/navigation";
 import { useState, useContext, useEffect } from "react";
@@ -53,8 +53,8 @@ const Dashboard = () => {
                     <div className="flex space-x-3">
                         <Link href="https://docs.tamagolabs.com/" target="_blank">
                             <button className="  cursor-pointer bg-white  text-gray-900 px-4 py-2 rounded-lg font-medium transition flex items-center">
-                                <Info className="mr-1.5  text-gray-900 " />
-                                Documentation
+                                <ExternalLink className="mr-1.5  text-gray-900 " />
+                                Docs
                             </button>
                         </Link>
 
