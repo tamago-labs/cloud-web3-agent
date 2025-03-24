@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test" : "mocha --reporter spec"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.5.5",
@@ -45,8 +46,10 @@
     "autoprefixer": "^10.4.20",
     "aws-cdk": "^2",
     "aws-cdk-lib": "^2",
+    "chai": "^5.2.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.23.1",
+    "mocha": "^11.1.0",
     "tailwindcss": "^4.0.9",
     "tsx": "^4.19.0",
     "typescript": "^5.6.2"
