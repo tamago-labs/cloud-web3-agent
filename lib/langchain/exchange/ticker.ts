@@ -29,8 +29,7 @@ export class GetExchangeTickerTool extends Tool {
 
             const ticker = await this.cronosAgent.getExchangeTicker(tickerName)
             return JSON.stringify({
-                status: "success",
-                ticker
+                ...ticker
             })
         } catch (error: any) {
             return JSON.stringify({

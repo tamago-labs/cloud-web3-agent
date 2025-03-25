@@ -32,8 +32,7 @@ export class GetContractAbiTool extends Tool {
             const abi = await this.cronosAgent.getContractAbi(contractAddress)
 
             return JSON.stringify({
-                status: "success",
-                abi
+                ...abi
             })
 
         } catch (error: any) {

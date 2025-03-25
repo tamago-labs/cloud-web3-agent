@@ -11,7 +11,6 @@ type Props = {
     children: ReactNode;
 };
 
-
 const Provider = ({ children }: Props) => {
 
     const { getProfile } = useDatabase()

@@ -35,8 +35,8 @@ export class GetTransactionTool extends Tool {
 
             return JSON.stringify({
                 status: "success",
-                transaction,
-                transactionStatus
+                transaction : transaction.data,
+                transactionStatus : transactionStatus.data
             })
 
         } catch (error: any) {

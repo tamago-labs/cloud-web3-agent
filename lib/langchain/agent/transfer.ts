@@ -23,7 +23,6 @@ export class TransferTokenTool extends Tool {
         this.cronosAgent = cronosAgent
     }
 
-
     async _call(input: string): Promise<string> {
         try {
             const parsedInput = parseJson(input)

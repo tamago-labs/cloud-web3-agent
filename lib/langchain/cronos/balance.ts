@@ -29,14 +29,12 @@ export class GetTokenBalanceTool extends Tool {
             if (tokenAddress) {
                 const balance = await this.cronosAgent.getERC20TokenBalance(agentAddress, tokenAddress)
                 return JSON.stringify({
-                    status: "success",
-                    balance
+                    ...balance
                 })
             } else {
                 const balance = await this.cronosAgent.getNativeTokenBalance(agentAddress)
                 return JSON.stringify({
-                    status: "success",
-                    balance
+                    ...balance
                 })
             }
 

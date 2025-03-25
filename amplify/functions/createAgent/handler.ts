@@ -55,7 +55,7 @@ export const handler: Schema["CreateAgent"]["functionHandler"] = async (event) =
                 userId,
                 blockchain,
                 isTestnet: false,
-                subnetwork: "evm",
+                subnetwork: "zkevm",
                 sdkType,
                 walletAddresses: [wallet.data.address]
             })

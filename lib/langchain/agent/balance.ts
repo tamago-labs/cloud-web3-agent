@@ -27,8 +27,7 @@ export class GetAgentBalanceTool extends Tool {
             const agentAddress = await this.cronosAgent.getAgentAddress()
             const balance = await this.cronosAgent.getWalletBalance(walletAddress || agentAddress)
             return JSON.stringify({
-                status: "success",
-                balance
+                ...balance
             })
         } catch (error: any) {
             return JSON.stringify({

@@ -18,8 +18,7 @@ export class GetExchangeAllTickersTool extends Tool {
         try {
             const tickers = await this.cronosAgent.getExchangeAvailableTickers()
             return JSON.stringify({
-                status: "success",
-                tickers
+                ...tickers
             })
         } catch (error: any) {
             return JSON.stringify({
