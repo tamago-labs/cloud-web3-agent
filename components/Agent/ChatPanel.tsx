@@ -6,16 +6,16 @@ import useTest from "@/hooks/useTest"
 import useDatabase from "@/hooks/useDatabase"
 import { CloudAgentContext } from "@/hooks/useCloudAgent"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import ResultCard from "../Automation/ResultCard"
 import MessagesAptos from "./MessagesAptos"
+import MessagesCronos from "./MessageCronos"
 import { getSdkName } from "@/helpers/getter"
 import BaseModal from "@/modals/base"
 
 
+
 const ChatPanel = ({ agent, increaseTick }: any) => {
 
-    // const { query } = useTest()
-    const { query } = useContext(CloudAgentContext)
+    const { query, queryCronos } = useContext(CloudAgentContext)
 
     const { getMessages, clearMessages } = useDatabase()
 
@@ -72,7 +72,6 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
     useEffect(() => {
         if (messages) {
             let tokenCount = 0
-            console.log(messages)
             messages.map((item: any) => {
                 if (item.content) {
                     tokenCount = tokenCount + (item.content.length * 1.3)
@@ -119,6 +118,22 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
                         })
                     }, 10000)
                 }
+            } else if (agent.blockchain === "cronos") {
+
+                const result = await queryCronos(agent.id, [...messages, userPrompt])
+                console.log("result:", result)
+                if (result) {
+                    dispatch({ messages: result })
+                } else {
+                    alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
+                    // wait for 10 sec and load message again
+                    setTimeout(() => {
+                        dispatch({
+                            tick: tick + 1
+                        })
+                    }, 10000)
+                }
+
             }
 
 
@@ -136,7 +151,7 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
         await clearMessages(agent.id)
         increaseTick()
         dispatch({ modal: "Deleted successfully" })
-    },[agent, increaseTick])
+    }, [agent, increaseTick])
 
     return (
         <div className="grid grid-cols-7 h-full">
@@ -180,7 +195,7 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
                             </div>
                         </div>
                         <p className="text-sm text-gray-400">
-                            Limit: 5,000 tokens per conversation
+                            Limit: 10,000 tokens per conversation
                         </p>
                         <div className="flex items-center space-x-3">
 
@@ -207,7 +222,7 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
 
                 {/* Messages container */}
                 {agent.blockchain === "aptos" && <MessagesAptos messages={messages} agent={agent} loading={loading} />}
-
+                {agent.blockchain === "cronos" && <MessagesCronos messages={messages} agent={agent} loading={loading} />}
 
                 {/* Input Area */}
                 <div className="  border-t border-white/10  bg-gradient-to-br from-blue-900/30 to-indigo-900/30  p-4">

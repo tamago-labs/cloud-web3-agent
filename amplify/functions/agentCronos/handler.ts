@@ -1,14 +1,14 @@
 import type { Handler } from 'aws-lambda';
 import type { Schema } from "../../data/resource"
-import { env } from '$amplify/env/agentChat';
+import { env } from '$amplify/env/agentCronos';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { ChatAnthropic } from "@langchain/anthropic"
-import { AIMessage, BaseMessage, ChatMessage, HumanMessage } from "@langchain/core/messages"
+import { CronosAgent, createCronosTools } from "../../../lib"
+import { CronosZkEvm, CronosEvm } from '@crypto.com/developer-platform-client';
 import { createReactAgent } from "@langchain/langgraph/prebuilt"
-import { AgentRuntime, LocalSigner, createAptosTools } from "move-agent-kit"
-import { Account, SigningSchemeInput, Aptos, AptosConfig, Ed25519PrivateKey, Secp256k1PrivateKey, Network, PrivateKey, PrivateKeyVariants } from "@aptos-labs/ts-sdk"
+
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -18,11 +18,16 @@ const llm = new ChatAnthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+const CRONOS_ZKEVM_TESTNET_API_KEY = process.env.CRONOS_ZKEVM_TESTNET_API_KEY || ""
+const CRONOS_ZKEVM_API_KEY = process.env.CRONOS_ZKEVM_API_KEY || ""
+const CRONOS_EVM_TESTNET_API_KEY = process.env.CRONOS_EVM_TESTNET_API_KEY || ""
+const CRONOS_EVM_API_KEY = process.env.CRONOS_EVM_API_KEY || ""
+
 Amplify.configure(resourceConfig, libraryOptions);
 
 const client = generateClient<Schema>();
 
-export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => {
+export const handler: Schema["AgentCronos"]["functionHandler"] = async (event) => {
     console.log("event", JSON.stringify(event, null, 2))
 
     const { messages, agentId }: any = event.arguments
@@ -34,44 +39,31 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
     const wallets = await data.wallets()
     const wallet = wallets.data[0]
 
-    // Initialize Aptos configuration
-    const aptosConfig = new AptosConfig({
-        network: data.isTestnet ? Network.TESTNET : Network.MAINNET,
-    })
+    // Init Cronos config
+    const cronos = new CronosAgent(
+        wallet.key,
+        data.subnetwork === "evm" ? (data.isTestnet ? CronosEvm.Testnet : CronosEvm.Mainnet) : (data.isTestnet ? CronosZkEvm.Testnet : CronosZkEvm.Mainnet),
+        data.subnetwork === "evm" ? (data.isTestnet ? CRONOS_EVM_TESTNET_API_KEY : CRONOS_EVM_API_KEY) : (data.isTestnet ? CRONOS_ZKEVM_TESTNET_API_KEY : CRONOS_ZKEVM_API_KEY),
+        process.env.ANTHROPIC_API_KEY || ""
+    )
 
-    const aptos = new Aptos(aptosConfig)
-
-    // Setup account and signer
-    const account = await aptos.deriveAccountFromPrivateKey({
-        privateKey: new Secp256k1PrivateKey(PrivateKey.formatPrivateKey(wallet.key, PrivateKeyVariants.Secp256k1)),
-    })
-
-    const signer = new LocalSigner(account, data.isTestnet ? Network.TESTNET : Network.MAINNET)
-    const aptosAgent = new AgentRuntime(signer, aptos)
-    const tools = createAptosTools(aptosAgent)
+    const tools = createCronosTools(cronos)
 
     // Create React agent
-    const agent = createReactAgent({
+    const reactAgent = createReactAgent({
         llm,
         tools,
         messageModifier: `
-        You are a helpful agent that can interact onchain using the Aptos Agent Kit. You are
-        empowered to interact onchain using your tools. If you ever need funds, you can request them from the
-        faucet. If not, you can provide your wallet details and request funds from the user. If there is a 5XX
-        (internal) HTTP error code, ask the user to try again later. If someone asks you to do something you
-        can't do with your currently available tools, you must say so, and encourage them to implement it
-        themselves using the Aptos Agent Kit, recommend they go to https://www.aptosagentkit.xyz for more information. Be
-        concise and helpful with your responses. Refrain from restating your tools' descriptions unless it is explicitly requested.
-
-		The response also contains token/token[] which contains the name and address of the token and the decimals.
-		WHEN YOU RETURN ANY TOKEN AMOUNTS, RETURN THEM ACCORDING TO THE DECIMALS OF THE TOKEN.
-      
-        You also can't answer anything related to automation, as it should be done in another panel. 
-        If asked, direct them to the panel on the right-hand side.
-        `,
+        You are a helpful AI agent that can interact on-chain with the Cronos blockchain. 
+        You can perform various blockchain operations using your available tools. 
+        If you ever need funds, you can request them from the faucet. If not, you can provide your wallet details and request funds from the user.
+        If an internal (5XX) error occurs, inform the user and suggest trying again later. 
+        If a requested action is not supported by your current tools, acknowledge the limitation and encourage the user to extend your capabilities. 
+        Keep responses concise and useful. Avoid restating tool descriptions unless explicitly requested.
+      `,
     })
 
-    const output = await agent.invoke(
+    const output = await reactAgent.invoke(
         {
             messages
         }
@@ -85,14 +77,14 @@ export const handler: Schema["AgentChat"]["functionHandler"] = async (event) => 
         }
         return msg
     })
- 
+
     console.log("final messages :", finalized)
 
     await client.models.Agent.update({
         id: agentId,
         messages: JSON.stringify(finalized)
     })
-
+ 
     return finalized
 }
 

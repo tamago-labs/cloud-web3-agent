@@ -72,9 +72,20 @@ const useTest = () => {
         return data.messages
     }
 
+    const cronos = async (messages: any) => {
+
+        const { data } = await axios.post(`/api/cronos`, {
+            messages
+        })
+
+        console.log("data:", data)
+ 
+        return data.messages
+    }
 
     return {
-        query
+        query,
+        cronos
     }
 }
 

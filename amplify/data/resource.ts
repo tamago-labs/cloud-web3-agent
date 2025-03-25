@@ -2,6 +2,7 @@ import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createAgent } from "../functions/createAgent/resource"
 import { deployAgent } from "../functions/deployAgent/resource"
 import { agentChat } from "../functions/agentChat/resource";
+import { agentCronos } from "../functions/agentCronos/resource"
 import { scheduler } from "../functions/scheduler/resource" 
 
 const schema = a.schema({
@@ -13,6 +14,16 @@ const schema = a.schema({
     })
     .returns(a.json())
     .handler(a.handler.function(agentChat))
+    .authorization((allow) => [allow.authenticated()])
+  ,
+  AgentCronos: a
+    .query()
+    .arguments({
+      messages: a.json(),
+      agentId: a.string()
+    })
+    .returns(a.json())
+    .handler(a.handler.function(agentCronos))
     .authorization((allow) => [allow.authenticated()])
   ,
   PromptEnhance: a.generation({
@@ -117,6 +128,7 @@ const schema = a.schema({
   allow.resource(createAgent),
   allow.resource(deployAgent),
   allow.resource(agentChat),
+  allow.resource(agentCronos),
   allow.resource(scheduler)
 ]);
 
