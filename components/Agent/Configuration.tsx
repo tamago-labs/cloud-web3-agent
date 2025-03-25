@@ -395,25 +395,39 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                 />
                             </div>
                             {agent.blockchain === "cronos" && (
+                                <div className="col-span-1 flex flex-row space-x-2">
+                                    <div>
+                                        <label htmlFor="description" className="block text-sm font-medium text-gray-400">
+                                            Network
+                                        </label>
+                                        <div className="inline-flex space-x-2 py-2">
+                                            <button onClick={() => dispatch({ subnetwork: "evm" })} className={`cursor-pointer ${subnetwork !== "evm" ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>EVM</button>
+                                            <button onClick={() => dispatch({ subnetwork: "zkevm" })} className={`cursor-pointer ${subnetwork !== "zkevm" ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>zkEVM</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="description" className="block text-sm font-medium text-gray-400">
+                                            Mainnet or Testnet
+                                        </label>
+                                        <div className="inline-flex space-x-2 py-2">
+                                            <button onClick={() => dispatch({ isTestnet: false })} className={`cursor-pointer ${isTestnet ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Mainnet</button>
+                                            <button onClick={() => dispatch({ isTestnet: true })} className={`cursor-pointer ${!isTestnet ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Testnet</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {agent.blockchain === "aptos" && (
                                 <div className="col-span-1">
                                     <label htmlFor="description" className="block text-sm font-medium text-gray-400">
                                         Network
                                     </label>
                                     <div className="inline-flex space-x-2 py-2">
-                                        <button onClick={() => dispatch({ subnetwork: "evm" })} className={`cursor-pointer ${subnetwork !== "evm" ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>EVM</button>
-                                        <button onClick={() => dispatch({ subnetwork: "zkevm" })} className={`cursor-pointer ${subnetwork !== "zkevm" ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>zkEVM</button>
+                                        <button onClick={() => dispatch({ isTestnet: false })} className={`cursor-pointer ${isTestnet ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Mainnet</button>
+                                        <button onClick={() => dispatch({ isTestnet: true })} className={`cursor-pointer ${!isTestnet ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Testnet</button>
                                     </div>
                                 </div>
                             )}
-                            <div className="col-span-1">
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-400">
-                                    Use Testnet
-                                </label>
-                                <div className="inline-flex space-x-2 py-2">
-                                    <button onClick={() => dispatch({ isTestnet: false })} className={`cursor-pointer ${isTestnet ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Mainnet</button>
-                                    <button onClick={() => dispatch({ isTestnet: true })} className={`cursor-pointer ${!isTestnet ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Testnet</button>
-                                </div>
-                            </div>
 
                             <div className="flex col-span-1 justify-between space-x-2">
                                 <button onClick={onUpdate} className="bg-white my-auto inline-flex cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
@@ -449,7 +463,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                     {section === Section.CONFIG && (
                         <div className="pt-4">
 
-                          
+
 
                             {/* Tabs */}
                             <div className="flex mb-4 space-x-4">
@@ -483,7 +497,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                             </div>
 
                             {/* Prompt Editor */}
-                            <div className="mt-4"> 
+                            <div className="mt-4">
                                 <label htmlFor="name" className="block mb-1.5 text-sm font-medium text-gray-400">
                                     {
                                         prompt === Prompt.INPUT && "Define the prompt to gather data from sources supported by the SDK (you may need to check)"
@@ -545,8 +559,9 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                 <h4 className="mb-2 text-sm font-medium text-gray-400">Schedule</h4>
                                 <div className="flex items-center space-x-2">
                                     {/* <button onClick={() => dispatch({ schedule: 600 })} className={`cursor-pointer ${schedule !== 600 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every 10 minutes</button> */}
-                                    {/* <button onClick={() => dispatch({ schedule: 10800 })} className={`cursor-pointer ${schedule !== 10800 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every 3 hours</button>
-                                    <button onClick={() => dispatch({ schedule: 21600 })} className={`cursor-pointer ${schedule !== 21600 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every 6 hours</button> */}
+                                    <button onClick={() => dispatch({ schedule: 3600 })} className={`cursor-pointer ${schedule !== 10800 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every hour</button>
+                                    <button onClick={() => dispatch({ schedule: 10800 })} className={`cursor-pointer ${schedule !== 10800 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every 3 hours</button>
+                                    <button onClick={() => dispatch({ schedule: 21600 })} className={`cursor-pointer ${schedule !== 21600 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every 6 hours</button>
                                     <button onClick={() => dispatch({ schedule: 43200 })} className={`cursor-pointer ${schedule !== 43200 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every 12 hours</button>
                                     <button onClick={() => dispatch({ schedule: 86400 })} className={`cursor-pointer ${schedule !== 86400 ? "bg-white/5 hover:bg-white/10" : " bg-blue-600/40  hover:bg-blue-600/60"} px-3 py-1 rounded text-sm transition`}>Every 24 hours</button>
                                 </div>
@@ -554,7 +569,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
 
                             <div className="flex py-2 mt-4 space-x-2">
                                 <button onClick={onSave} className="bg-white inline-flex cursor-pointer  px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
-                                <Save className="mr-2" />
+                                    <Save className="mr-2" />
                                     Save
                                 </button>
                                 <div className="flex px-1">

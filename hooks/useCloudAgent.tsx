@@ -50,11 +50,25 @@ const Provider = ({ children }: Props) => {
         return JSON.parse(result.data)
     }
 
+    const queryCronos = async (agentId: string, messages: any) => {
+        console.log("querying...", agentId, messages)
+
+        const result: any = await client.queries.AgentCronos({
+            agentId,
+            messages: JSON.stringify(messages)
+        })
+
+        console.log("result:", result, (new Date().toLocaleString()))
+
+        return JSON.parse(result.data)
+    }
+
     const cloudAgentContext: any = useMemo(
         () => ({
             profile,
             loadProfile,
-            query
+            query,
+            queryCronos
         }),
         [
             profile
