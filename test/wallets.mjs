@@ -1,6 +1,6 @@
-const assert = require('assert');
-const { Account, SigningSchemeInput, Secp256k1PrivateKey } = require("@aptos-labs/ts-sdk")
-const { Wallet } = require("@crypto.com/developer-platform-client")
+import assert from "assert"
+import { Account, SigningSchemeInput, Secp256k1PrivateKey } from "@aptos-labs/ts-sdk"
+import { Wallet } from "@crypto.com/developer-platform-client"
 
 describe('#Create Wallets by SDK', function () {
   it('returns correct length Aptos wallet address', async function () {
