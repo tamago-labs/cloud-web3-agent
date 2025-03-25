@@ -89,6 +89,20 @@ const HowItWorks = () => {
                     </div>
                 </div>
 
+                <div className="relative w-full max-w-4xl mx-auto my-[60px]">
+                    <iframe
+                        className="w-full h-64 sm:h-80 md:h-128"
+                        src="https://www.youtube.com/embed/_hwQldVOurU"
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                    ></iframe>
+                    <div className="absolute bottom-2 left-0 right-0 text-center text-white bg-black bg-opacity-50 p-2">
+                        <p className="text-lg font-semibold">Deploy AI-Agent on Cronos Within Seconds </p>
+                    </div>
+                </div>
+
             </div>
         </section>
     )

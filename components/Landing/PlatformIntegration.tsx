@@ -14,7 +14,7 @@ const PlatformIntegration = () => {
             <div className="max-w-6xl text-center mx-auto px-4">
                 <div className="text-center mb-6 sm:mb-12">
                     <p className="text-base sm:text-xl text-white max-w-2xl mx-auto">
-                        Connect Web3 agents with social platforms for real-time interactions serving your community
+                        Connect Web3 agents with social platforms for real-time interactions and community engagement
                     </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
