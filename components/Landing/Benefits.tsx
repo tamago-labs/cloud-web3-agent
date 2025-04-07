@@ -25,7 +25,7 @@ const KeyBenefits = () => {
     const supportedChains = [
         {
             chain: "Aptos",
-            sdk: "Move Agent Kit",
+            sdk: "Metamove Move Agent Kit",
             logo: "/aptos-logo.svg", // You'll need to add these logo files to your project
             bgColor: "bg-blue-50",
             borderColor: "border-blue-200",
@@ -42,12 +42,12 @@ const KeyBenefits = () => {
         {
             chain: "Solana",
             sdk: "SendAI Solana Agent Kit"
+        },
+        {
+            chain: "Base",
+            sdk: "Coinbase AgentKit"
         }
     ];
-
-
-
-
 
 
     return (
@@ -78,50 +78,6 @@ const KeyBenefits = () => {
                     ))}
                 </div>
             </div>
-
-            {/* <div className="relative w-full max-w-6xl mx-auto z-10">
-                <div className="flex items-center mb-6"> 
-                    <h3 className="text-2xl font-bold">Versatile Applications</h3>
-                </div>
-
-                <p className="text-lg text-indigo-100 mb-8">
-                    Our platform adapts to any workflow, enabling AI agents to perform a wide range of tasks across the Aptos ecosystem.
-                </p>
-
-                <div className="mb-8 h-32">
-                    {applications.map((app: any, index: number) => (
-                        <div
-                            key={index}
-                            className={`transition-all duration-500 absolute ${index === activeIndex ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
-                                }`}
-                            style={{ display: index === activeIndex ? 'block' : 'none' }}
-                        >
-                            <h4 className="text-xl font-semibold text-white mb-2">{app.title}</h4>
-                            <p className="text-indigo-100">{app.description}</p>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="flex justify-between items-center">
-                    <div className="flex space-x-2">
-                        {applications.map((_: any, index: number) => (
-                            <button
-                                key={index}
-                                onClick={() => setActiveIndex(index)}
-                                className={`w-2 h-2 rounded-full transition-all ${index === activeIndex ? "bg-white w-6" : "bg-white/40"
-                                    }`}
-                                aria-label={`Show application ${index + 1}`}
-                            />
-                        ))}
-                    </div>
-
-                    <button className="flex items-center bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium transition-all hover:bg-indigo-50">
-                        Explore Use Cases
-                      
-                    </button>
-                </div>
-            </div> */}
-
             <div className="max-w-5xl mt-[60px] mx-auto">
                 <div className="text-center mb-6 mx-4">
                     <p className="text-base sm:text-xl text-white  mx-auto">
@@ -180,9 +136,18 @@ const KeyBenefits = () => {
                                     <p>Stake SOL via <b>Jito, Solayer, or DeFi vaults</b></p>
                                     <p>Automate yield strategies with <b>Drift</b> vaults</p>
                                 </div>
-                            )
+                            )}
 
-                            }
+                            {index === 3 && (
+                                <div className='  font-medium text-gray-600 overflow-y-auto h-[100px]  text-sm'>
+                                    <p>Check token prices with <b>Alchemy</b></p>
+                                    <p><b>Basenames</b> conversion between wallet address and its name</p>
+                                    <p>Check balances, approvals and transfer for <b>ERC-20</b> and <b>ERC-721</b> tokens</p>
+                                    <p>Perform lending and borrowing on <b>Moonwell</b></p>
+                                    <p>Wrap and unwrap <b>WETH</b></p>
+                                    <p>Trade meme coins on <b>Wow Protocol</b></p>
+                                </div>
+                            )}
 
                         </div>
                     ))}
@@ -247,6 +212,16 @@ const KeyBenefits = () => {
                                                 <p>Automate yield strategies with <b>Drift</b> vaults</p>
                                             </Expandable>
                                         )}
+                                        {index === 3 && (
+                                            <Expandable>
+                                                <p>Check token prices with <b>Alchemy</b></p>
+                                                <p><b>Basenames</b> conversion between wallet address and its name</p>
+                                                <p>Check balances, approvals and transfer for <b>ERC-20</b> and <b>ERC-721</b> tokens</p>
+                                                <p>Perform lending and borrowing on <b>Moonwell</b></p>
+                                                <p>Wrap and unwrap <b>WETH</b></p>
+                                                <p>Trade meme coins on <b>Wow Protocol</b></p>
+                                            </Expandable>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -255,7 +230,7 @@ const KeyBenefits = () => {
                 </div>
 
                 <div className="mt-6 px-4 text-sm sm:text-base text-center text-white">
-                    <p>More blockchain integrations coming soon. <a href="mailto:support@tamagolabs.com" className="text-white font-semibold underline hover:underline">Request a blockchain</a></p>
+                    <p>Only Aptos and Cronos are supported. The rest are coming soon. <a href="mailto:support@tamagolabs.com" className="text-white font-semibold underline hover:underline">Request a blockchain</a></p>
                 </div>
             </div>
 
