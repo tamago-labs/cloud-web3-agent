@@ -2,7 +2,7 @@ import Link from 'next/link';
   
 const Footer = ({ showAddress = true }: any) => {
     return (
-        <footer className="mt-auto  bg-transparent bg-gradient-to-b from-white/[0.03] to-transparent">
+        <footer className="mt-auto  bg-teal-950 to-transparent">
              
             <div className="bg-gradient-to-r from-[#FCF1F4] to-[#EDFBF9] py-5 border-t-2 border-white/5  bg-none">
                 <div className="mx-auto relative px-2 max-w-6xl">

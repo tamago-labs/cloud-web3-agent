@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Head from 'next/head'
 import Footer from "@/components/Footer"
-import {  Mulish } from "next/font/google";
+import Header from "@/components/Header";
+import { Sora } from "next/font/google";
 
-const MulishFont = Mulish({
-  weight: ["400", "500", "700", "800"],
+const SoraFont = Sora({
+  weight: ["400", "500", "700"],
   subsets: ["latin"],
 });
+
 
 export const metadata: Metadata = {
   title: "Tamago Labs | Cloud for Web3 Agents",
@@ -23,23 +25,21 @@ export default function RootLayout({
     <html lang="en">
       <Head>
         {/* Favicon  */}
-        <link rel="icon" type="icon" href="/assets/images/favicon.ico" /> 
+        <link rel="icon" type="icon" href="/assets/images/favicon.ico" />
       </Head>
-      <body className={MulishFont.className}>
-          <div className="flex min-h-screen flex-col bg-gray-950 text-base font-normal text-black w-full">
-            <div className="relative overflow-hidden"> 
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
-              {/* Mesh gradient effect */}
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500 rounded-full filter blur-3xl opacity-20"></div>
-              <div className="absolute top-32 -left-12 w-48 h-48 bg-purple-500 rounded-full filter blur-3xl opacity-10"></div>
-              <div className=" flex min-h-screen  flex-col">
-                <div className="flex-grow text-white ">
-                  {children}
-                </div>
-                <Footer />
-              </div>
-            </div>
+      <body className={SoraFont.className}>
+      <div className="min-h-screen bg-gradient-to-br from-teal-900 via-emerald-900 to-teal-800 relative overflow-hidden">
+          {/* Background Elements */}
+          {/* <div className="absolute inset-0 overflow-hidden opacity-20">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-900 rounded-full filter blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-900 rounded-full filter blur-3xl"></div>
+          </div>  */}
+          <div className="flex flex-col min-h-screen w-full ">
+            {/* <Header/> */}
+            {children}
+            <Footer />
           </div>
+        </div>
       </body>
     </html>
   );
