@@ -3,9 +3,13 @@ import { createAgent } from "../functions/createAgent/resource"
 import { deployAgent } from "../functions/deployAgent/resource"
 import { agentChat } from "../functions/agentChat/resource";
 import { agentCronos } from "../functions/agentCronos/resource"
-import { scheduler } from "../functions/scheduler/resource" 
+import { scheduler } from "../functions/scheduler/resource"
+import { generateApiKey } from "../functions/generateApiKey/resource"
+import { mcpProxy } from "../functions/mcpProxy/resource"
+import { trackUsage } from "../functions/trackUsage/resource"
 
 const schema = a.schema({
+  // ===== EXISTING QUERIES - NO CHANGES =====
   AgentChat: a
     .query()
     .arguments({
@@ -111,7 +115,7 @@ const schema = a.schema({
     .model({
       agentId: a.id().required(),
       agent: a.belongsTo('Agent', "agentId"),
-      publicName: a.string(), 
+      publicName: a.string(),
       description: a.string(),
       isApproved: a.boolean(),
       isHidden: a.boolean(),
@@ -124,12 +128,113 @@ const schema = a.schema({
     }).authorization((allow) => [
       allow.authenticated()
     ]),
+  // ===== NEW MCP QUERIES =====
+  GenerateApiKey: a
+    .query()
+    .arguments({
+      userId: a.string()
+    })
+    .returns(a.json()) // { apiKey: string, keyId: string }
+    .handler(a.handler.function(generateApiKey))
+    .authorization((allow) => [allow.authenticated()]),
+  McpProxy: a
+    .query()
+    .arguments({
+      messages: a.json(),
+      tools: a.string().array(),
+      apiKey: a.string()
+    })
+    .returns(a.json())
+    .handler(a.handler.function(mcpProxy))
+    .authorization((allow) => [allow.authenticated()]),
+  TrackUsage: a
+    .mutation()
+    .arguments({
+      userId: a.string(),
+      usageType: a.string(), // 'message', 'api_call'
+      amount: a.integer()
+    })
+    .returns(a.boolean())
+    .handler(a.handler.function(trackUsage))
+    .authorization((allow) => [allow.authenticated()]),
+  ApiKey: a
+    .model({
+      userId: a.id().required(),
+      user: a.belongsTo('User', "userId"),
+      keyHash: a.string().required(), // Store hashed version only
+      keyPrefix: a.string().required(), // First 8 chars for display
+      isActive: a.boolean().default(true),
+      lastUsedAt: a.timestamp(),
+      expiresAt: a.timestamp(), // Optional expiration
+      name: a.string(), // User-friendly name like "Development Key"
+      usageLogs: a.hasMany('UsageLog', "apiKeyId")
+    })
+    .authorization((allow) => [
+      allow.owner()
+    ]),
+  UsageLog: a
+    .model({
+      userId: a.id().required(),
+      user: a.belongsTo('User', "userId"),
+      apiKeyId: a.id(),
+      apiKey: a.belongsTo('ApiKey', "apiKeyId"),
+      endpoint: a.string(), // e.g., '/mcp/chat', '/mcp/wallet'
+      method: a.string(), // 'POST', 'GET'
+      tokensUsed: a.integer().default(0),
+      responseTime: a.integer(), // milliseconds
+      success: a.boolean().default(true),
+      errorMessage: a.string()
+    })
+    .authorization((allow) => [
+      allow.owner()
+    ]),
+  ToolSelection: a
+    .model({
+      userId: a.id().required(),
+      user: a.belongsTo('User', "userId"),
+      category: a.string().required(), // 'blockchain', 'defi', 'analytics'
+      toolName: a.string().required(), // 'wallet_operations', 'token_transfers'
+      isEnabled: a.boolean().default(true),
+      configuration: a.json() // Tool-specific config
+    })
+    .authorization((allow) => [
+      allow.owner()
+    ]),
+  UsageQuota: a
+    .model({
+      userId: a.id().required(),
+      user: a.belongsTo('User', "userId"),
+      quotaType: a.string().required(), // 'messages_monthly', 'api_calls_daily'
+      limitAmount: a.integer().required(), // Max allowed
+      currentUsage: a.integer().default(0), // Current usage
+      resetDate: a.timestamp().required(), // When it resets
+      tierName: a.string().default("FREE") // 'FREE', 'PRO', 'ENTERPRISE'
+    })
+    .authorization((allow) => [
+      allow.owner()
+    ]),
+  ChatSession: a
+    .model({
+      userId: a.id().required(),
+      user: a.belongsTo('User', "userId"),
+      name: a.string().default("Chat Session"),
+      messages: a.json(), // Array of chat messages
+      toolsUsed: a.string().array(), // Tools used in this session
+      tokenCount: a.integer().default(0),
+      isActive: a.boolean().default(true)
+    })
+    .authorization((allow) => [
+      allow.owner()
+    ])
 }).authorization((allow) => [
   allow.resource(createAgent),
   allow.resource(deployAgent),
   allow.resource(agentChat),
   allow.resource(agentCronos),
-  allow.resource(scheduler)
+  allow.resource(scheduler),
+  allow.resource(generateApiKey),
+  allow.resource(mcpProxy),
+  allow.resource(trackUsage)
 ]);
 
 export type Schema = ClientSchema<typeof schema>;
