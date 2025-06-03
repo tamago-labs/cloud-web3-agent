@@ -36,6 +36,20 @@ const Provider = ({ children }: Props) => {
 
     }, [])
 
+    const generateApiKey = async (userId: string, name: string) => {
+        const result: any = await client.queries.GenerateApiKey({
+            userId,
+            name
+        })
+        return JSON.parse(result.data)
+    }
+
+    const deleteApiKey = async (keyId: string) => {
+        await client.models.ApiKey.delete({
+            id: keyId
+        })
+    }
+
     const query = async (agentId: string, messages: any) => {
 
         console.log("querying...", agentId, messages)
@@ -68,7 +82,9 @@ const Provider = ({ children }: Props) => {
             profile,
             loadProfile,
             query,
-            queryCronos
+            queryCronos,
+            generateApiKey,
+            deleteApiKey
         }),
         [
             profile

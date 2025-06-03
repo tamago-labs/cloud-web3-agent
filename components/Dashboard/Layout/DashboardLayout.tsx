@@ -6,6 +6,7 @@ import DashboardSidebar from './DashboardSidebar';
 import ErrorBoundary from '../Shared/ErrorBoundary';
 import { CloudAgentContext } from '@/hooks/useCloudAgent';
 import { getCurrentUser } from 'aws-amplify/auth';
+import { useInterval } from '@/hooks/useInterval';
 
 
 interface DashboardLayoutProps {
@@ -14,20 +15,23 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
-  const { loadProfile } = useContext(CloudAgentContext)
+  const [interval, setInterval] = useState(1000)
+
+  const { profile, loadProfile } = useContext(CloudAgentContext)
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
+  useInterval(() => {
+
+    if (!profile) {
+      (async () => {
         const { userId } = await getCurrentUser();
         loadProfile(userId)
-      } catch (e) {
+        setInterval(60000)
+      })()
+    }
 
-      }
-    })()
-  }, [])
+  }, interval)
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
