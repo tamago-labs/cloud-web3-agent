@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import ToolCategory from './ToolCategory';
+import ToolCategoryComponent from './ToolCategory';
 import ToolCard from './ToolCard';
 import ConfigExporter from './ConfigExporter';
 import { LoadingPage } from '../Shared/LoadingStates';
@@ -273,7 +273,7 @@ const ToolSelector: React.FC<ToolSelectorProps> = ({ className = "" }) => {
           
           <div className="space-y-2">
             {categories.map((category) => (
-              <ToolCategory
+              <ToolCategoryComponent
                 key={category.id}
                 category={category}
                 isSelected={selectedCategory === category.id}
