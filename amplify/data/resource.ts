@@ -137,9 +137,10 @@ const schema = a.schema({
   GenerateApiKey: a
     .query()
     .arguments({
-      userId: a.string()
+      userId: a.string(),
+      name: a.string()
     })
-    .returns(a.json()) // { apiKey: string, keyId: string }
+    .returns(a.json()) // { apiKey: string }
     .handler(a.handler.function(generateApiKey))
     .authorization((allow) => [allow.authenticated()]),
   McpProxy: a
@@ -166,8 +167,6 @@ const schema = a.schema({
     .model({
       userId: a.id().required(),
       user: a.belongsTo('User', "userId"),
-      keyHash: a.string().required(), // Store hashed version only
-      keyPrefix: a.string().required(), // First 8 chars for display
       isActive: a.boolean().default(true),
       lastUsedAt: a.timestamp(),
       expiresAt: a.timestamp(), // Optional expiration

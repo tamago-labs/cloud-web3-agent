@@ -28,7 +28,7 @@ export default function RootLayout({
         <link rel="icon" type="icon" href="/assets/images/favicon.ico" />
       </Head>
       <body className={SoraFont.className}>
-      <div className="min-h-screen bg-gradient-to-br from-teal-900 via-emerald-900 to-teal-800 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-teal-900 via-emerald-900 to-teal-800 relative overflow-hidden">
           {/* Background Elements */}
           {/* <div className="absolute inset-0 overflow-hidden opacity-20">
             <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-900 rounded-full filter blur-3xl"></div>

@@ -22,13 +22,16 @@ const Hero = ({ signIn }: any) => {
                             {/* Seamlessly integrate AI models with the Hedera blockchain through standardized interfaces and secure wallet management. */}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <button onClick={signIn} className="px-7 py-3 bg-teal-500 hover:bg-teal-600 rounded-lg font-medium text-white transition flex items-center justify-center">
-                                Get Started
-                                <ArrowRight className="w-4 h-4 ml-2" />
-                            </button> 
-                                <Link href="https://docs.tamagolabs.com" target="_blank" className="px-7 py-3 bg-teal-800/40 hover:bg-teal-700/50 rounded-lg font-medium text-teal-200 flex items-center justify-center transition border border-teal-700/40">
-                                    Documentation
-                                </Link> 
+                            <Link href="/dashboard">
+                                <button className="px-7 py-3 cursor-pointer bg-teal-500 hover:bg-teal-600 rounded-lg font-medium text-white transition flex items-center justify-center">
+                                    Get Started
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </button>
+                            </Link>
+
+                            <Link href="https://docs.tamagolabs.com" target="_blank" className="px-7 py-3 bg-teal-800/40 hover:bg-teal-700/50 rounded-lg font-medium text-teal-200 flex items-center justify-center transition border border-teal-700/40">
+                                Documentation
+                            </Link>
 
                         </div>
                     </div>
