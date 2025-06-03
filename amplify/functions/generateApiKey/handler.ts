@@ -1,10 +1,17 @@
 import type { Schema } from "../../data/resource";
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api'; 
+import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
+import { env } from '$amplify/env/generateApiKey';
+
+const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
+
+Amplify.configure(resourceConfig, libraryOptions);
 
 const client = generateClient<Schema>();
 
 export const handler: Schema["GenerateApiKey"]["functionHandler"] = async (event) => {
+
     const { userId, name } = event.arguments;
 
     try {
