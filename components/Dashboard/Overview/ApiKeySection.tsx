@@ -90,36 +90,36 @@ const ApiKeySection: React.FC<ApiKeySectionProps> = ({ className = "" }) => {
   }, []);
 
   const handleCreateKey = async () => {
-    if (!newKeyName.trim()) return;
+    // if (!newKeyName.trim()) return;
     
-    setCreating(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    // setCreating(true);
+    // try {
+    //   // Simulate API call
+    //   await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const newKey: ApiKey = {
-        id: Date.now().toString(),
-        name: newKeyName.trim(),
-        keyPrefix: `mcp_${Math.random().toString(36).substring(2, 10)}`,
-        fullKey: `mcp_${Math.random().toString(36).substring(2, 50)}`, // Full key only shown once
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        usageCount: 0
-      };
+    //   const newKey: ApiKey = {
+    //     id: Date.now().toString(),
+    //     name: newKeyName.trim(),
+    //     keyPrefix: `mcp_${Math.random().toString(36).substring(2, 10)}`,
+    //     fullKey: `mcp_${Math.random().toString(36).substring(2, 50)}`, // Full key only shown once
+    //     isActive: true,
+    //     createdAt: new Date().toISOString(),
+    //     usageCount: 0
+    //   };
       
-      setApiKeys(prev => [newKey, ...prev]);
-      setNewlyCreatedKey(newKey);
-      setNewKeyName('');
-      setShowCreateModal(false);
+    //   setApiKeys(prev => [newKey, ...prev]);
+    //   setNewlyCreatedKey(newKey);
+    //   setNewKeyName('');
+    //   setShowCreateModal(false);
       
-      // Auto-show the new key
-      setVisibleKeys(prev => new Set([...prev, newKey.id]));
+    //   // Auto-show the new key
+    //   setVisibleKeys(prev => new Set([...prev, newKey.id]));
       
-    } catch (error) {
-      console.error('Error creating API key:', error);
-    } finally {
-      setCreating(false);
-    }
+    // } catch (error) {
+    //   console.error('Error creating API key:', error);
+    // } finally {
+    //   setCreating(false);
+    // }
   };
 
   const handleCopyKey = async (key: ApiKey) => {
