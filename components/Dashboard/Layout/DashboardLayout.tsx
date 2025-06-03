@@ -1,16 +1,33 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import DashboardHeader from './DashboardHeader';
 import DashboardSidebar from './DashboardSidebar';
 import ErrorBoundary from '../Shared/ErrorBoundary';
+import { CloudAgentContext } from '@/hooks/useCloudAgent';
+import { getCurrentUser } from 'aws-amplify/auth';
+
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+
+  const { loadProfile } = useContext(CloudAgentContext)
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { userId } = await getCurrentUser();
+        loadProfile(userId)
+      } catch (e) {
+
+      }
+    })()
+  }, [])
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -26,7 +43,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onMobileMenuToggle={handleMobileMenuToggle}
         isMobileMenuOpen={isMobileMenuOpen}
       />
-      
+
       <DashboardSidebar
         isOpen={isMobileMenuOpen}
         onClose={handleMobileMenuClose}

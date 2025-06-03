@@ -1,5 +1,5 @@
 // /components/Dashboard/Layout/DashboardHeader.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -20,6 +20,7 @@ import {
 import { signOut } from 'aws-amplify/auth';
 import { LoadingSpinner } from '../Shared/LoadingStates';
 import QuotaProgress from '../Shared/QuotaProgress';
+import { CloudAgentContext } from '@/hooks/useCloudAgent';
 
 interface DashboardHeaderProps {
   onMobileMenuToggle: () => void;
@@ -50,7 +51,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   isMobileMenuOpen
 }) => {
 
-  
+  const { profile } = useContext(CloudAgentContext)
 
   const router = useRouter();
   const pathname = usePathname();
@@ -158,7 +159,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const getTierBadge = (tier: string) => {
     const colors = {
-      FREE: 'bg-gray-500/20 text-gray-400',
+      FREE: 'bg-gray-500 text-white',
       PRO: 'bg-blue-500/20 text-blue-400',
       ENTERPRISE: 'bg-purple-500/20 text-purple-400'
     };
@@ -185,7 +186,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   return (
     <>
-      <header className="bg-teal-900/50 backdrop-blur-sm border-b border-teal-800/50 sticky top-0 z-40">
+      <header className=" backdrop-blur-sm border-b border-teal-800/50 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Left section */}
@@ -201,9 +202,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               {/* Logo and title */}
               <div className="flex items-center space-x-3">
                 <Link href="/" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">T</span>
-                  </div>
                   <span className="hidden sm:block text-white font-semibold">Tamago Labs</span>
                 </Link>
                 <span className="hidden sm:block text-teal-300">|</span>
@@ -216,8 +214,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <Link
                 href="/dashboard"
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/dashboard'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-teal-200 hover:bg-teal-800/50 hover:text-white'
+                  ? 'bg-teal-600 text-white'
+                  : 'text-teal-200 hover:bg-teal-800/50 hover:text-white'
                   }`}
               >
                 Overview
@@ -225,8 +223,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <Link
                 href="/dashboard/playground"
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/dashboard/playground'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-teal-200 hover:bg-teal-800/50 hover:text-white'
+                  ? 'bg-teal-600 text-white'
+                  : 'text-teal-200 hover:bg-teal-800/50 hover:text-white'
                   }`}
               >
                 Playground
@@ -234,8 +232,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <Link
                 href="/dashboard/tools"
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/dashboard/tools'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-teal-200 hover:bg-teal-800/50 hover:text-white'
+                  ? 'bg-teal-600 text-white'
+                  : 'text-teal-200 hover:bg-teal-800/50 hover:text-white'
                   }`}
               >
                 Tools
@@ -266,15 +264,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg text-teal-200 hover:bg-teal-800/50 transition-colors"
+                  className="flex items-center cursor-pointer space-x-2 p-2 rounded-lg text-teal-200 hover:bg-teal-800/50 transition-colors"
                 >
                   <User className="w-5 h-5" />
-                  {userProfile && (
-                    <div className="hidden sm:block text-left">
-                      <div className="text-sm text-white">{userProfile.displayName || 'User'}</div>
-                      <div className="text-xs text-teal-300">{userProfile.tierName}</div>
-                    </div>
-                  )}
+                  <span className="hidden sm:block text-sm">Account</span>
                 </button>
 
                 {/* User dropdown */}
@@ -338,7 +331,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   <h4 className="text-lg font-medium text-white mb-4">Profile Information</h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-teal-200 mb-2">
                         Display Name
                       </label>
@@ -362,7 +355,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         disabled
                         className="w-full px-3 py-2 bg-teal-800/50 border border-teal-600 rounded-lg text-teal-300 cursor-not-allowed"
                       />
-                    </div>
+                    </div> */}
 
                     <div>
                       <label className="block text-sm font-medium text-teal-200 mb-2">
@@ -370,11 +363,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                       </label>
                       <div className="flex items-center space-x-2">
                         {userProfile && getTierBadge(userProfile.tierName)}
-                        {userProfile?.tierName === 'FREE' && (
+                        {/* {userProfile?.tierName === 'FREE' && (
                           <button className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
                             Upgrade →
                           </button>
-                        )}
+                        )} */}
+                        <div className="text-xs  text-teal-100">
+                          Only the free plan is supported
+                        </div>
+
                       </div>
                     </div>
 
@@ -383,7 +380,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         Member Since
                       </label>
                       <div className="text-teal-100">
-                        {userProfile && formatDate(userProfile.createdAt)}
+                        {profile && formatDate(profile.createdAt)}
                       </div>
                     </div>
                   </div>
@@ -472,10 +469,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     onClick={() => setSettingsModalOpen(false)}
                     className="px-4 py-2 border border-teal-600 text-teal-300 hover:bg-teal-600 hover:text-white rounded-lg transition-colors"
                   >
-                    Cancel
+                    Close
                   </button>
 
-                  <button
+                  {/* <button
                     onClick={handleSaveSettings}
                     disabled={saving || displayName.trim() === userProfile?.displayName}
                     className="flex items-center space-x-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 disabled:bg-teal-700 disabled:opacity-50 text-white rounded-lg transition-colors"
@@ -491,7 +488,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         <span>Save Changes</span>
                       </>
                     )}
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}

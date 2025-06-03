@@ -73,9 +73,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose }) 
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-teal-800/50">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
+              {/* <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">T</span>
-              </div>
+              </div> */}
               <span className="text-white font-semibold">Tamago Labs</span>
             </div>
           </div>
@@ -132,7 +132,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose }) 
           {/* Footer */}
           <div className="p-4 border-t border-teal-800/50">
             <div className="text-xs text-teal-300 text-center">
-              MCP Dashboard v1.0
+              MCP Gateway v.1.0
             </div>
           </div>
         </div>
