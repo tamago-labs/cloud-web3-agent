@@ -71,7 +71,12 @@ const schema = a.schema({
       username: a.string().required(),
       role: a.enum(["USER", "MANAGER", "ADMIN"]),
       agents: a.hasMany('Agent', "userId"),
-      displayName: a.string()
+      displayName: a.string(),
+      apiKeys: a.hasMany('ApiKey', "userId"),
+      usageLogs: a.hasMany('UsageLog', "userId"),
+      toolSelections: a.hasMany('ToolSelection', "userId"),
+      usageQuotas: a.hasMany('UsageQuota', "userId"),
+      chatSessions: a.hasMany('ChatSession', "userId")
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
