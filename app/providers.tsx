@@ -28,11 +28,13 @@ const components = {
         return (
             <View textAlign="center" padding={tokens.space.large}>
                 <Link href="/" className="inline-flex">
-                    <div className="relative px-4 py-2 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-md flex items-center shadow-lg shadow-purple-900/20">
-                        <div className="absolute inset-0 bg-black opacity-20 rounded-md"></div>
-
-                        <h1 className="font-bold text-white text-lg relative z-10">Tamago Labs</h1>
+                    <div className="flex items-center space-x-3">
+                        <div className="relative px-4 py-2 bg-gradient-to-tr from-teal-600 to-emerald-600 rounded-md flex items-center shadow-lg shadow-teal-900/20">
+                            <div className="absolute inset-0 bg-black opacity-20 rounded-md"></div>
+                            <h1 className="font-bold text-white text-lg relative z-10">Tamago Labs</h1>
+                        </div> 
                     </div>
+
                 </Link>
             </View>
         );

@@ -33,7 +33,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   };
 
   return (
-    <header className="bg-teal-900/50 backdrop-blur-sm border-b border-teal-800/50 sticky top-0 z-40">
+    <header className="  backdrop-blur-sm border-b border-teal-800/50 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left section */}
@@ -48,10 +48,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
             {/* Logo and title */}
             <div className="flex items-center space-x-3">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">T</span>
-                </div>
+              <Link href="/" className="flex items-center space-x-2"> 
                 <span className="hidden sm:block text-white font-semibold">Tamago Labs</span>
               </Link>
               <span className="hidden sm:block text-teal-300">|</span>

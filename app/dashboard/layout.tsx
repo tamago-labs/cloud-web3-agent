@@ -1,12 +1,12 @@
 
 import Navbar from "@/components/Navbar";
 import { Providers } from "../providers";
-import { Mulish } from "next/font/google";
+import { IBM_Plex_Mono } from "next/font/google";
 
 import Layout from '@/components/Dashboard/Layout/DashboardLayout';
-
-const MulishFont = Mulish({
-    weight: ["400", "500", "700", "800"],
+ 
+const MonoFont = IBM_Plex_Mono({
+    weight: ["400", "500", "700"],
     subsets: ["latin"],
 });
 
@@ -35,12 +35,12 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     return (
-        <>
-            <div className={`${MulishFont.className} min-h-screen flex flex-row `}>
+        <Providers>
+            <div className={`${MonoFont.className} min-h-screen flex flex-row `}>
                 <Layout>
                     {children}
                 </Layout>
             </div>
-        </>
+        </Providers>
     )
 }

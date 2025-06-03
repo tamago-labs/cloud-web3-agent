@@ -23,8 +23,8 @@ const LoginButton = () => {
 
     return (
         <>
-            <Link href="/dashboard" className="bg-white px-4 py-2 rounded-lg font-medium  text-slate-900 transition">
-              { user ? "Dashboard" : "Sign In"}   
+            <Link href="/dashboard" className="text-white bg-teal-500 hover:bg-teal-600 px-4 py-2 rounded-lg font-medium transition">
+                {user ? "Dashboard" : "Sign In"}
             </Link>
 
         </>
