@@ -174,7 +174,7 @@ const schema = a.schema({
       usageLogs: a.hasMany('UsageLog', "apiKeyId")
     })
     .authorization((allow) => [
-      allow.owner()
+      allow.authenticated()
     ]),
   UsageLog: a
     .model({
@@ -190,7 +190,7 @@ const schema = a.schema({
       errorMessage: a.string()
     })
     .authorization((allow) => [
-      allow.owner()
+      allow.authenticated()
     ]),
   ToolSelection: a
     .model({
@@ -202,7 +202,7 @@ const schema = a.schema({
       configuration: a.json() // Tool-specific config
     })
     .authorization((allow) => [
-      allow.owner()
+      allow.authenticated()
     ]),
   UsageQuota: a
     .model({
@@ -215,7 +215,7 @@ const schema = a.schema({
       tierName: a.string().default("FREE") // 'FREE', 'PRO', 'ENTERPRISE'
     })
     .authorization((allow) => [
-      allow.owner()
+      allow.authenticated()
     ]),
   ChatSession: a
     .model({
@@ -228,7 +228,7 @@ const schema = a.schema({
       isActive: a.boolean().default(true)
     })
     .authorization((allow) => [
-      allow.owner()
+      allow.authenticated()
     ])
 }).authorization((allow) => [
   allow.resource(createAgent),
