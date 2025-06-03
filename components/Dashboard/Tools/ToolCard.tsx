@@ -1,5 +1,4 @@
-import React from 'react';
-import { Toggle } from 'lucide-react';
+import React from 'react'; 
 import type { Tool } from './ToolSelector';
 
 interface ToolCardProps {
