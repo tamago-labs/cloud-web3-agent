@@ -76,7 +76,9 @@ const schema = a.schema({
       usageLogs: a.hasMany('UsageLog', "userId"),
       toolSelections: a.hasMany('ToolSelection', "userId"),
       usageQuotas: a.hasMany('UsageQuota', "userId"),
-      chatSessions: a.hasMany('ChatSession', "userId")
+      chatSessions: a.hasMany('ChatSession', "userId"),
+      connectedWallets: a.hasMany('ConnectedWallet', "userId"),
+      pendingTransactions: a.hasMany('PendingTransaction', "userId")
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
@@ -174,7 +176,8 @@ const schema = a.schema({
       usageLogs: a.hasMany('UsageLog', "apiKeyId")
     })
     .authorization((allow) => [
-      allow.authenticated()
+      allow.authenticated().to(["read"]),
+      allow.owner()
     ]),
   UsageLog: a
     .model({
@@ -190,7 +193,8 @@ const schema = a.schema({
       errorMessage: a.string()
     })
     .authorization((allow) => [
-      allow.authenticated()
+      allow.authenticated().to(["read"]),
+      allow.owner()
     ]),
   ToolSelection: a
     .model({
@@ -202,7 +206,8 @@ const schema = a.schema({
       configuration: a.json() // Tool-specific config
     })
     .authorization((allow) => [
-      allow.authenticated()
+      allow.authenticated().to(["read"]),
+      allow.owner()
     ]),
   UsageQuota: a
     .model({
@@ -215,7 +220,8 @@ const schema = a.schema({
       tierName: a.string().default("FREE") // 'FREE', 'PRO', 'ENTERPRISE'
     })
     .authorization((allow) => [
-      allow.authenticated()
+      allow.authenticated().to(["read"]),
+      allow.owner()
     ]),
   ChatSession: a
     .model({
@@ -228,8 +234,33 @@ const schema = a.schema({
       isActive: a.boolean().default(true)
     })
     .authorization((allow) => [
-      allow.authenticated()
-    ])
+      allow.authenticated().to(["read"]),
+      allow.owner()
+    ]),
+  ConnectedWallet: a.model({
+    userId: a.id().required(),
+    user: a.belongsTo('User', "userId"),
+    chainId: a.string().required(),
+    address: a.string().required(),
+    walletType: a.string().required(),
+    isActive: a.boolean().default(true)
+  }).authorization((allow) => [
+    allow.authenticated().to(["read"]),
+    allow.owner()
+  ]),
+  PendingTransaction: a.model({
+    userId: a.id().required(),
+    user: a.belongsTo('User', "userId"),
+    chainId: a.string().required(),
+    toolName: a.string().required(),
+    params: a.json().required(),
+    status: a.enum(['pending', 'approved', 'rejected', 'completed', 'failed']),
+    transactionHash: a.string(),
+    approvedAt: a.timestamp()
+  }).authorization((allow) => [
+    allow.authenticated().to(["read"]),
+    allow.owner()
+  ])
 }).authorization((allow) => [
   allow.resource(createAgent),
   allow.resource(deployAgent),
