@@ -7,17 +7,17 @@ import OnlineHostedServers from "./OnlineHostedServers"
 import RecentlyAdded from "./RecentlyAdded"
 import Tags from "./Tags"
 
-const LandingContainer = () => {
+const LandingContainer = ({ allServers }: any) => {
     return (
         <div>
 
-            <Header/>
-            
-            <Hero/>
-            <QuickFeatures/>
-            <OnlineHostedServers/>
-            <RecentlyAdded/>
-            <Tags/>
+            <Header />
+
+            <Hero />
+            <QuickFeatures />
+            <OnlineHostedServers allServers={allServers} />
+            <RecentlyAdded allServers={allServers} />
+            <Tags />
         </div>
     )
 }

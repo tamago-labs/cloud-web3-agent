@@ -8,14 +8,14 @@ const Hero = () => {
             <div className="absolute inset-0 z-0">
                 <GeometricGrid />
             </div>
-            <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-24 mb-[80px] md:mb-0 relative">
+            <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-24 pt-8 md:pt-24 mb-[80px] md:mb-0 relative">
                 <div className="relative z-10 flex flex-col lg:flex-row items-center gap-10">
                     <div className="w-full px-4 md:px-0 lg:w-3/4 z-20 text-gray-900">
-                        <div className="flex items-center mb-4">
+                        <div className="flex flex-col md:flex-row items-center mb-4 gap-2 md:gap-0">
                             <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
                                 The MCP Hub for Web3
                             </span>
-                            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full flex ml-2">
+                            <span className="px-3 py-1  bg-green-100 text-green-800 text-sm font-medium rounded-full flex ml-2">
                                 🎉 New users get $25 free credits
                             </span>
                         </div>
@@ -27,7 +27,7 @@ const Hero = () => {
                             </span>
                         </h1>
 
-                        <p className="text-base md:text-lg text-gray-600 mb-8 max-w-xl">
+                        <p className="text-sm md:text-lg text-gray-600 mb-8 max-w-xl">
                             Discover plug-and-play tools that let your AI assistant trade tokens, analyze portfolios, deploy contracts, and interact with any blockchain—without coding.
                         </p>
 
