@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 
-const Header = () => {
+const Header = ({ bgColor } : any) => {
     return (
-        <header className="relative z-30">
+        <header className={`relative z-30 ${bgColor}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-6 md:justify-start md:space-x-10">
                     {/* Logo */}
