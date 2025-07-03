@@ -10,7 +10,9 @@ import Tags from "./Tags"
 const LandingContainer = () => {
     return (
         <div>
+
             <Header/>
+            
             <Hero/>
             <QuickFeatures/>
             <OnlineHostedServers/>
