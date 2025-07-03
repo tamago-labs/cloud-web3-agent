@@ -16,7 +16,7 @@ const Hero = () => {
                                 The MCP Hub for Web3
                             </span>
                             <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full flex ml-2">
-                                🎉 New users get $50 free credits
+                                🎉 New users get $25 free credits
                             </span>
                         </div>
 

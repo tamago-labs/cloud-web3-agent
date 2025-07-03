@@ -41,12 +41,12 @@ const Header = ({ bgColor } : any) => {
                         >
                             Submit Server
                         </Link>
-                        <a
-                            // onClick={signIn}
+                       <Link
+                            href="/account" 
                             className="whitespace-nowrap px-5 py-2 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors"
                         >
                             Sign In
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>
