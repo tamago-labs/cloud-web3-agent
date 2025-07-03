@@ -31,7 +31,7 @@ const ChatPanel = () => {
         }
     };
 
-    const handleKeyPress = (e) => {
+    const handleKeyPress = (e: any) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage();
