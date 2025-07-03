@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Database, Download, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
 import Link from "next/link";
 
+ 
 
 // Online Hosted Servers Section
 const OnlineHostedServers = () => {
@@ -10,54 +12,60 @@ const OnlineHostedServers = () => {
             name: "DeFi Analytics",
             description: "Real-time DeFi protocol analysis, yield farming opportunities, and liquidity pool monitoring across major DEXs",
             category: "Analytics",
-            rating: 4.8,
+            author: "DeFi Labs",
+            stars: 142,
             features: ["TVL Tracking", "Yield Calculation", "Impermanent Loss Analysis"],
-            icon: <BarChart3 className="w-6 h-6" />,
+            icon: <BarChart3 className="w-5 h-5" />,
             color: "from-blue-500 to-cyan-500"
         },
         {
             name: "Multi-Chain Wallet",
             description: "Unified wallet operations across multiple blockchains with transaction history and portfolio tracking",
             category: "Wallet",
-            rating: 4.9,
+            author: "Wallet Team",
+            stars: 98,
             features: ["Balance Queries", "Transaction History", "Multi-Chain Support"],
-            icon: <Wallet className="w-6 h-6" />,
+            icon: <Wallet className="w-5 h-5" />,
             color: "from-purple-500 to-pink-500"
         },
         {
             name: "Trading Assistant",
             description: "AI-powered trading signals, market analysis, and automated trading strategy recommendations",
             category: "Trading",
-            rating: 4.7,
+            author: "Trade AI",
+            stars: 186,
             features: ["Price Analysis", "Signal Generation", "Risk Assessment"],
-            icon: <DollarSign className="w-6 h-6" />,
+            icon: <DollarSign className="w-5 h-5" />,
             color: "from-green-500 to-emerald-500"
         },
         {
             name: "Smart Contract Auditor",
             description: "Automated smart contract security analysis and vulnerability detection for Solidity and Move contracts",
             category: "Security",
-            rating: 4.6,
+            author: "Security Labs",
+            stars: 234,
             features: ["Vulnerability Scan", "Gas Optimization", "Best Practices"],
-            icon: <Shield className="w-6 h-6" />,
+            icon: <Shield className="w-5 h-5" />,
             color: "from-red-500 to-orange-500"
         },
         {
             name: "NFT Inspector",
             description: "Comprehensive NFT metadata analysis, rarity scoring, and collection insights across marketplaces",
             category: "NFT",
-            rating: 4.5,
+            author: "NFT Tools",
+            stars: 67,
             features: ["Metadata Analysis", "Rarity Scoring", "Price History"],
-            icon: <Layers className="w-6 h-6" />,
+            icon: <Layers className="w-5 h-5" />,
             color: "from-indigo-500 to-purple-500"
         },
         {
             name: "DevOps Deployer",
             description: "Streamlined smart contract deployment, testing frameworks, and CI/CD pipeline integration",
             category: "Development",
-            rating: 4.8,
+            author: "Dev Studio",
+            stars: 156,
             features: ["Auto Deployment", "Test Generation", "CI/CD Integration"],
-            icon: <Code className="w-6 h-6" />,
+            icon: <Code className="w-5 h-5" />,
             color: "from-teal-500 to-blue-500"
         }
     ];
@@ -68,7 +76,7 @@ const OnlineHostedServers = () => {
         <div className="py-20 bg-white relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="text-center mb-16">
+               <div className="text-center mb-16">
                     {/*<div className="flex items-center justify-center mb-4">
                         <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full flex items-center gap-2">
                             <Zap className="w-4 h-4" />
@@ -110,7 +118,7 @@ const OnlineHostedServers = () => {
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-sm font-medium text-gray-700">{server.rating}</span>
+                                    <span className="text-sm font-medium text-gray-700">{server.stars}</span>
                                 </div>
                             </div>
 
