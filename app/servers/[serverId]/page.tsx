@@ -1,5 +1,6 @@
 
 import ServerContainer from "@/components/V2/Server"
+import Footer from "@/components/Footer"
 
 const ServerPage = async ({ params }: any) => {
 
@@ -11,7 +12,7 @@ const ServerPage = async ({ params }: any) => {
             <ServerContainer
                 serverId={serverId}
             />
-
+            <Footer/>
         </>
     )
 }

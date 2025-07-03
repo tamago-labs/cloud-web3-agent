@@ -30,7 +30,7 @@ export default function RootLayout({
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
         <div className="flex flex-col min-h-screen w-full ">
           {children}
-          <Footer />
+          {/*<Footer />*/}
         </div>
       </div>
       </body>
