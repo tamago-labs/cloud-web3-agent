@@ -97,6 +97,8 @@ const schema = a.schema({
     favorites: a.hasMany("Favorite", "serverId"),
     usageLogs: a.hasMany("UsageLogs", "serverId"),
     likeCount: a.integer().default(0),
+    isWeb3: a.boolean().default(true),        
+    supportedChains: a.string().array()        
   }).authorization((allow) => [
     allow.guest().to(["read"]),
     allow.authenticated().to(["read"]),
