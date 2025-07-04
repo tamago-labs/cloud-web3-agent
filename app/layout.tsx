@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Footer from "@/components/Footer"
 import Header from "@/components/Header";
 import { Inter } from "next/font/google";
+import { Providers } from "./providers"
 
 const InterFont = Inter({
   weight: ["400", "500", "700"],
@@ -27,12 +28,13 @@ export default function RootLayout({
         <link rel="icon" type="icon" href="/assets/images/favicon.ico" />
       </Head>
       <body className={InterFont.className}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
-        <div className="flex flex-col min-h-screen w-full ">
-          {children}
-          {/*<Footer />*/}
-        </div>
-      </div>
+        <Providers>
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
+            <div className="flex flex-col min-h-screen w-full ">
+              {children}
+            </div>
+          </div>
+        </Providers>
       </body>
     </html>
   );

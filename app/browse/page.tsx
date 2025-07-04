@@ -1,7 +1,7 @@
 
 import BrowseAllContainer from "@/components/V2/Browse"
 import Footer from "@/components/Footer"
-import { allServers } from "../../data/mockServers"
+import allServers from "../../data/servers.json"
 
 export default function BrowsePage() {
   return (

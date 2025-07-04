@@ -1,12 +1,12 @@
-"use client";
+ 
+import AccountContainer from "@/components/V2/Account" 
+import Footer from "@/components/Footer"
 
-import Dashboard from "@/components/Dashboard";
-
-
-export default function DashboardPage() {
-    return (
-        <div>
-            <Dashboard/>
-        </div>
-    )
+export default function AccountPage() {
+  return (
+    <> 
+      <AccountContainer/> 
+      <Footer/>
+    </>
+  );
 }
