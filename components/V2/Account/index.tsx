@@ -1,12 +1,41 @@
 "use client"
 
-import React, { useState } from 'react';
-import { User, Star, Heart, CreditCard, Settings, Download, ExternalLink, ArrowLeft, Bell, Shield, Key, Trash2, Edit, Plus, BarChart3, Wallet, DollarSign, Code, Database, Zap } from 'lucide-react';
+import React, { useState, useReducer, useCallback, useContext, useEffect } from 'react';
+import { Save, User, Star, Heart, CreditCard, Settings, Download, ExternalLink, ArrowLeft, Bell, Shield, Key, Trash2, Edit, Plus, BarChart3, Wallet, DollarSign, Code, Database, Zap } from 'lucide-react';
 import Link from "next/link";
 import Header from "../Landing/Header"
+import  { UserCard, UserCardSkeleton } from "./UserCard"
+import { AccountContext } from "@/contexts/account";
+  
 
 const AccountContainer = () => {
+
+    const { profile, updateProfile } = useContext(AccountContext)
+    
     const [activeTab, setActiveTab] = useState('overview');
+
+    const [values, dispatch] = useReducer(
+        (curVal: any, newVal: any) => ({ ...curVal, ...newVal }),
+        {
+            displayName: "", 
+        }
+    )
+
+    const { displayName } = values
+
+    useEffect(() => {
+        if (profile) {
+            dispatch({
+                displayName: profile?.displayName
+            })
+        }
+    },[profile])
+
+    const handleSave = useCallback(async () => { 
+        await updateProfile(profile.id , { 
+            displayName
+        }) 
+    },[profile, displayName])
 
     const userStats = {
         name: "Alex Chen",
@@ -94,35 +123,41 @@ const AccountContainer = () => {
                     {/* Profile Sidebar */}
                     <div className="lg:w-80 flex-shrink-0">
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <div className="text-center mb-6">
-                                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
-                                    {userStats.name.split(' ').map(n => n[0]).join('')}
-                                </div>
-                                <h2 className="text-xl font-semibold text-gray-900">{userStats.name}</h2>
-                                <p className="text-gray-600">{userStats.email}</p>
-                                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mt-2">
-                                    {userStats.plan} Plan
-                                </span>
-                            </div>
 
+                            { profile ? <UserCard name={profile.displayName} plan="Basic" /> : <UserCardSkeleton/>}
+
+                        
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Credits</span>
-                                    <span className="font-semibold text-gray-900">{userStats.credits.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Conversations</span>
-                                    <span className="font-semibold text-gray-900">{userStats.conversationsCount}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Artifacts</span>
-                                    <span className="font-semibold text-gray-900">{userStats.artifactsGenerated}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Member since</span>
-                                    <span className="font-semibold text-gray-900">{userStats.joinDate}</span>
-                                </div>
-                            </div>
+  {profile ? (
+    <>
+      <div className="flex justify-between items-center">
+        <span className="text-gray-600">Credits</span>
+        <span className="font-semibold text-gray-900">${profile.credits.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between items-center">
+        <span className="text-gray-600">Conversations</span>
+        <span className="font-semibold text-gray-900">{0}</span>
+      </div>
+      <div className="flex justify-between items-center">
+        <span className="text-gray-600">Artifacts</span>
+        <span className="font-semibold text-gray-900">{0}</span>
+      </div>
+      <div className="flex justify-between items-center">
+        <span className="text-gray-600">Member since</span>
+        <span className="font-semibold text-gray-900">{(new Date(profile.createdAt).toLocaleDateString())}</span>
+      </div>
+    </>
+  ) : (
+    <>
+      {[1, 2, 3, 4].map((_, i) => (
+        <div key={i} className="flex justify-between items-center animate-pulse">
+          <div className="h-4 w-32 bg-gray-200 rounded" />
+          <div className="h-4 w-16 bg-gray-300 rounded" />
+        </div>
+      ))}
+    </>
+  )}
+</div>
                         </div>
 
                         {/* Navigation */}
@@ -290,19 +325,31 @@ const AccountContainer = () => {
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
                                         <div className="grid md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                                                <input type="text" value={userStats.name} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                                <input type="email" value={userStats.email} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                            </div>
-                                        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => dispatch({
+                displayName: e.target.value
+            })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+      <div>
+        <button
+          onClick={handleSave}
+          className="mt-2 cursor-pointer gap-2 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+            <Save className="w-4 h-4" />
+          Save Changes
+        </button>
+      </div>
                                     </div>
 
                                     {/* Preferences */}
-                                    <div className="space-y-4">
+                                    {/*<div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-gray-900">Preferences</h3>
                                         <div className="space-y-3">
                                             <label className="flex items-center gap-3">
@@ -318,7 +365,7 @@ const AccountContainer = () => {
                                                 <span className="text-gray-700">Save conversation history</span>
                                             </label>
                                         </div>
-                                    </div>
+                                    </div>*/}
 
                                     {/* Danger Zone */}
                                     <div className="pt-6 border-t border-gray-200">
