@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState, useRef, useEffect } from 'react';
 import { BookOpen, Cpu, Code, Zap, Cloud, Database, Key, Puzzle, Infinity, FileJson, Network, BrainCircuit, Layers, Globe, ArrowRight, ArrowRightLeft, MessageSquare, ServerCrash, SmartphoneNfc, BadgeCheck, Share2, Blocks, Play, Sparkles } from 'lucide-react';
 import Link from "next/link"
@@ -21,35 +23,35 @@ const Hero = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Try MCP Servers for <br /> Your{` `}
+                            Try MCP Servers for <br /> 
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                                Web3 Journey
+                                Web3 Insight
                             </span>
                         </h1>
 
                         <p className="text-sm md:text-lg text-gray-600 mb-8 max-w-xl">
-                            Discover plug-and-play tools that let your AI assistant trade tokens, analyze portfolios, deploy contracts, and interact with any blockchain—without coding.
+                        Discover plug-and-play tools that let let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Link href="/browse" className="px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">
+                        <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">
+                            <Link href="/browse" className="px-2 md:px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">
                                 <Play className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
                                 Try MCP Servers
                             </Link>
-                            <Link href="/client" className="px-7 py-3 bg-white hover:bg-gray-50 rounded-lg font-medium text-gray-700 flex items-center justify-center transition border border-gray-300 hover:border-gray-400">
+                            <Link href="/client" className="px-2 md:px-7 py-3 bg-white hover:bg-gray-50 rounded-lg font-medium text-gray-700 flex items-center justify-center transition border border-gray-300 hover:border-gray-400">
                                 <Sparkles className="w-4 h-4 mr-2" />
                                 Online Client
                             </Link>
                         </div>
 
-                        <div className="mt-8 flex items-center gap-6 text-sm text-gray-500">
+                        <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span>15+ MCP Servers</span>
+                                <span>10+ MCP Servers</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span>Multi-chain Support</span>
+                                <span>10+ Chains Supported</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
@@ -87,7 +89,7 @@ const GeometricGrid = () => {
 
         const gridSize = 40;
         const dots: any = [];
-        const floatingElements : any = [];
+        const floatingElements: any = [];
 
         // Create grid dots
         for (let x = 0; x <= canvas.width; x += gridSize) {

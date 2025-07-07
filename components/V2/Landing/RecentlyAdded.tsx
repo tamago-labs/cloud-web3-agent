@@ -1,14 +1,17 @@
 "use client"
 
-import React from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Clock, GitBranch, Star, Users, ArrowRight, Tag, TrendingUp, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers, Database, Globe, Cpu } from 'lucide-react';
 import Link from "next/link";
 import ServerCard from "../ServerCard"
+import { ServerContext } from '@/contexts/server';
 
 // Recently Updated Section
-const RecentlyAdded = ({ allServers }: any) => {
+const RecentlyAdded = ( ) => {
 
-    const recentServers = allServers.splice(0, 3)
+    
+
+    const allServers: any = []
 
     return (
         <div className="py-20 bg-gray-50 relative">
@@ -25,7 +28,7 @@ const RecentlyAdded = ({ allServers }: any) => {
 
                 {/* Updates Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {recentServers.map((server: any, index: number) => (
+                    {allServers.map((server: any, index: number) => (
                         <div key={index} >
                             <ServerCard
                                 server={server}

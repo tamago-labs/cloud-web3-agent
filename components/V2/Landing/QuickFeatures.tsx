@@ -1,23 +1,23 @@
-
+"use client"
 
 import React from 'react';
-import { Database, Download, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
+import { Bitcoin, TrendingUp, Eye, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
 import Link from "next/link";
 
 // Mini Features Section
 const QuickFeatures = () => {
     const features = [
-    	{
-            icon: <Download className="w-5 h-5" />,
-            text: "Try any MCP online, then download the available client tailored to your specialized tasks"
+        {
+            icon: <TrendingUp className="w-5 h-5" />,
+            text: "Get instant portfolio insights and cross-chain balance analysis without manual tracking"
         },
         {
-            icon: <Database className="w-5 h-5" />,
-            text: "Access historical on-chain data via AWS Public Blockchain Datasets for trend analysis and more"
+            icon: <BarChart3 className="w-5 h-5" />,
+            text: "Track whale activity and large token movements for market intelligence and alpha"
         }, 
         {
-            icon: <Globe className="w-5 h-5" />,
-            text: "Choose AI models like Claude & Llama, privately hosted that never shared to train public models"
+            icon: <Bitcoin className="w-5 h-5" />,
+            text: "Monitor network health, mining trends, and real-time analytics across Bitcoin and EVM chains"
         }
     ];
 
@@ -30,7 +30,7 @@ const QuickFeatures = () => {
                             <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
                                 {feature.icon}
                             </div>
-                            <p className="text-gray-600 text-sm leading-relaxed">
+                            <p className="text-gray-600 text-xs md:text-sm leading-relaxed">
                                 {feature.text}
                             </p>
                         </div>
