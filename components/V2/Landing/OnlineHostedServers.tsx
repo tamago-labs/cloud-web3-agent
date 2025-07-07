@@ -1,23 +1,37 @@
 
 "use client"
 
-import React from 'react';
+import { useEffect, useState, useContext, useMemo } from 'react';
 import { Database, Download, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
 import Link from "next/link";
-import ServerCard from "../ServerCard" 
- 
+import ServerCard from "../ServerCard"
+import { ServerContext } from '@/contexts/server';
+
+const categories = ["All", "Analytics", "Tools", "NFT"];
 
 // Online Hosted Servers Section
-const OnlineHostedServers = ({ allServers }  :any) => {
-    const servers =  allServers.splice(0, 6)
+const OnlineHostedServers = () => {
 
-    const categories = ["All", "Analytics", "Wallet", "Trading", "Security", "NFT", "Development"];
+    const { loadServers } = useContext(ServerContext)
+
+    const [allServers, setServers] = useState<any>([])
+
+    useEffect(() => {
+        loadServers().then(
+            (data: any) => { 
+                const sorted = data.sort((a: any, b: any) => {
+        return (b.isFeatured ? 1000 : 0) + b.stars - ((a.isFeatured ? 1000 : 0) + a.stars);
+    });
+                setServers(sorted )
+            }
+        )
+    }, []);
 
     return (
         <div className="py-20 bg-white relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-               <div className="text-center mb-16"> 
+                <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                         Online Hosted Servers
                     </h2>
@@ -31,11 +45,10 @@ const OnlineHostedServers = ({ allServers }  :any) => {
                     {categories.map((category) => (
                         <button
                             key={category}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                category === "All" 
-                                    ? "bg-gray-900 text-white" 
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${category === "All"
+                                ? "bg-gray-900 text-white"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                }`}
                         >
                             {category}
                         </button>
@@ -44,7 +57,7 @@ const OnlineHostedServers = ({ allServers }  :any) => {
 
                 {/* Server Cards Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {servers.map((server: any, index: number) => (
+                    {allServers.map((server: any, index: number) => (
                         <div key={index} >
                             <ServerCard
                                 server={server}

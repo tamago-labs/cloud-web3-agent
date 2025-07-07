@@ -1,7 +1,40 @@
+"use client"
+
+
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
+import { getCurrentUser, signIn } from 'aws-amplify/auth';
+import { useInterval } from 'usehooks-ts';
+import { userProfileAPI } from "@/lib/api";
+import { useContext, useState } from "react";
+import { AccountContext } from "@/contexts/account";
+import { ServerContext } from "@/contexts/server";
 
-const Header = ({ bgColor } : any) => {
+
+const Header = ({ bgColor }: any) => {
+
+    const { profile, saveProfile } = useContext(AccountContext)
+    const [interval, setInterval] = useState(3000)
+
+    useInterval(
+        () => {
+            (async () => {
+                try {
+                    const { username, userId, signInDetails } = await getCurrentUser();
+                    const profile = await userProfileAPI.getProfile(username)
+                    saveProfile(profile)
+                    setInterval(60000)
+                } catch (e) {
+                    console.log(e)
+                    setInterval(3000)
+                }
+
+            })()
+        },
+        interval
+    )
+
+
     return (
         <header className={`relative z-30 ${bgColor}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,11 +74,11 @@ const Header = ({ bgColor } : any) => {
                         >
                             Submit Server
                         </Link>
-                       <Link
-                            href="/account" 
+                        <Link
+                            href="/dashboard"
                             className="whitespace-nowrap px-5 py-2 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors"
                         >
-                            Sign In
+                            {profile ? "Dashboard" : "Sign In"}
                         </Link>
                     </div>
                 </div>

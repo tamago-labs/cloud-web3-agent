@@ -46,7 +46,7 @@ export const userProfileAPI = {
         displayName?: string;
     }) {
         try {
-            
+
             const response = await client.models.User.update({
                 id: userId,
                 ...profileData
@@ -75,6 +75,21 @@ export const userProfileAPI = {
         }
     }
 };
+
+// Server API functions
+export const serverAPI = {
+    // Get all servers
+    async getAllServers() {
+        try {
+            const { data: servers } = await client.models.Servers.list();
+            return servers;
+        } catch (error) {
+            console.error('Error fetching all servers:', error);
+            throw error;
+        }
+    },
+
+}
 
 // Project API functions
 // export const projectAPI = {

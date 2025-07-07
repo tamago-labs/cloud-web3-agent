@@ -1,19 +1,33 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Search, Filter, Star, ArrowRight, BarChart3, Wallet, DollarSign, Shield, Layers, Code, Database, Zap, Globe, Users, Clock, GitBranch } from 'lucide-react';
 import Link from "next/link";
 import Header from "../Landing/Header"
 
 import ServerCard from "../ServerCard"
+import { ServerContext } from '@/contexts/server';
 
-const BrowseAllContainer = ({ allServers } : any) => {
+const BrowseAllContainer = () => {
+
+    const { loadServers } = useContext(ServerContext)
+
+    const [servers, setServers ] = useState([])
+
+    useEffect(() => {
+        loadServers().then(
+            (data: any) => { 
+                setServers(data)
+            }
+        )
+    },[])
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedBlockchain, setSelectedBlockchain] = useState('All');
     const [sortBy, setSortBy] = useState('Popular');
 
-    const filteredServers = allServers.filter((server: any) => {
+    const filteredServers = servers.filter((server: any) => {
         const matchesSearch = server.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             server.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
             server.features.some((feature: any) => feature.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -73,7 +87,7 @@ const BrowseAllContainer = ({ allServers } : any) => {
                             {/* Results Header */}
                             <div className="flex justify-between items-center mb-6">
                                 <p className="text-gray-600">
-                                    Showing {sortedServers.length} of {allServers.length} MCP servers
+                                    Showing {sortedServers.length} of {servers.length} MCP servers
                                 </p>
                                 <div className="text-sm text-gray-500">
                                     {searchQuery && `Results for "${searchQuery}"`}

@@ -1,5 +1,6 @@
-"use client"
+ 
 
+ 
 import Header from "./Header"
 import Hero from "./Hero"
 import QuickFeatures from "./QuickFeatures"
@@ -7,7 +8,10 @@ import OnlineHostedServers from "./OnlineHostedServers"
 import RecentlyAdded from "./RecentlyAdded"
 import Tags from "./Tags"
 
-const LandingContainer = ({ allServers }: any) => {
+const LandingContainer = () => {
+
+      
+
     return (
         <div>
 
@@ -15,8 +19,10 @@ const LandingContainer = ({ allServers }: any) => {
 
             <Hero />
             <QuickFeatures />
-            <OnlineHostedServers allServers={allServers} />
-            <RecentlyAdded allServers={allServers} />
+
+            <OnlineHostedServers  />
+            <RecentlyAdded   />
+
             <Tags />
         </div>
     )
