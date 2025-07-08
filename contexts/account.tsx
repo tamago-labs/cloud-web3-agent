@@ -1,6 +1,6 @@
 import { createContext, useCallback, ReactNode, useContext, useEffect, useMemo, useReducer, useState } from "react"
-// import { getCurrentUser, signIn } from 'aws-amplify/auth';
-// import { useInterval } from 'usehooks-ts';
+import { getCurrentUser, signIn } from 'aws-amplify/auth';
+import { useInterval } from 'usehooks-ts';
 import { userProfileAPI } from "@/lib/api";
 
 export const AccountContext = createContext<any>({})
@@ -25,6 +25,28 @@ const Provider = ({ children }: Props) => {
             profile
         })
     }
+
+    useInterval(
+        () => {
+            (async () => {
+                try {
+                    const { username, userId, signInDetails } = await getCurrentUser();
+                    const profile = await userProfileAPI.getProfile(username)
+                    saveProfile(profile)
+                    dispatch({
+                        interval: 60000
+                    })
+                } catch (e) {
+                    console.log(e)
+                    dispatch({
+                        interval: 3000
+                    })
+                }
+
+            })()
+        },
+        interval
+    )
 
     const updateProfile = useCallback(async (userId: string, userData: any) => {
 

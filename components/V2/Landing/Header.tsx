@@ -16,23 +16,6 @@ const Header = ({ bgColor }: any) => {
     const { profile, saveProfile } = useContext(AccountContext)
     const [interval, setInterval] = useState(3000)
 
-    useInterval(
-        () => {
-            (async () => {
-                try {
-                    const { username, userId, signInDetails } = await getCurrentUser();
-                    const profile = await userProfileAPI.getProfile(username)
-                    saveProfile(profile)
-                    setInterval(60000)
-                } catch (e) {
-                    console.log(e)
-                    setInterval(3000)
-                }
-
-            })()
-        },
-        interval
-    )
 
 
     return (

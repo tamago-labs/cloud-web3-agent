@@ -1,10 +1,6 @@
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
-
-// const client = generateClient<Schema>({
-//     authMode: "userPool"
-// });
-
+ 
 // User Profile API functions
 export const userProfileAPI = {
     // Get user profile by ID  
@@ -89,6 +85,194 @@ export const userProfileAPI = {
     }
 };
 
+// Conversation API functions
+export const conversationAPI = {
+    // Get all conversations for a user
+    async getUserConversations(userId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: conversations } = await client.models.Conversation.list({
+                filter: {
+                    userId: {
+                        eq: userId
+                    }
+                }
+            });
+            
+            // Sort by creation date (newest first)
+            return conversations.sort((a, b) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+        } catch (error) {
+            console.error('Error fetching conversations:', error);
+            throw error;
+        }
+    },
+
+    // Create new conversation
+    async createConversation(userId: string, title: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: newConversation } = await client.models.Conversation.create({
+                userId,
+                title
+            });
+            return newConversation;
+        } catch (error) {
+            console.error('Error creating conversation:', error);
+            throw error;
+        }
+    },
+
+    // Get conversation with messages
+    async getConversationWithMessages(conversationId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            // Get conversation
+            const { data: conversation } = await client.models.Conversation.get({
+                id: conversationId
+            });
+
+            if (!conversation) {
+                throw new Error('Conversation not found');
+            }
+
+            // Get messages for this conversation
+            const { data: messages } = await client.models.Message.list({
+                filter: {
+                    conversationId: {
+                        eq: conversationId
+                    }
+                }
+            });
+
+            // Sort messages by position (chronological order)
+            const sortedMessages = messages.sort((a, b) => 
+                (a.position || 0) - (b.position || 0)
+            );
+
+            return {
+                conversation,
+                messages: sortedMessages
+            };
+        } catch (error) {
+            console.error('Error fetching conversation with messages:', error);
+            throw error;
+        }
+    },
+
+    // Update conversation title
+    async updateConversationTitle(conversationId: string, title: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: updatedConversation } = await client.models.Conversation.update({
+                id: conversationId,
+                title
+            });
+            return updatedConversation;
+        } catch (error) {
+            console.error('Error updating conversation title:', error);
+            throw error;
+        }
+    },
+
+    // Delete conversation and all its messages
+    async deleteConversation(conversationId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            // First get all messages in the conversation
+            const { data: messages } = await client.models.Message.list({
+                filter: {
+                    conversationId: {
+                        eq: conversationId
+                    }
+                }
+            });
+
+            // Delete all messages
+            for (const message of messages) {
+                await client.models.Message.delete({ id: message.id });
+            }
+
+            // Then delete the conversation
+            const { data: deletedConversation } = await client.models.Conversation.delete({
+                id: conversationId
+            });
+            
+            return deletedConversation;
+        } catch (error) {
+            console.error('Error deleting conversation:', error);
+            throw error;
+        }
+    }
+};
+
+// Message API functions
+export const messageAPI = {
+    // Create new message
+    async createMessage(messageData: {
+        conversationId: string;
+        messageId: string;
+        sender: string;
+        content: string;
+        timestamp: string;
+        position: number;
+        stopReason?: string;
+    }) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: newMessage } = await client.models.Message.create(messageData);
+            return newMessage;
+        } catch (error) {
+            console.error('Error creating message:', error);
+            throw error;
+        }
+    },
+
+    // Get messages for a conversation
+    async getConversationMessages(conversationId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: messages } = await client.models.Message.list({
+                filter: {
+                    conversationId: {
+                        eq: conversationId
+                    }
+                }
+            });
+
+            // Sort by position (chronological order)
+            return messages.sort((a, b) => 
+                (a.position || 0) - (b.position || 0)
+            );
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+            throw error;
+        }
+    }
+};
+
 // Server API functions
 export const serverAPI = {
     // Get all servers
@@ -126,57 +310,4 @@ export const serverAPI = {
     }
 
 }
-
-// Project API functions
-// export const projectAPI = {
-//     // Get projects created by user  
-//     async getUserProjects(userProfileId: string) {
-//         try {
-//             const { data: projects } = await client.models.Project.list({
-//                 filter: { userProfileId: { eq: userProfileId } }
-//             });
-//             return projects;
-//         } catch (error) {
-//             console.error('Error fetching user projects:', error);
-//             throw error;
-//         }
-//     },
-//     // Get all projects for investment portfolio 
-//     async getAllProjects() {
-//         try {
-//             const { data: projects } = await client.models.Project.list();
-//             return projects;
-//         } catch (error) {
-//             console.error('Error fetching all projects:', error);
-//             throw error;
-//         }
-//     },
-//     // Get project by ID  
-//     async getProject(projectId: string) {
-//         try {
-//             const { data: project } = await client.models.Project.get({ id: projectId });
-//             return project;
-//         } catch (error) {
-//             console.error('Error fetching project:', error);
-//             throw error;
-//         }
-//     },
-//     // Create new project  
-//     async createProject(projectData: any) {
-//         try {
-//             const { data: newProject } = await client.models.Project.create(projectData);
-//             return newProject;
-//         } catch (error) {
-//             console.error('Error creating project:', error);
-//             throw error;
-//         }
-//     },
-//     // Update project 
-//     async updateProject(projectId: string, projectData: any) {
-//         try {
-//             const { data: updatedProject } = await client.models.Project.update({
-//                 id: projectId, ...projectData
-//             }); return updatedProject;
-//         } catch (error) { console.error('Error updating project:', error); throw error; }
-//     }
-// };
+ 

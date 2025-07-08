@@ -7,9 +7,31 @@ import ChatPanel from './ChatPanel';
 import RightPanel from './RightPanel';
 
 const OnlineClientContainer = () => {
-
-    const [selectedConversation, setSelectedConversation] = useState(1);
+    const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
     const [leftPanelView, setLeftPanelView] = useState('conversations');
+    const [refreshChatTrigger, setRefreshChatTrigger] = useState(0);
+    const [refreshLeftPanelTrigger, setRefreshLeftPanelTrigger] = useState(0);
+
+    // Handle loading a conversation
+    const handleLoadConversation = (conversationId: string) => {
+        setSelectedConversation(conversationId);
+        // Trigger chat panel to load this conversation
+        setRefreshChatTrigger(prev => prev + 1);
+    };
+
+    // Handle creating a new conversation
+    const handleNewConversation = () => {
+        setSelectedConversation(null);
+        // Trigger chat panel to reset
+        setRefreshChatTrigger(prev => prev + 1);
+    };
+
+    // Handle when a new conversation is created in ChatPanel
+    const handleConversationCreated = (conversationId: string) => {
+        setSelectedConversation(conversationId);
+        // Refresh left panel to show new conversation
+        setRefreshLeftPanelTrigger(prev => prev + 1);
+    };
 
     return (
         <div className="h-screen bg-gray-50 flex flex-col">
@@ -19,12 +41,15 @@ const OnlineClientContainer = () => {
                 <LeftPanel 
                     selectedConversation={selectedConversation}
                     setSelectedConversation={setSelectedConversation}
-                    leftPanelView={leftPanelView}
-                    setLeftPanelView={setLeftPanelView}
+                    onLoadConversation={handleLoadConversation}
+                    onNewConversation={handleNewConversation}
+                    refreshTrigger={refreshLeftPanelTrigger}
                 />
                 
                 <ChatPanel 
-                   // selectedConversation={selectedConversation}
+                    selectedConversation={selectedConversation}
+                    onConversationCreated={handleConversationCreated}
+                    refreshTrigger={refreshChatTrigger}
                 />
                 
                 <RightPanel /> 
