@@ -1,17 +1,15 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
-import { Send, Activity, BarChart3, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
 import { conversationAPI, messageAPI } from '@/lib/api';
-import Link from 'next/link';
 
-interface ChatMessage {
-    id: string;
-    type: 'user' | 'assistant';
-    message: string;
-    timestamp: string;
-    mcpCalls?: string[];
-    charts?: string[];
-}
+// Import our MCP components
+import { MCPManagementModal } from "../../mcp/MCPManagementModal"
+import { MCPStatusHeader } from '../../mcp/MCPStatusHeader';
+import { ChatMessageItem } from '../../mcp/ChatMessageItem';
+import { WelcomeMessage } from '../../mcp/WelcomeMessage';
+import { ChatInput } from '../../mcp/ChatInput';
+import { ChatMessage, MCPStatus } from '../../mcp/types';
 
 interface ChatPanelProps {
     selectedConversation: string | null;
@@ -21,16 +19,67 @@ interface ChatPanelProps {
 
 const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger }: ChatPanelProps) => {
     const { profile } = useContext(AccountContext);
+    
+    // Chat state
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
     const [currentConversationId, setCurrentConversationId] = useState<string | null>(selectedConversation);
+    
+    // MCP state
+    const [mcpEnabled, setMcpEnabled] = useState(true);
+    const [mcpStatus, setMcpStatus] = useState<MCPStatus | null>(null);
+    const [mcpStatusLoading, setMcpStatusLoading] = useState(false);
+    const [showMcpModal, setShowMcpModal] = useState(false);
+    
+    // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Auto-scroll to bottom when new messages arrive
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // Load MCP status on component mount
+    useEffect(() => {
+        loadMCPStatus();
+        // Refresh MCP status every 30 seconds
+        const interval = setInterval(loadMCPStatus, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const loadMCPStatus = async () => {
+        if (!mcpEnabled) return;
+        
+        setMcpStatusLoading(true);
+        try {
+            const response = await fetch('/api/mcp');
+            const data = await response.json();
+            
+            if (data.success) {
+                setMcpStatus(data.status);
+            } else {
+                setMcpStatus({
+                    healthy: false,
+                    connectedServers: [],
+                    registeredServers: [],
+                    serviceUrl: '',
+                    error: data.error
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load MCP status:', error);
+            setMcpStatus({
+                healthy: false,
+                connectedServers: [],
+                registeredServers: [],
+                serviceUrl: '',
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+        } finally {
+            setMcpStatusLoading(false);
+        }
     };
 
     // Handle selectedConversation changes from parent
@@ -40,7 +89,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             if (selectedConversation) {
                 loadConversation(selectedConversation);
             } else {
-                // Reset to new conversation
                 setChatHistory([]);
             }
         }
@@ -81,10 +129,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     }, [message]);
 
     const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    const getCurrentTimestamp = () => {
-        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
+    const getCurrentTimestamp = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const handleSendMessage = async () => {
         if (!message.trim() || isLoading) return;
@@ -96,7 +141,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             timestamp: getCurrentTimestamp()
         };
 
-        // Add user message to chat
         setChatHistory(prev => [...prev, userMessage]);
         const currentMessage = message.trim();
         setMessage('');
@@ -106,7 +150,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             // Handle conversation creation if needed
             let activeConversationId = currentConversationId;
             if (!activeConversationId && profile?.username) {
-                // Create new conversation with title from first part of message
                 const title = currentMessage.substring(0, 50) + (currentMessage.length > 50 ? '...' : '');
                 const newConversation = await conversationAPI.createConversation(profile.username, title);
                 
@@ -128,15 +171,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 });
             }
 
-            // Send request to chat API
+            // Send request to chat API with MCP enabled
             const response = await fetch('/api/chat', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     messages: chatHistory,
-                    currentMessage: currentMessage
+                    currentMessage: currentMessage,
+                    enableMCP: mcpEnabled
                 }),
             });
 
@@ -161,6 +203,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
             if (reader) {
                 let accumulatedMessage = '';
+                let currentMcpCalls: string[] = [];
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -179,7 +222,16 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                                 }
                                 
                                 if (data.chunk) {
-                                    accumulatedMessage += data.chunk;
+                                    const chunkText = data.chunk;
+                                    accumulatedMessage += chunkText;
+                                    
+                                    // Detect MCP tool usage
+                                    if (chunkText.includes('🔧 Using ') || chunkText.includes('🔄 Executing ')) {
+                                        const match = chunkText.match(/(?:🔧 Using |🔄 Executing )([^.]+)/);
+                                        if (match && !currentMcpCalls.includes(match[1])) {
+                                            currentMcpCalls.push(match[1]);
+                                        }
+                                    }
                                     
                                     // Update the last assistant message
                                     setChatHistory(prev => {
@@ -187,6 +239,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                                         const lastMessage = newHistory[newHistory.length - 1];
                                         if (lastMessage && lastMessage.type === 'assistant') {
                                             lastMessage.message = accumulatedMessage;
+                                            lastMessage.mcpCalls = [...currentMcpCalls];
                                         }
                                         return newHistory;
                                     });
@@ -218,7 +271,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         } catch (error) {
             console.error('Chat error:', error);
             
-            // Add error message
             const errorMessage: ChatMessage = {
                 id: generateId(),
                 type: 'assistant',
@@ -255,135 +307,55 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
     return (
         <div className="flex-1 flex flex-col">
-            {/* Chat Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="font-semibold text-gray-900">Web3 AI Assistant</h2>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm text-gray-500">Powered by Claude 4</span>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">MCP Enabled</span>
-                            {currentConversationId && (
-                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Saved</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* MCP Management Modal */}
+            <MCPManagementModal
+                isOpen={showMcpModal}
+                onClose={() => setShowMcpModal(false)}
+                mcpStatus={mcpStatus}
+                onStatusUpdate={loadMCPStatus}
+            />
+
+            {/* Chat Header with MCP Status */}
+            <MCPStatusHeader
+                mcpEnabled={mcpEnabled}
+                mcpStatus={mcpStatus}
+                mcpStatusLoading={mcpStatusLoading}
+                onMcpToggle={setMcpEnabled}
+                onOpenModal={() => setShowMcpModal(true)}
+            />
 
             {/* Chat Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-                {chatHistory.length === 0 && (
-                    <div className="text-center text-gray-500 py-12">
-                        <div className="text-lg font-medium mb-2">Welcome to Web3 AI Assistant</div>
-                        <p className="text-sm">Ask me anything about blockchain, DeFi, portfolio analysis, or Web3 development!</p>
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg mx-auto">
-                            <button
-                                onClick={() => setMessage("Analyze my ETH portfolio")}
-                                className="p-3 text-left bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors text-sm"
-                            >
-                                💼 Analyze my ETH portfolio
-                            </button>
-                            <button
-                                onClick={() => setMessage("What's the current gas price on Ethereum?")}
-                                className="p-3 text-left bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors text-sm"
-                            >
-                                ⛽ Check current gas prices
-                            </button>
-                            <button
-                                onClick={() => setMessage("Show me trending DeFi protocols")}
-                                className="p-3 text-left bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors text-sm"
-                            >
-                                📈 Trending DeFi protocols
-                            </button>
-                            <button
-                                onClick={() => setMessage("Explain how Uniswap V3 works")}
-                                className="p-3 text-left bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors text-sm"
-                            >
-                                🦄 How Uniswap V3 works
-                            </button>
-                        </div>
-                    </div>
+                {chatHistory.length === 0 ? (
+                    <WelcomeMessage
+                        mcpEnabled={mcpEnabled}
+                        mcpStatus={mcpStatus}
+                        onPromptClick={setMessage}
+                    />
+                ) : (
+                    chatHistory.map((msg, index) => (
+                        <ChatMessageItem
+                            key={msg.id}
+                            message={msg}
+                            isLoading={isLoading}
+                            isLast={index === chatHistory.length - 1}
+                        />
+                    ))
                 )}
-
-                {chatHistory.map((msg, index) => (
-                    <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-3xl rounded-xl px-6 py-4 ${
-                            msg.type === 'user'
-                                ? 'bg-blue-600 text-white shadow-md'
-                                : 'bg-white border border-gray-200 shadow-sm'
-                        }`}>
-                            {msg.type === 'assistant' && msg.mcpCalls && msg.mcpCalls.length > 0 && (
-                                <div className="mb-3 text-xs text-gray-500">
-                                    {msg.mcpCalls.map((call, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 mb-1">
-                                            <Activity className="w-3 h-3 text-blue-500" />
-                                            <span className="font-mono">{call}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <div className="whitespace-pre-wrap leading-relaxed">
-                                {msg.message}
-                                {msg.type === 'assistant' && isLoading && index === chatHistory.length - 1 && (
-                                    <span className="inline-block ml-1 w-2 h-5 bg-gray-400 animate-pulse"></span>
-                                )}
-                            </div>
-                            {msg.charts && (
-                                <div className="mt-4 flex gap-3">
-                                    {msg.charts.map((chart, idx) => (
-                                        <div key={idx} className="w-36 h-24 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg border border-blue-200 flex items-center justify-center group hover:shadow-md transition-shadow">
-                                            <div className="text-center">
-                                                <BarChart3 className="w-8 h-8 text-blue-600 mx-auto mb-1" />
-                                                <span className="text-xs text-blue-700 font-medium">
-                                                    {chart === 'tvl-chart' ? 'TVL Trend' : 'Liquidity Map'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <div className={`text-xs mt-3 ${
-                                msg.type === 'user' ? 'text-blue-200' : 'text-gray-500'
-                            }`}>
-                                {msg.timestamp}
-                            </div>
-                        </div>
-                    </div>
-                ))}
                 <div ref={messagesEndRef} />
             </div>
 
             {/* Chat Input */}
-            <div className="bg-white border-t border-gray-200 p-6">
-                <div className="flex gap-4">
-                    <textarea
-                        ref={textareaRef}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Ask about DeFi protocols, yield opportunities, portfolio analysis..."
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[48px] max-h-[120px]"
-                        rows={1}
-                        disabled={isLoading}
-                    />
-                    <button
-                        onClick={handleSendMessage}
-                        disabled={!message.trim() || isLoading}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium min-w-[80px]"
-                    >
-                        {isLoading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Send className="w-4 h-4" />
-                        )}
-                        {isLoading ? 'Sending...' : 'Send'}
-                    </button>
-                </div>
-                <div className="mt-2 text-xs text-gray-500">
-                    Press Enter to send, Shift + Enter for new line
-                </div>
-            </div>
+            <ChatInput
+                message={message}
+                isLoading={isLoading}
+                mcpEnabled={mcpEnabled}
+                mcpStatus={mcpStatus}
+                textareaRef={textareaRef}
+                onMessageChange={setMessage}
+                onSendMessage={handleSendMessage}
+                onKeyPress={handleKeyPress}
+            />
         </div>
     );
 };
