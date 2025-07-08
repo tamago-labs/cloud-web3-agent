@@ -1,9 +1,10 @@
-import { ChatService, ChatMessage } from '@/lib/chat';
+import { ChatService } from '@/lib/chat-enhanced';
+import { getMCPClient } from '@/lib/mcp/railway-client';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
     try {
-        const { messages, currentMessage } = await request.json();
+        const { messages, currentMessage, enableMCP = false } = await request.json();
 
         // Validate input
         if (!currentMessage || typeof currentMessage !== 'string') {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
         const chatService = new ChatService();
 
         // Convert messages to ChatMessage format if needed
-        const chatHistory: ChatMessage[] = (messages || []).map((msg: any, index: number) => ({
+        const chatHistory = (messages || []).map((msg: any, index: number) => ({
             id: msg.id || `msg-${index}`,
             sender: msg.sender === 'user' ? 'user' : 'assistant',
             content: msg.content || msg.message || '',
@@ -29,7 +30,11 @@ export async function POST(request: NextRequest) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    const chatGenerator = chatService.streamChat(chatHistory, currentMessage);
+                    const chatGenerator = chatService.streamChat(
+                        chatHistory, 
+                        currentMessage,
+                        enableMCP
+                    );
                     
                     for await (const chunk of chatGenerator) {
                         // Send each chunk as server-sent event
