@@ -10,8 +10,6 @@ import Tags from "./Tags"
 
 const LandingContainer = () => {
 
-      
-
     return (
         <div>
 
@@ -21,7 +19,7 @@ const LandingContainer = () => {
             <QuickFeatures />
 
             <OnlineHostedServers  />
-            <RecentlyAdded   />
+            {/* <RecentlyAdded   /> */}
 
             <Tags />
         </div>

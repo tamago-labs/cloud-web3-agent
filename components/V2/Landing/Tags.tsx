@@ -1,55 +1,58 @@
 
-import React from 'react';
+"use client"
+
+
+import { useEffect, useState, useContext } from 'react';
 import { Clock, GitBranch, Star, Users, ArrowRight, Tag, TrendingUp, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers, Database, Globe, Cpu } from 'lucide-react';
 import Link from "next/link";
+import { ServerContext } from '@/contexts/server'
+
 // Tags Section
 const TagsSection = () => {
-    const allTags = [
-        { name: "TVL Tracking", count: 12 },
-        { name: "Yield Calculation", count: 8 },
-        { name: "Impermanent Loss Analysis", count: 6 },
-        { name: "Balance Queries", count: 15 },
-        { name: "Transaction History", count: 18 },
-        { name: "Multi-Chain Support", count: 22 },
-        { name: "Price Analysis", count: 14 },
-        { name: "Signal Generation", count: 9 },
-        { name: "Risk Assessment", count: 11 },
-        { name: "Vulnerability Scan", count: 7 },
-        { name: "Gas Optimization", count: 13 },
-        { name: "Best Practices", count: 5 },
-        { name: "Metadata Analysis", count: 10 },
-        { name: "Rarity Scoring", count: 8 },
-        { name: "Price History", count: 16 },
-        { name: "Auto Deployment", count: 9 },
-        { name: "Test Generation", count: 6 },
-        { name: "CI/CD Integration", count: 4 }
-    ];
+
+    const { loadServers } = useContext(ServerContext)
+
+    const [categories, setCategories] = useState<any>([])
+
+    useEffect(() => {
+
+        loadServers().then(
+            (data: any) => {
+
+                // tally occurrences
+                const counts = data.reduce((acc: any, { category }: any) => {
+                    acc[category] = (acc[category] || 0) + 1;
+                    return acc;
+                }, {});
+
+                // turn the tally into the desired array shape
+                const tags: any[] = Object.entries(counts).map(([name, count]) => ({ name, count }));
+
+                setCategories(tags);        // e.g. [{ name: "Analytics", count: 5 }, …]
+            }
+        )
+
+    }, [])
 
     return (
         <div className="py-20 bg-white relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="text-center mb-16">
-                    {/*<div className="flex items-center justify-center mb-4">
-                        <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full flex items-center gap-2">
-                            <Tag className="w-4 h-4" />
-                            Browse by Tags
-                        </span>
-                    </div>*/}
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                        Browse by Tags
+                        Browse by Category
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Explore MCP servers by tags to match the tools and features you need
+                        Explore MCP servers by category to find the tools that suit your needs
                     </p>
                 </div>
 
                 {/* Tags Grid */}
                 <div className="flex flex-wrap justify-center gap-3">
-                    {allTags.map((tag, index) => (
+                    {categories.map((tag: any, index: number) => (
                         <Link
                             key={index}
-                            href={`/browse?feature=${tag.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            href={`/browse?category=${tag.name.toLowerCase().replace(/\s+/g, '-')}`}
                             className="flex items-center gap-2 px-4 py-3 bg-gray-50 text-gray-700 rounded text-sm hover:bg-gray-100 transition-colors group"
                         >
                             <span className="font-medium">{tag.name}</span>
@@ -78,8 +81,7 @@ const TagsSection = () => {
                             </Link>
                         </div>
                     </div>
-                </div>
-
+                </div> 
             </div>
         </div>
     );
