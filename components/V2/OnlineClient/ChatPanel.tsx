@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Send, RefreshCw, Activity, BarChart3 } from 'lucide-react';
+import { AccountContext } from '@/contexts/account';
+import Link from 'next/link';
 
 const ChatPanel = () => {
+
+    const { profile } = useContext(AccountContext)
+
+
     const [message, setMessage] = useState('');
 
     const currentChat = [
@@ -38,10 +44,23 @@ const ChatPanel = () => {
         }
     };
 
+    if (!profile) {
+        return <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-900">
+            <h2 className="text-xl font-semibold mb-2">You're not logged in</h2>
+            <p className="mb-4 text-gray-600">Please log in to access this AI chat panel</p>
+            <Link
+                href="/dashboard"
+                className="whitespace-nowrap px-5 py-2 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors"
+            >
+                Go to Login
+            </Link>
+        </div>
+    }
+
     return (
         <div className="flex-1 flex flex-col">
             {/* Chat Header */}
-             <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="bg-white border-b border-gray-200 px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="font-semibold text-gray-900">Uniswap V3 Pool Analysis</h2>
@@ -58,14 +77,13 @@ const ChatPanel = () => {
             </div>
 
             {/* Chat Messages */}
-             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
                 {currentChat.map((msg, index) => (
                     <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-3xl rounded-xl px-6 py-4 ${
-                            msg.type === 'user' 
-                                ? 'bg-blue-600 text-white shadow-md' 
-                                : 'bg-white border border-gray-200 shadow-sm'
-                        }`}>
+                        <div className={`max-w-3xl rounded-xl px-6 py-4 ${msg.type === 'user'
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'bg-white border border-gray-200 shadow-sm'
+                            }`}>
                             {msg.type === 'assistant' && msg.mcpCalls && (
                                 <div className="mb-3 text-xs text-gray-500">
                                     {msg.mcpCalls.map((call, idx) => (
@@ -91,15 +109,14 @@ const ChatPanel = () => {
                                     ))}
                                 </div>
                             )}
-                            <div className={`text-xs mt-3 ${
-                                msg.type === 'user' ? 'text-blue-200' : 'text-gray-500'
-                            }`}>
+                            <div className={`text-xs mt-3 ${msg.type === 'user' ? 'text-blue-200' : 'text-gray-500'
+                                }`}>
                                 {msg.timestamp}
                             </div>
                         </div>
                     </div>
                 ))}
-            </div> 
+            </div>
 
             {/* Chat Input */}
             <div className="bg-white border-t border-gray-200 p-6">
@@ -112,7 +129,7 @@ const ChatPanel = () => {
                         className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[48px] max-h-[120px]"
                         rows={1}
                     />
-                    <button 
+                    <button
                         onClick={handleSendMessage}
                         disabled={!message.trim()}
                         className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium"

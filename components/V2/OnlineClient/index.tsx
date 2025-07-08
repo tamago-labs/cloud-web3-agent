@@ -14,7 +14,6 @@ const OnlineClientContainer = () => {
     return (
         <div className="h-screen bg-gray-50 flex flex-col">
  
-
             {/* Main Content */}
              <div className="flex-1 flex overflow-hidden">
                 <LeftPanel 
