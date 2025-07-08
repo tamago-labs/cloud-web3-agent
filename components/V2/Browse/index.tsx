@@ -5,22 +5,25 @@ import { Search, Filter, Star, ArrowRight, BarChart3, Wallet, DollarSign, Shield
 import Link from "next/link";
 import Header from "../Landing/Header"
 
-import ServerCard from "../ServerCard"
+import ServerCard, { ServerCardSkeleton } from "../ServerCard"
 import { ServerContext } from '@/contexts/server';
 
 const BrowseAllContainer = () => {
 
     const { loadServers } = useContext(ServerContext)
+    const [loading, setLoading] = useState(false)
 
-    const [servers, setServers ] = useState([])
+    const [servers, setServers] = useState([])
 
     useEffect(() => {
+        setLoading(true)
         loadServers().then(
-            (data: any) => { 
+            (data: any) => {
                 setServers(data)
+                setLoading(false)
             }
         )
-    },[])
+    }, [])
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -37,14 +40,14 @@ const BrowseAllContainer = () => {
         return matchesSearch && matchesCategory && matchesBlockchain;
     });
 
-    const sortedServers = [...filteredServers].sort((a, b) => {
+    const sortedServers = [...filteredServers].sort((a: any, b: any) => {
         switch (sortBy) {
             case 'Most Stars':
                 return b.stars - a.stars;
             case 'Name A-Z':
                 return a.name.localeCompare(b.name);
             default: // Popular
-                return (b.isFeatured ? 1000 : 0) + b.stars - ((a.isFeatured ? 1000 : 0) + a.stars);
+                return (b.isFeatured ? 1000 : 0) + b.likeCount - ((a.isFeatured ? 1000 : 0) + a.likeCount);
         }
     });
 
@@ -96,17 +99,24 @@ const BrowseAllContainer = () => {
 
                             {/* Server Grid */}
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {sortedServers.map((server, index) => (
+                                {!loading && sortedServers.map((server, index) => (
                                     <div key={index} >
                                         <ServerCard
                                             server={server}
                                         />
                                     </div>
                                 ))}
+                                {loading && (
+                                    <>
+                                        <ServerCardSkeleton />
+                                        <ServerCardSkeleton />
+                                        <ServerCardSkeleton />
+                                    </>
+                                )}
                             </div>
 
                             {/* No Results */}
-                            {sortedServers.length === 0 && (
+                            {/* {sortedServers.length === 0 && (
                                 <div className="text-center py-12">
                                     <div className="text-gray-400 mb-4">
                                         <Database className="w-16 h-16 mx-auto" />
@@ -127,16 +137,16 @@ const BrowseAllContainer = () => {
                                         Clear All Filters
                                     </button>
                                 </div>
-                            )}
+                            )} */}
 
                             {/* Load More */}
-                            {sortedServers.length > 0 && (
+                            {/*{sortedServers.length > 0 && (
                                 <div className="text-center mt-12">
                                     <button className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
                                         Load More Servers
                                     </button>
                                 </div>
-                            )}
+                            )}*/}
                         </div>
                     </div>
                 </div>

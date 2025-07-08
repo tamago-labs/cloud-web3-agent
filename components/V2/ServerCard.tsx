@@ -107,28 +107,26 @@ const ServerCard = ({
     return (
         <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow group relative">
             {/* Featured Badge */}
-            {server.isFeatured && (
+            {/*{server.isFeatured && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                     <Star className="w-3 h-3 text-white fill-white" />
                 </div>
-            )}
-
-            {/* Web3 Badge */}
-            {server.isWeb3 && (
-                <div className="absolute -top-2 -left-2 px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full text-xs text-white font-medium">
-                    Web3
-                </div>
-            )}
+            )}*/}
 
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
                 <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${getCategoryGradient(server.category)} flex items-center justify-center text-white`}>
                     {getCategoryIcon(server.category)}
                 </div>
-                <div className="flex items-center gap-1">
+                {server.isFeatured && (
+                   <div className="flex items-center gap-1"> 
+                    <span className="text-xs px-2.5 py-0.5 text-white font-medium bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-gray-700">{"Featured"}</span>
+                </div>  
+                    )}
+                {/*<div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     <span className="text-sm font-medium text-gray-700">{server.stars || '4.8'}</span>
-                </div>
+                </div>*/}
             </div>
 
             {/* Content */}
@@ -197,5 +195,52 @@ const ServerCard = ({
         </div>
     )
 }
+
+export function ServerCardSkeleton() {
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse space-y-4">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="w-12 h-12 bg-gray-300 rounded-lg" />
+        <div className="w-16 h-6 bg-gray-200 rounded-full" />
+      </div>
+
+      {/* Title & Category */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="h-5 w-32 bg-gray-300 rounded" />
+          {/*<div className="h-4 w-16 bg-gray-200 rounded-full" />*/}
+        </div>
+        <div className="h-4 w-full bg-gray-200 rounded mb-1" />
+        <div className="h-4 w-5/6 bg-gray-200 rounded" />
+      </div>
+
+      {/* Supported Chains */}
+      <div className="flex gap-2 mb-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="w-16 h-5 bg-gray-200 rounded-full" />
+        ))}
+      </div>
+
+      {/* Features */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="w-20 h-5 bg-gray-200 rounded" />
+        ))}
+        <div className="w-12 h-5 bg-gray-100 rounded" />
+      </div>
+
+      {/* Footer */}
+      <div className="h-4 w-24 bg-gray-300 rounded mb-4" />
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <div className="flex-1 h-10 bg-gray-300 rounded-lg" />
+        <div className="w-20 h-10 bg-gray-200 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
 
 export default ServerCard

@@ -4,28 +4,43 @@
 import { useEffect, useState, useContext, useMemo } from 'react';
 import { Database, Download, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
 import Link from "next/link";
-import ServerCard from "../ServerCard"
+import ServerCard, { ServerCardSkeleton } from "../ServerCard"
 import { ServerContext } from '@/contexts/server';
-
-const categories = ["All", "Analytics", "Tools", "NFT"];
-
+ 
 // Online Hosted Servers Section
 const OnlineHostedServers = () => {
 
     const { loadServers } = useContext(ServerContext)
 
     const [allServers, setServers] = useState<any>([])
+    const [loading, setLoading] = useState(false)
+    const [filter, setFilter] = useState("All")
 
     useEffect(() => {
+
+        setLoading(true)
         loadServers().then(
-            (data: any) => { 
+            (data: any) => {
                 const sorted = data.sort((a: any, b: any) => {
-        return (b.isFeatured ? 1000 : 0) + b.stars - ((a.isFeatured ? 1000 : 0) + a.stars);
-    });
-                setServers(sorted )
+                    return (b.isFeatured ? 1000 : 0) + b.likeCount - ((a.isFeatured ? 1000 : 0) + a.likeCount);
+                })
+                setServers(sorted)
+                setLoading(false)
             }
         )
     }, []);
+
+    const categories = allServers.reduce((arr: any, { category }: any) => {
+        if (!arr.includes(category)) arr.push(category);   // keep only first occurrence
+        return arr;
+    }, ["All"]);
+
+    const filtered = useMemo(() => {
+        if (filter === "All") {
+            return allServers.filter((_: any, idx: number) => idx < 6);   // keep first 6
+        }
+        return allServers.filter((s: any) => s.category === filter);
+    }, [filter, allServers]);
 
     return (
         <div className="py-20 bg-white relative">
@@ -42,10 +57,11 @@ const OnlineHostedServers = () => {
 
                 {/* Category Filter */}
                 <div className="flex flex-wrap justify-center gap-2 mb-12">
-                    {categories.map((category) => (
+                    {categories.map((category: any) => (
                         <button
                             key={category}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${category === "All"
+                            onClick={() => setFilter(category)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${category === filter
                                 ? "bg-gray-900 text-white"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 }`}
@@ -57,7 +73,7 @@ const OnlineHostedServers = () => {
 
                 {/* Server Cards Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {allServers.map((server: any, index: number) => (
+                    {!loading && filtered.map((server: any, index: number) => (
                         <div key={index} >
                             <ServerCard
                                 server={server}
@@ -65,6 +81,15 @@ const OnlineHostedServers = () => {
 
                         </div>
                     ))}
+                    {loading && (
+                        <>
+                            <ServerCardSkeleton />
+                            <ServerCardSkeleton />
+                            <ServerCardSkeleton />
+                        </>
+                    )
+
+                    }
                 </div>
 
                 {/* View All Button */}
