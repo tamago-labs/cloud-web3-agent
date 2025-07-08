@@ -75,6 +75,7 @@ const schema = a.schema({
       favorites: a.hasMany("Favorite", "userId"),
       servers: a.hasMany("Servers", "userId"),
       usageLogs: a.hasMany("UsageLogs", "userId"),
+      conversations: a.hasMany("Conversation", "userId"),
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
@@ -97,8 +98,8 @@ const schema = a.schema({
     favorites: a.hasMany("Favorite", "serverId"),
     usageLogs: a.hasMany("UsageLogs", "serverId"),
     likeCount: a.integer().default(0),
-    isWeb3: a.boolean().default(true),        
-    supportedChains: a.string().array()        
+    isWeb3: a.boolean().default(true),
+    supportedChains: a.string().array()
   }).authorization((allow) => [
     allow.guest().to(["read"]),
     allow.authenticated().to(["read"]),
@@ -125,6 +126,26 @@ const schema = a.schema({
   }).authorization((allow) => [
     allow.guest().to(["read"]),
     allow.authenticated(),
+  ]),
+  Conversation: a.model({
+    userId: a.id().required(),
+    user: a.belongsTo('User', "userId"),
+    title: a.string(),
+    messages: a.hasMany("Message", "conversationId")
+  }).authorization((allow) => [
+    allow.owner()
+  ]),
+  Message: a.model({
+    conversationId: a.id().required(),
+    conversation: a.belongsTo('Conversation', "conversationId"),
+    messageId: a.string(),
+    sender: a.string(),
+    content: a.string(),
+    timestamp: a.datetime(),
+    stopReason: a.string(),
+    position: a.integer() // If we can reorder
+  }).authorization((allow) => [
+    allow.owner()
   ]),
   Agent: a
     .model({
