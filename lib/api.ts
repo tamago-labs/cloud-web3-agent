@@ -1,15 +1,19 @@
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
 
-const client = generateClient<Schema>({
-    authMode: "userPool"
-});
+// const client = generateClient<Schema>({
+//     authMode: "userPool"
+// });
 
 // User Profile API functions
 export const userProfileAPI = {
     // Get user profile by ID  
     async getProfile(username: string) {
         try {
+
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
 
             let entry
 
@@ -47,6 +51,10 @@ export const userProfileAPI = {
     }) {
         try {
 
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
             const response = await client.models.User.update({
                 id: userId,
                 ...profileData
@@ -67,6 +75,11 @@ export const userProfileAPI = {
         totalCredits?: number;
     }) {
         try {
+
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
             const { data: newProfile } = await client.models.User.create(profileData);
             return newProfile;
         } catch (error) {
@@ -79,8 +92,13 @@ export const userProfileAPI = {
 // Server API functions
 export const serverAPI = {
     // Get all servers
-    async getAllServers() {
+    async getAllServers(isLoggedIn: boolean) {
         try {
+
+            const client = generateClient<Schema>({
+                authMode: isLoggedIn ? "userPool" : "iam"
+            });
+
             const { data: servers } = await client.models.Servers.list();
             return servers;
         } catch (error) {
@@ -88,6 +106,24 @@ export const serverAPI = {
             throw error;
         }
     },
+
+    // Get specific server
+    async getServer(isLoggedIn: boolean, id: string) {
+        try {
+
+            const client = generateClient<Schema>({
+                authMode: isLoggedIn ? "userPool" : "iam"
+            });
+
+            const { data: server } = await client.models.Servers.get({
+                id
+            });
+            return server;
+        } catch (error) {
+            console.error('Error fetching server:', error);
+            throw error;
+        }
+    }
 
 }
 

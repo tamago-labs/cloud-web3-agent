@@ -3,8 +3,6 @@ import { createContext, useCallback, ReactNode, useContext, useEffect, useMemo, 
 // import { useInterval } from 'usehooks-ts';
 import { userProfileAPI } from "@/lib/api";
 
-
-
 export const AccountContext = createContext<any>({})
 
 type Props = {

@@ -1,18 +1,21 @@
 "use client"
 
 import React, { useState, useReducer, useCallback, useContext, useEffect } from 'react';
-import { Save, User, Star, Heart, CreditCard, Settings, Download, ExternalLink, ArrowLeft, Bell, Shield, Key, Trash2, Edit, Plus, BarChart3, Wallet, DollarSign, Code, Database, Zap } from 'lucide-react';
+import { LineChart, TerminalSquare, Bitcoin, ImagePlus, LogOut, Save, User, Star, Heart, CreditCard, Settings, Download, ExternalLink, ArrowLeft, Bell, Shield, Key, Trash2, Edit, Plus, BarChart3, Wallet, DollarSign, Code, Database, Zap } from 'lucide-react';
 import Link from "next/link";
 import Header from "../Landing/Header"
 import { UserCard, UserCardSkeleton } from "./UserCard"
 import { AccountContext } from "@/contexts/account";
-
+import { signOut } from "aws-amplify/auth"
+import { useRouter } from "next/navigation";
 
 const AccountContainer = () => {
 
     const { profile, updateProfile } = useContext(AccountContext)
 
     const [activeTab, setActiveTab] = useState('overview');
+
+    const router = useRouter()
 
     const [values, dispatch] = useReducer(
         (curVal: any, newVal: any) => ({ ...curVal, ...newVal }),
@@ -36,6 +39,15 @@ const AccountContainer = () => {
             displayName
         })
     }, [profile, displayName])
+
+    const handleSignOut = async () => {
+        try {
+            await signOut()
+            router.push("/")
+        } catch (error) {
+            console.log('error signing out: ', error);
+        }
+    }
 
     const userStats = {
         name: "Alex Chen",
@@ -112,6 +124,7 @@ const AccountContainer = () => {
         { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> }
     ];
 
+
     return (
         <>
             <Header bgColor="bg-gray-50" />
@@ -168,14 +181,21 @@ const AccountContainer = () => {
                                             key={tab.id}
                                             onClick={() => setActiveTab(tab.id)}
                                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === tab.id
-                                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {tab.icon}
                                             {tab.label}
                                         </button>
                                     ))}
+                                    <button
+                                        onClick={handleSignOut}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-50`}
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        Sign Out
+                                    </button>
                                 </div>
                             </nav>
                         </div>

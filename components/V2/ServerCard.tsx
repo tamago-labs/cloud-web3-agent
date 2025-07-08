@@ -105,9 +105,10 @@ const ServerCard = ({
         }
     };
 
+ 
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow group relative">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow relative">
             {/* Featured Badge */}
             {/*{server.isFeatured && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -122,7 +123,7 @@ const ServerCard = ({
                 </div>
                 {server.isFeatured && (
                     <div className="flex items-center gap-1">
-                        <span className="text-xs px-2.5 py-0.5 text-white font-medium bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-gray-700">{"Featured"}</span>
+                        <span className="text-xs px-2.5 py-0.5 text-white font-medium bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center ">{"Featured"}</span>
                     </div>
                 )}
                 {/*<div className="flex items-center gap-1">
@@ -190,7 +191,7 @@ const ServerCard = ({
                     <span>Try Online</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <Link href={`/servers/${server.name.toLowerCase().replace(/\s+/g, '-')}`} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                <Link href={`/servers/${ server.id }`} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
                     <span className="text-sm text-gray-600">Details</span>
                 </Link>
             </div>
