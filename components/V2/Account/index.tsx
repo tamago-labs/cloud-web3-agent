@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 
 const AccountContainer = () => {
 
-    const { profile, updateProfile } = useContext(AccountContext)
+    const { profile, updateProfile, clearProfile } = useContext(AccountContext)
 
     const [activeTab, setActiveTab] = useState('overview');
 
@@ -43,6 +43,7 @@ const AccountContainer = () => {
     const handleSignOut = async () => {
         try {
             await signOut()
+            clearProfile()
             router.push("/")
         } catch (error) {
             console.log('error signing out: ', error);

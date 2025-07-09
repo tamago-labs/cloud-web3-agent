@@ -26,6 +26,12 @@ const Provider = ({ children }: Props) => {
         })
     }
 
+    const clearProfile  = () => {
+        dispatch({
+            profile: undefined
+        })
+    }
+
     useInterval(
         () => {
             (async () => {
@@ -65,7 +71,8 @@ const Provider = ({ children }: Props) => {
         () => ({
             profile,
             updateProfile,
-            saveProfile
+            saveProfile,
+            clearProfile
         }),
         [
             profile
