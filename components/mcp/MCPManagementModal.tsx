@@ -108,7 +108,7 @@ export const MCPManagementModal: React.FC<MCPManagementModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/10 bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
                 {/* Modal Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">

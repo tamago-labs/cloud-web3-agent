@@ -73,7 +73,7 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
         const date = new Date(timestamp);
         const now = new Date();
         const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-        
+
         if (diffInHours < 1) {
             const diffInMinutes = Math.floor(diffInHours * 60);
             return `${diffInMinutes} min${diffInMinutes !== 1 ? 's' : ''} ago`;
@@ -88,20 +88,21 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-4">
+                {/* <div className="flex items-center justify-between mb-4">
                     <h2 className="font-semibold text-gray-900">Online Client</h2>
                     <Link href="/" className="text-xs text-gray-500">
                         Back to Home
                     </Link>
                    
-                </div>
-                <button 
+                </div> */}
+                <button
                     onClick={handleNewConversation}
                     className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2 group font-medium"
                 >
                     <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
                     New Conversation
                 </button>
+
             </div>
 
             {/* Conversations List */}
@@ -129,16 +130,14 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
                             <div
                                 key={conv.id}
                                 onClick={() => handleConversationClick(conv)}
-                                className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border group relative ${
-                                    selectedConversation === conv.id
-                                        ? 'bg-blue-50 border-blue-300 shadow-sm'
-                                        : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                                }`}
+                                className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border group relative ${selectedConversation === conv.id
+                                    ? 'bg-blue-50 border-blue-300 shadow-sm'
+                                    : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                                    }`}
                             >
                                 <div className="flex items-start justify-between mb-3">
-                                    <h3 className={`font-medium text-sm leading-5 line-clamp-2 pr-8 ${
-                                        selectedConversation === conv.id ? 'text-blue-900' : 'text-gray-900 group-hover:text-gray-700'
-                                    }`}>
+                                    <h3 className={`font-medium text-sm leading-5 line-clamp-2 pr-8 ${selectedConversation === conv.id ? 'text-blue-900' : 'text-gray-900 group-hover:text-gray-700'
+                                        }`}>
                                         {conv.title || 'Untitled Conversation'}
                                     </h3>
                                     <div className="flex items-center gap-2 flex-shrink-0 absolute top-4 right-4">
@@ -156,11 +155,10 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
 
                                 <div className="flex items-center justify-between mt-4">
                                     <div className="flex flex-wrap gap-1">
-                                        <span className={`px-2 py-1 text-xs rounded-md font-medium ${
-                                            selectedConversation === conv.id
-                                                ? 'bg-blue-100 text-blue-700'
-                                                : 'bg-gray-100 text-gray-600'
-                                        }`}>
+                                        <span className={`px-2 py-1 text-xs rounded-md font-medium ${selectedConversation === conv.id
+                                            ? 'bg-blue-100 text-blue-700'
+                                            : 'bg-gray-100 text-gray-600'
+                                            }`}>
                                             Web3 AI
                                         </span>
                                     </div>

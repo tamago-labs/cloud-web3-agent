@@ -2,6 +2,7 @@ import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
 import { conversationAPI, messageAPI } from '@/lib/api';
+import { X, Square, Trash2 } from 'lucide-react';
 
 // Import our MCP components
 import { MCPManagementModal } from "../../mcp/MCPManagementModal"
@@ -25,6 +26,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const [isLoading, setIsLoading] = useState(false);
     const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
     const [currentConversationId, setCurrentConversationId] = useState<string | null>(selectedConversation);
+    
+    // Streaming control state
+    const [isStreaming, setIsStreaming] = useState(false);
+    const [streamController, setStreamController] = useState<AbortController | null>(null);
+    
+    // Message deletion state
+    const [deletingMessages, setDeletingMessages] = useState<Set<string>>(new Set());
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     
     // MCP state
     const [mcpEnabled, setMcpEnabled] = useState(true);
@@ -101,6 +110,15 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         }
     }, [currentConversationId]);
 
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (streamController) {
+                streamController.abort();
+            }
+        };
+    }, [streamController]);
+
     const loadConversation = async (conversationId: string) => {
         try {
             const data = await conversationAPI.getConversationWithMessages(conversationId);
@@ -131,8 +149,72 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const getCurrentTimestamp = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    // Stop streaming function
+    const handleStopStreaming = () => {
+        if (streamController) {
+            streamController.abort();
+            setStreamController(null);
+        }
+        setIsStreaming(false);
+        setIsLoading(false);
+        
+        // Update the last message to indicate it was stopped
+        setChatHistory(prev => {
+            const newHistory = [...prev];
+            const lastMessage = newHistory[newHistory.length - 1];
+            if (lastMessage && lastMessage.type === 'assistant' && lastMessage.message) {
+                lastMessage.message += '\n\n*[Response stopped by user]*';
+            }
+            return newHistory;
+        });
+    };
+
+    // Delete single message function
+    const handleDeleteMessage = async (messageId: string) => {
+        setDeletingMessages(prev => new Set(prev).add(messageId));
+        
+        try {
+            // Remove from UI immediately for better UX
+            setChatHistory(prev => prev.filter(msg => msg.id !== messageId));
+            
+            // Call API to delete from database if needed
+            // await messageAPI.deleteMessage(messageId);
+            
+            setShowDeleteConfirm(null);
+        } catch (error) {
+            console.error('Error deleting message:', error);
+            // Revert the UI change if API call failed
+            if (currentConversationId) {
+                loadConversation(currentConversationId);
+            }
+        } finally {
+            setDeletingMessages(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(messageId);
+                return newSet;
+            });
+        }
+    };
+
+    // Clear all messages function
+    const handleClearAllMessages = async () => {
+        if (!currentConversationId) return;
+        
+        const confirmClear = window.confirm('Are you sure you want to clear all messages in this conversation?');
+        if (!confirmClear) return;
+        
+        try {
+            setChatHistory([]);
+            // await conversationAPI.clearMessages(currentConversationId);
+        } catch (error) {
+            console.error('Error clearing messages:', error);
+            // Reload conversation if clear failed
+            loadConversation(currentConversationId);
+        }
+    };
+
     const handleSendMessage = async () => {
-        if (!message.trim() || isLoading) return;
+        if (!message.trim() || isLoading || isStreaming) return;
 
         const userMessage: ChatMessage = {
             id: generateId(),
@@ -145,6 +227,11 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         const currentMessage = message.trim();
         setMessage('');
         setIsLoading(true);
+        setIsStreaming(true);
+
+        // Create abort controller for this request
+        const controller = new AbortController();
+        setStreamController(controller);
 
         try {
             // Handle conversation creation if needed
@@ -178,8 +265,11 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 body: JSON.stringify({
                     messages: chatHistory,
                     currentMessage: currentMessage,
-                    enableMCP: mcpEnabled
+                    mcpConfig: {
+                        enabledServers: mcpEnabled ? ['filesystem', 'web3-mcp', 'nodit'] : []
+                    }
                 }),
+                signal: controller.signal // Add abort signal
             });
 
             if (!response.ok) {
@@ -205,88 +295,111 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 let accumulatedMessage = '';
                 let currentMcpCalls: string[] = [];
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
 
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
+                        // Check if streaming was cancelled
+                        if (controller.signal.aborted) {
+                            break;
+                        }
 
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.slice(6));
-                                
-                                if (data.error) {
-                                    throw new Error(data.error);
-                                }
-                                
-                                if (data.chunk) {
-                                    const chunkText = data.chunk;
-                                    accumulatedMessage += chunkText;
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n');
+
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.slice(6));
                                     
-                                    // Detect MCP tool usage
-                                    if (chunkText.includes('🔧 Using ') || chunkText.includes('🔄 Executing ')) {
-                                        const match = chunkText.match(/(?:🔧 Using |🔄 Executing )([^.]+)/);
-                                        if (match && !currentMcpCalls.includes(match[1])) {
-                                            currentMcpCalls.push(match[1]);
-                                        }
+                                    if (data.error) {
+                                        throw new Error(data.error);
                                     }
                                     
-                                    // Update the last assistant message
-                                    setChatHistory(prev => {
-                                        const newHistory = [...prev];
-                                        const lastMessage = newHistory[newHistory.length - 1];
-                                        if (lastMessage && lastMessage.type === 'assistant') {
-                                            lastMessage.message = accumulatedMessage;
-                                            lastMessage.mcpCalls = [...currentMcpCalls];
+                                    if (data.chunk) {
+                                        const chunkText = data.chunk;
+                                        accumulatedMessage += chunkText;
+                                        
+                                        // Detect MCP tool usage
+                                        if (chunkText.includes('🔧 Using ') || chunkText.includes('🔄 Executing ')) {
+                                            const match = chunkText.match(/(?:🔧 Using |🔄 Executing )([^.]+)/);
+                                            if (match && !currentMcpCalls.includes(match[1])) {
+                                                currentMcpCalls.push(match[1]);
+                                            }
                                         }
-                                        return newHistory;
-                                    });
-                                }
-                                
-                                if (data.done) {
-                                    // Save assistant message to database
-                                    if (activeConversationId && accumulatedMessage) {
-                                        await messageAPI.createMessage({
-                                            conversationId: activeConversationId,
-                                            messageId: generateId(),
-                                            sender: 'assistant',
-                                            content: accumulatedMessage,
-                                            timestamp: new Date().toISOString(),
-                                            position: chatHistory.length + 1
+                                        
+                                        // Update the last assistant message
+                                        setChatHistory(prev => {
+                                            const newHistory = [...prev];
+                                            const lastMessage = newHistory[newHistory.length - 1];
+                                            if (lastMessage && lastMessage.type === 'assistant') {
+                                                lastMessage.message = accumulatedMessage;
+                                                lastMessage.mcpCalls = [...currentMcpCalls];
+                                            }
+                                            return newHistory;
                                         });
                                     }
-                                    setIsLoading(false);
-                                    break;
+                                    
+                                    if (data.done) {
+                                        // Save assistant message to database
+                                        if (activeConversationId && accumulatedMessage) {
+                                            await messageAPI.createMessage({
+                                                conversationId: activeConversationId,
+                                                messageId: generateId(),
+                                                sender: 'assistant',
+                                                content: accumulatedMessage,
+                                                timestamp: new Date().toISOString(),
+                                                position: chatHistory.length + 1
+                                            });
+                                        }
+                                        break;
+                                    }
+                                } catch (parseError) {
+                                    console.error('Error parsing SSE data:', parseError);
                                 }
-                            } catch (parseError) {
-                                console.error('Error parsing SSE data:', parseError);
                             }
                         }
                     }
+                } catch (readError) {
+                    if (!controller.signal.aborted) {
+                        console.error('Error reading stream:', readError);
+                        throw readError;
+                    }
+                } finally {
+                    reader.releaseLock();
                 }
             }
 
         } catch (error) {
-            console.error('Chat error:', error);
-            
-            const errorMessage: ChatMessage = {
-                id: generateId(),
-                type: 'assistant',
-                message: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error occurred'}. Please try again.`,
-                timestamp: getCurrentTimestamp()
-            };
+            if (error instanceof Error && error.name === 'AbortError') {
+                // Streaming was cancelled, this is expected
+                console.log('Streaming cancelled by user');
+            } else {
+                console.error('Chat error:', error);
+                
+                const errorMessage: ChatMessage = {
+                    id: generateId(),
+                    type: 'assistant',
+                    message: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error occurred'}. Please try again.`,
+                    timestamp: getCurrentTimestamp()
+                };
 
-            setChatHistory(prev => [...prev, errorMessage]);
+                setChatHistory(prev => [...prev, errorMessage]);
+            }
+        } finally {
             setIsLoading(false);
+            setIsStreaming(false);
+            setStreamController(null);
         }
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSendMessage();
+            if (!isStreaming) {
+                handleSendMessage();
+            }
         }
     };
 
@@ -315,14 +428,69 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 onStatusUpdate={loadMCPStatus}
             />
 
-            {/* Chat Header with MCP Status */}
-            <MCPStatusHeader
-                mcpEnabled={mcpEnabled}
-                mcpStatus={mcpStatus}
-                mcpStatusLoading={mcpStatusLoading}
-                onMcpToggle={setMcpEnabled}
-                onOpenModal={() => setShowMcpModal(true)}
-            />
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Message</h3>
+                        <p className="text-gray-600 mb-4">Are you sure you want to delete this message? This action cannot be undone.</p>
+                        <div className="flex space-x-3 justify-end">
+                            <button
+                                onClick={() => setShowDeleteConfirm(null)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleDeleteMessage(showDeleteConfirm)}
+                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Chat Header with MCP Status and Controls */}
+            <div className="border-b border-gray-200 p-4 bg-white">
+                <div className="flex items-center justify-between">
+                    <MCPStatusHeader
+                        mcpEnabled={mcpEnabled}
+                        mcpStatus={mcpStatus}
+                        mcpStatusLoading={mcpStatusLoading}
+                        onMcpToggle={setMcpEnabled}
+                        onOpenModal={() => setShowMcpModal(true)}
+                    />
+                    
+                    {/* Chat Controls */}
+                    <div className="flex items-center space-x-2">
+                        {/* Stop Streaming Button */}
+                        {isStreaming && (
+                            <button
+                                onClick={handleStopStreaming}
+                                className="flex items-center space-x-2 px-3 py-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                                title="Stop generating response"
+                            >
+                                <Square size={16} />
+                                <span className="text-sm font-medium">Stop</span>
+                            </button>
+                        )}
+                        
+                        {/* Clear Chat Button */}
+                        {chatHistory.length > 0 && (
+                            <button
+                                onClick={handleClearAllMessages}
+                                className="flex items-center space-x-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                                title="Clear all messages"
+                            >
+                                <Trash2 size={16} />
+                                <span className="text-sm font-medium">Clear Chat</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             {/* Chat Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
@@ -334,12 +502,27 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     />
                 ) : (
                     chatHistory.map((msg, index) => (
-                        <ChatMessageItem
-                            key={msg.id}
-                            message={msg}
-                            isLoading={isLoading}
-                            isLast={index === chatHistory.length - 1}
-                        />
+                        <div key={msg.id} className="relative group">
+                            <ChatMessageItem
+                                message={msg}
+                                isLoading={isLoading && index === chatHistory.length - 1}
+                                isLast={index === chatHistory.length - 1}
+                            />
+                            
+                            {/* Delete Message Button */}
+                            <button
+                                onClick={() => setShowDeleteConfirm(msg.id)}
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 transition-all duration-200"
+                                title="Delete this message"
+                                disabled={deletingMessages.has(msg.id)}
+                            >
+                                {deletingMessages.has(msg.id) ? (
+                                    <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                                ) : (
+                                    <X size={16} className="text-gray-400 hover:text-red-600" />
+                                )}
+                            </button>
+                        </div>
                     ))
                 )}
                 <div ref={messagesEndRef} />
@@ -349,12 +532,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             <ChatInput
                 message={message}
                 isLoading={isLoading}
+                isStreaming={isStreaming}
                 mcpEnabled={mcpEnabled}
                 mcpStatus={mcpStatus}
                 textareaRef={textareaRef}
                 onMessageChange={setMessage}
                 onSendMessage={handleSendMessage}
                 onKeyPress={handleKeyPress}
+                onStopStreaming={handleStopStreaming}
             />
         </div>
     );
