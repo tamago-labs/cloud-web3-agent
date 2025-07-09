@@ -88,12 +88,11 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
-                {/* <div className="flex items-center justify-between mb-4">
+                {/* <div className="flex items-center justify-between mb-2">
                     <h2 className="font-semibold text-gray-900">Online Client</h2>
                     <Link href="/" className="text-xs text-gray-500">
                         Back to Home
-                    </Link>
-                   
+                    </Link> 
                 </div> */}
                 <button
                     onClick={handleNewConversation}
