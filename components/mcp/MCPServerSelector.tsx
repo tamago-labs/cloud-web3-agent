@@ -22,10 +22,10 @@ export const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
     disabled = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-    
+
     const enabledServers = servers.filter(s => s.enabled);
     const connectedEnabledServers = enabledServers.filter(s => s.status === 'connected');
-    
+
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'connected':
@@ -43,18 +43,18 @@ export const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
         if (enabledServers.length === 0) {
             return 'No servers selected';
         }
-        
+
         const connectedCount = connectedEnabledServers.length;
         const totalEnabled = enabledServers.length;
-        
+
         if (connectedCount === 0) {
             return `${totalEnabled} selected (none connected)`;
         }
-        
+
         if (connectedCount === totalEnabled) {
             return `${totalEnabled} server${totalEnabled === 1 ? '' : 's'} ready`;
         }
-        
+
         return `${connectedCount}/${totalEnabled} servers ready`;
     };
 
@@ -62,17 +62,17 @@ export const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
         if (enabledServers.length === 0) {
             return 'text-gray-500';
         }
-        
+
         const connectedCount = connectedEnabledServers.length;
-        
+
         if (connectedCount === 0) {
             return 'text-red-600';
         }
-        
+
         if (connectedCount === enabledServers.length) {
             return 'text-green-600';
         }
-        
+
         return 'text-yellow-600';
     };
 
@@ -112,8 +112,8 @@ export const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
                                 className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <Settings className="w-3 h-3" />
-                                Manage
+                                <Server className="w-3 h-3" />
+                                Server Status
                             </Link>
                         </div>
 
@@ -130,10 +130,10 @@ export const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
                                         onChange={(e) => onServerToggle(server.name, e.target.checked)}
                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
-                                    
+
                                     <div className="flex items-center gap-2 flex-1">
                                         {getStatusIcon(server.status)}
-                                        
+
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-medium text-gray-900">
@@ -147,7 +147,7 @@ export const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
                                                 {server.description}
                                             </p>
                                         </div>
-                                        
+
                                         {server.status !== 'connected' && (
                                             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                                                 {server.status}
