@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
     try {
-        const { messages, currentMessage, enableMCP = false } = await request.json();
+        const { messages, currentMessage, mcpConfig } = await request.json();
 
         // Validate input
         if (!currentMessage || typeof currentMessage !== 'string') {
@@ -31,11 +31,11 @@ export async function POST(request: NextRequest) {
             async start(controller) {
                 try {
                     const chatGenerator = chatService.streamChat(
-                        chatHistory, 
+                        chatHistory,
                         currentMessage,
-                        enableMCP
+                        mcpConfig
                     );
-                    
+
                     for await (const chunk of chatGenerator) {
                         // Send each chunk as server-sent event
                         const data = `data: ${JSON.stringify({ chunk })}\n\n`;
@@ -45,11 +45,11 @@ export async function POST(request: NextRequest) {
                     // Send completion signal
                     const endData = `data: ${JSON.stringify({ done: true })}\n\n`;
                     controller.enqueue(new TextEncoder().encode(endData));
-                    
+
                 } catch (error) {
                     console.error('Chat stream error:', error);
-                    const errorData = `data: ${JSON.stringify({ 
-                        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+                    const errorData = `data: ${JSON.stringify({
+                        error: error instanceof Error ? error.message : 'Unknown error occurred'
                     })}\n\n`;
                     controller.enqueue(new TextEncoder().encode(errorData));
                 } finally {

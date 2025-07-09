@@ -53,11 +53,11 @@ export class ChatService {
     async *streamChat(
         chatHistory: ChatMessage[],
         currentMessage: string,
-        enableMCP: boolean = false
+        mcpConfig: any
     ): AsyncGenerator<string, { stopReason?: string }, unknown> {
-        
-        if (enableMCP) {
-            return yield* this.streamChatWithMCP(chatHistory, currentMessage);
+
+        if (mcpConfig && mcpConfig.enabledServers.length > 0) { 
+            return yield* this.streamChatWithMCP(chatHistory, currentMessage, mcpConfig.enabledServers);
         }
 
         // Original implementation without MCP
@@ -113,15 +113,16 @@ export class ChatService {
 
     async *streamChatWithMCP(
         chatHistory: ChatMessage[],
-        currentMessage: string
+        currentMessage: string,
+        enabledServers: any
     ): AsyncGenerator<string, { stopReason?: string }, unknown> {
-        
+
         const mcpClient = getMCPClient();
-        
+
         // Initialize MCP servers
         try {
-            yield `🔧 Initializing MCP services...\n`;
-            await mcpClient.initializeServers(['filesystem', 'web3-mcp', 'nodit']);
+            yield `🔧 Initializing MCP ${enabledServers} services... \n`;
+            await mcpClient.initializeServers(enabledServers);
             yield `✅ MCP services ready\n\n`;
         } catch (error) {
             console.error('MCP initialization failed:', error);
@@ -131,7 +132,7 @@ export class ChatService {
         }
 
         let messages = this.buildConversationMessages(chatHistory, currentMessage);
-        
+
         // Get available tools from MCP
         const availableTools = await this.getMCPTools(mcpClient);
         let finalStopReason: string | undefined;
@@ -248,22 +249,22 @@ export class ChatService {
                     try {
                         yield `\n🔄 Executing ${toolUse.name}...\n`;
                         const result = await this.executeMCPTool(mcpClient, toolUse.name, toolUse.input);
-                        
+
                         toolResults.push({
                             type: 'tool_result',
                             tool_use_id: toolUse.id,
                             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
                         });
-                        
+
                         yield `✅ ${toolUse.name} completed\n`;
                     } catch (error) {
                         console.error(`Tool execution error for ${toolUse.name}:`, error);
                         toolResults.push({
                             type: 'tool_result',
                             tool_use_id: toolUse.id,
-                            content: [{ 
-                                type: 'text', 
-                                text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` 
+                            content: [{
+                                type: 'text',
+                                text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
                             }],
                             is_error: true
                         });

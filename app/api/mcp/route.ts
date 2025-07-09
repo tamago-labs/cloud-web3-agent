@@ -6,9 +6,19 @@ export async function GET() {
         const mcpClient = getMCPClient();
         const status = await mcpClient.getStatus();
 
+        // Also get the server list to include in status
+        const servers = await mcpClient.listServers();
+
+        // Enhance status with server list
+        const enhancedStatus = {
+            ...status,
+            connectedServers: servers.connected || [],
+            registeredServers: servers.registered || []
+        };
+
         return NextResponse.json({
             success: true,
-            status
+            status: enhancedStatus
         });
 
     } catch (error) {
@@ -16,7 +26,14 @@ export async function GET() {
         return NextResponse.json(
             { 
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to get MCP status' 
+                error: error instanceof Error ? error.message : 'Failed to get MCP status',
+                status: {
+                    healthy: false,
+                    connectedServers: [],
+                    registeredServers: [],
+                    error: error instanceof Error ? error.message : 'Service unavailable',
+                    serviceUrl: process.env.MCP_SERVICE_URL || 'Service URL not configured'
+                }
             },
             { status: 500 }
         );
@@ -73,6 +90,19 @@ export async function POST(request: NextRequest) {
                     success: true,
                     message: `Initialized servers: ${servers.join(', ')}`,
                     servers
+                });
+
+            case 'status':
+                const status = await mcpClient.getStatus();
+                const serverList = await mcpClient.listServers();
+                
+                return NextResponse.json({
+                    success: true,
+                    status: {
+                        ...status,
+                        connectedServers: serverList.connected || [],
+                        registeredServers: serverList.registered || []
+                    }
                 });
 
             default:

@@ -5,6 +5,7 @@ export interface MCPStatus {
     registeredServers: string[];
     serviceUrl: string;
     error?: string;
+    timestamp?: string;
 }
 
 export interface MCPServerInfo {
@@ -12,6 +13,9 @@ export interface MCPServerInfo {
     connected: boolean;
     registered: boolean;
     description: string;
+    tools?: number;
+    lastSeen?: string;
+    error?: string;
     status?: any;
 }
 

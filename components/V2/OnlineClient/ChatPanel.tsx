@@ -1,4 +1,4 @@
- 
+
 
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -303,7 +303,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     position: chatHistory.length
                 });
             }
-            
+
+            console.log("enabledServers :", getEnabledServers())
+
             // Send request to chat API with MCP enabled
             const response = await fetch('/api/chat', {
                 method: 'POST',
@@ -313,7 +315,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     currentMessage: currentMessage,
                     selectedModel: selectedModel,
                     mcpConfig: {
-                        enabledServers: mcpEnabled ? getEnabledServers() : []
+                        // enabledServers: mcpEnabled ? getEnabledServers() : []
+                        enabledServers: getEnabledServers()
                     }
                 }),
                 signal: controller.signal // Add abort signal

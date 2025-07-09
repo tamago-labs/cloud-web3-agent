@@ -16,13 +16,23 @@ export interface MCPCallResult {
   toolName: string;
 }
 
+export interface MCPServerStatus {
+  name: string;
+  connected: boolean;
+  registered: boolean;
+  description: string;
+  tools: number;
+  lastSeen?: string;
+  error?: string;
+}
+
 export class RailwayMCPClient {
   private baseUrl: string;
   private apiKey: string;
 
   constructor() {
     this.baseUrl = process.env.MCP_SERVICE_URL || 'https://decentral-mcp-server-production.up.railway.app';
-    this.apiKey = process.env.MCP_API_KEY || '';
+    this.apiKey = process.env.MCP_API_KEY || '12345678';
     
     if (!this.apiKey) {
       console.warn('MCP_API_KEY not found in environment variables');
@@ -94,10 +104,21 @@ export class RailwayMCPClient {
     }
   }
 
-  async listServers(): Promise<{ connected: string[]; registered: string[]; status: any[] }> {
+  async listServers(): Promise<{ connected: string[]; registered: string[]; status: MCPServerStatus[] }> {
     try {
       const result = await this.makeRequest('/api/mcp/servers');
-      return result;
+      
+      // If the response has the expected format, return it
+      if (result.connected && result.registered) {
+        return result;
+      }
+      
+      // Otherwise, return empty arrays to prevent errors
+      return {
+        connected: [],
+        registered: [],
+        status: []
+      };
     } catch (error) {
       console.error('[MCP] Failed to list servers:', error);
       throw error;
@@ -162,6 +183,42 @@ export class RailwayMCPClient {
     } catch (error) {
       console.error(`[MCP] Failed to read resource from ${serverName}:`, error);
       throw error;
+    }
+  }
+
+  // Enhanced method to get detailed server status with tool counts
+  async getDetailedServerStatus(): Promise<MCPServerStatus[]> {
+    try {
+      const [serversList, toolsList] = await Promise.all([
+        this.listServers(),
+        this.listTools()
+      ]);
+
+      const serverConfigs: any = {
+        'filesystem': 'File operations (read, write, list directories)',
+        'web3-mcp': 'Blockchain interactions and Web3 operations', 
+        'nodit': 'Blockchain data queries via Nodit API'
+      };
+
+      const detailedStatus: MCPServerStatus[] = serversList.registered.map(serverName => {
+        const isConnected = serversList.connected.includes(serverName);
+        const serverTools = toolsList[serverName] || [];
+        
+        return {
+          name: serverName,
+          connected: isConnected,
+          registered: true,
+          description: serverConfigs[serverName] || 'Custom MCP server',
+          tools: serverTools.length,
+          lastSeen: isConnected ? new Date().toISOString() : undefined
+        };
+      });
+
+      return detailedStatus;
+    } catch (error) {
+      console.error('[MCP] Failed to get detailed server status:', error);
+      // Return empty array on error to prevent crashes
+      return [];
     }
   }
 
@@ -242,9 +299,48 @@ export class RailwayMCPClient {
     } catch (error) {
       return {
         healthy: false,
+        connectedServers: [],
+        registeredServers: [],
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
         serviceUrl: this.baseUrl
+      };
+    }
+  }
+
+  // Test connection to Railway service
+  async testConnection(): Promise<{ success: boolean; message: string; details?: any }> {
+    try {
+      const health = await this.healthCheck();
+      
+      if (health.status === 'healthy') {
+        const servers = await this.listServers();
+        
+        return {
+          success: true,
+          message: 'Connected to Railway MCP service successfully',
+          details: {
+            serviceUrl: this.baseUrl,
+            registeredServers: servers.registered.length,
+            connectedServers: servers.connected.length,
+            timestamp: health.timestamp
+          }
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Railway MCP service is not healthy',
+          details: health
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to connect to Railway MCP service: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: {
+          serviceUrl: this.baseUrl,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
       };
     }
   }
