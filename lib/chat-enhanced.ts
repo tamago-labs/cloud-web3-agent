@@ -33,20 +33,11 @@ export class ChatService {
     }
 
     private getAwsConfig(): { awsAccessKey: string; awsSecretKey: string; awsRegion: string } {
-        // Use environment variables in production
-        if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-            return {
-                awsAccessKey: process.env.AWS_ACCESS_KEY_ID,
-                awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
-                awsRegion: process.env.AWS_REGION || 'ap-southeast-1'
-            };
-        }
-
-        // Fallback to hardcoded values (for backward compatibility)
+    
         return {
-            awsAccessKey: atob("QUtJQVEyWEQ2UzQzVkxHVk5VREI="),
-            awsSecretKey: atob("WnJxR1gxU0pmNEdMWXF3UkROcU02eU53bkpUMFVuQTl4SHlKQlNUcg=="),
-            awsRegion: 'ap-southeast-1'
+            awsAccessKey: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || "",
+            awsSecretKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || "",
+            awsRegion: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-southeast-1'
         };
     }
 
@@ -56,7 +47,7 @@ export class ChatService {
         mcpConfig: any
     ): AsyncGenerator<string, { stopReason?: string }, unknown> {
 
-        if (mcpConfig && mcpConfig.enabledServers.length > 0) { 
+        if (mcpConfig && mcpConfig.enabledServers.length > 0) {
             return yield* this.streamChatWithMCP(chatHistory, currentMessage, mcpConfig.enabledServers);
         }
 

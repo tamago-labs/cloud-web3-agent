@@ -31,11 +31,11 @@ export class RailwayMCPClient {
   private apiKey: string;
 
   constructor() {
-    this.baseUrl = process.env.MCP_SERVICE_URL || 'https://decentral-mcp-server-production.up.railway.app';
-    this.apiKey = process.env.MCP_API_KEY || '12345678';
+    this.baseUrl = process.env.NEXT_PUBLIC_MCP_SERVICE_URL || 'https://decentral-mcp-server-production.up.railway.app';
+    this.apiKey = process.env.NEXT_PUBLIC_MCP_API_KEY || '';
     
     if (!this.apiKey) {
-      console.warn('MCP_API_KEY not found in environment variables');
+      console.warn('NEXT_PUBLIC_MCP_API_KEY not found in environment variables');
     }
   }
 

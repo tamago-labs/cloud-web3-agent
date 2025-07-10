@@ -32,7 +32,7 @@ export async function GET() {
                     connectedServers: [],
                     registeredServers: [],
                     error: error instanceof Error ? error.message : 'Service unavailable',
-                    serviceUrl: process.env.MCP_SERVICE_URL || 'Service URL not configured'
+                    serviceUrl: process.env.NEXT_PUBLIC_MCP_SERVICE_URL || 'Service URL not configured'
                 }
             },
             { status: 500 }

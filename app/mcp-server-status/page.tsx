@@ -25,7 +25,6 @@ const MCPServerStatusPage = () => {
     const [mcpStatus, setMcpStatus] = useState<MCPStatus | null>(null);
     const [serverDetails, setServerDetails] = useState<MCPServerInfo[]>([]);
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +42,7 @@ const MCPServerStatusPage = () => {
             const data = await response.json();
 
             if (data.success) {
+
                 setMcpStatus(data.status);
 
                 // Build server details from status
@@ -69,11 +69,6 @@ const MCPServerStatusPage = () => {
         }
     };
 
-    const refreshStatus = async () => {
-        setRefreshing(true);
-        await loadMCPStatus();
-        setRefreshing(false);
-    };
 
     const handleServerAction = async (serverName: string, action: 'connect' | 'disconnect') => {
         setActionLoading(serverName);
@@ -172,35 +167,22 @@ const MCPServerStatusPage = () => {
     const totalServers = serverDetails.length;
     const totalTools = serverDetails.reduce((sum, s) => sum + (s.tools || 0), 0);
 
+    const isLocalMode = process.env.NEXT_PUBLIC_MODE === "LOCAL"
+ 
+    
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Header
                 bgColor="bg-gray-50"
             />
-            {/* Header */}
-            {/* <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <div className="flex items-center space-x-4">
-
-
-                            <div className="flex items-center space-x-2">
-                                <Server className="w-5 h-5 text-gray-400" />
-                                <h1 className="text-xl font-semibold text-gray-900">MCP Server Status</h1>
-                            </div>
-                        </div>
- 
-                    </div>
-                </div>
-            </div> */}
 
             {/* Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-4">
                 {/* Railway Service Status */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">
-                        Online MCP Services
-                    </h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4"> MCP Server Status</h2>
+
                     {mcpStatus ? (
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
@@ -236,7 +218,7 @@ const MCPServerStatusPage = () => {
                     ) : (
                         <div className="flex items-center space-x-3">
                             <AlertCircle className="w-5 h-5 text-red-500" />
-                            <span className="text-red-600">Unable to connect to Railway MCP service</span>
+                            <span className="text-red-600">Unable to connect to MCP service</span>
                         </div>
                     )}
                 </div>
@@ -250,7 +232,7 @@ const MCPServerStatusPage = () => {
                                 <div className="text-2xl font-bold text-gray-900">
                                     {connectedCount}
                                 </div>
-                                <div className="text-sm text-gray-600">Connected</div>
+                                <div className="text-sm text-gray-600">Online</div>
                             </div>
                         </div>
                     </div>
@@ -262,7 +244,7 @@ const MCPServerStatusPage = () => {
                                 <div className="text-2xl font-bold text-gray-900">
                                     {totalServers - connectedCount}
                                 </div>
-                                <div className="text-sm text-gray-600">Disconnected</div>
+                                <div className="text-sm text-gray-600">Offline</div>
                             </div>
                         </div>
                     </div>
@@ -272,7 +254,8 @@ const MCPServerStatusPage = () => {
                             <Wrench className="w-8 h-8 text-blue-600" />
                             <div className="ml-4">
                                 <div className="text-2xl font-bold text-gray-900">
-                                    {totalTools}
+                                    {/*{totalTools}*/}
+                                    100+
                                 </div>
                                 <div className="text-sm text-gray-600">Available Tools</div>
                             </div>
@@ -301,7 +284,7 @@ const MCPServerStatusPage = () => {
                     <div className="px-6 py-4 border-b border-gray-200">
                         <h2 className="text-lg font-medium text-gray-900">Server Details</h2>
                         <p className="text-sm text-gray-600 mt-1">
-                            Manage your MCP server connections and monitor their status
+                            Check out the MCP servers we've prepared that allow to chat with AI using tools with no setup needed
                         </p>
                     </div>
 
@@ -328,16 +311,16 @@ const MCPServerStatusPage = () => {
                                                     <h3 className="text-lg font-medium text-gray-900 capitalize">
                                                         {server.name.replace('-', ' ')}
                                                     </h3>
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(server.connected)}`}>
+                                                    {/* <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(server.connected)}`}>
                                                         {server.connected ? 'Connected' : 'Disconnected'}
-                                                    </span>
+                                                    </span> */}
                                                 </div>
                                                 <p className="text-sm text-gray-600 mt-1">
                                                     {server.description}
                                                 </p>
 
                                                 {/* Server Features */}
-                                                {serverConfigs[server.name]?.features && (
+                                                {/*{serverConfigs[server.name]?.features && (
                                                     <div className="mt-3">
                                                         <div className="flex flex-wrap gap-1">
                                                             {serverConfigs[server.name].features.slice(0, 4).map((feature, idx) => (
@@ -355,39 +338,52 @@ const MCPServerStatusPage = () => {
                                                             )}
                                                         </div>
                                                     </div>
-                                                )}
+                                                )}*/}
 
                                                 <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                                                    <span>
+                                                    {/*  <span>
                                                         <Wrench className="w-3 h-3 inline mr-1" />
                                                         {server.tools || 0} tools
-                                                    </span>
+                                                    </span>*/}
                                                     <span>Last seen: {formatLastSeen(server.lastSeen)}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center space-x-2">
-                                            {server.connected ? (
-                                                <button
-                                                    onClick={() => handleServerAction(server.name, 'disconnect')}
-                                                    disabled={actionLoading === server.name}
-                                                    className="flex items-center space-x-2 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
-                                                >
-                                                    <Square size={14} />
-                                                    <span>Disconnect</span>
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleServerAction(server.name, 'connect')}
-                                                    disabled={actionLoading === server.name || !mcpStatus?.healthy}
-                                                    className="flex items-center space-x-2 px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
-                                                >
-                                                    <Play size={14} />
-                                                    <span>Connect</span>
-                                                </button>
-                                            )}
-                                        </div>
+                                        {isLocalMode ? (
+  <div className="flex items-center space-x-2">
+    {server.connected ? (
+      <button
+        onClick={() => handleServerAction(server.name, 'disconnect')}
+        disabled={actionLoading === server.name}
+        className="flex items-center space-x-2 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+      >
+        <Square size={14} />
+        <span>Disconnect</span>
+      </button>
+    ) : (
+      <button
+        onClick={() => handleServerAction(server.name, 'connect')}
+        disabled={actionLoading === server.name || !mcpStatus?.healthy}
+        className="flex items-center space-x-2 px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
+      >
+        <Play size={14} />
+        <span>Connect</span>
+      </button>
+    )}
+  </div>
+) : (
+  <div className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full 
+    ${
+      server.connected
+        ? 'bg-green-100 text-green-800'
+        : 'bg-gray-100 text-gray-500'
+    }`}
+  >
+    {server.connected ? 'Online' : 'Offline'}
+  </div>
+)}
+
                                     </div>
                                 </div>
                             ))}
@@ -395,51 +391,7 @@ const MCPServerStatusPage = () => {
                     )}
                 </div>
 
-                {/* Help Section */}
-                {/* <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <h3 className="text-lg font-medium text-blue-900 mb-2">💡 About MCP Servers</h3>
-                    <p className="text-blue-800 text-sm leading-relaxed mb-4">
-                        MCP (Model Context Protocol) servers provide tools and capabilities to your AI assistant.
-                        Connect the servers you need to enable specific functionalities like file operations,
-                        blockchain interactions, and data analysis. Each server provides a set of tools that
-                        can be used during conversations.
-                    </p>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div className="bg-white/50 rounded-md p-3">
-                            <h4 className="font-medium text-blue-900 mb-1">🗂️ Filesystem</h4>
-                            <p className="text-blue-700">Create files, read data, manage documents in /tmp directory</p>
-                        </div>
-                        <div className="bg-white/50 rounded-md p-3">
-                            <h4 className="font-medium text-blue-900 mb-1">🔗 Web3-MCP</h4>
-                            <p className="text-blue-700">Query token balances, transaction history, DeFi protocols</p>
-                        </div>
-                        <div className="bg-white/50 rounded-md p-3">
-                            <h4 className="font-medium text-blue-900 mb-1">📊 Nodit</h4>
-                            <p className="text-blue-700">Real-time blockchain analytics and cross-chain metrics</p>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-blue-200">
-                        <div className="flex items-center justify-between">
-                            <Link
-                                href="https://modelcontextprotocol.io/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:text-blue-700 underline flex items-center space-x-1"
-                            >
-                                <span>Learn more about MCP</span>
-                                <ExternalLink className="w-3 h-3" />
-                            </Link>
-                            <Link
-                                href="/mcp-test"
-                                className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                                Test MCP Tools
-                            </Link>
-                        </div>
-                    </div>
-                </div> */}
             </div>
             <Footer />
         </div>
