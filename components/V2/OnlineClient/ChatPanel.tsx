@@ -1,5 +1,4 @@
 
-
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
@@ -8,6 +7,7 @@ import { X, Square, Trash2 } from 'lucide-react';
 
 // Import our MCP components
 import { MCPManagementModal } from "../../mcp/MCPManagementModal"
+import { MCPServerModal } from "../../mcp/MCPServerModal"
 import { ChatHeader } from '../../mcp/ChatHeader';
 import { ChatMessageItem } from '../../mcp/ChatMessageItem';
 import { WelcomeMessage } from '../../mcp/WelcomeMessage';
@@ -19,6 +19,20 @@ interface ChatPanelProps {
     onConversationCreated: (conversationId: string) => void;
     refreshTrigger: number;
 }
+
+interface MCPServer {
+    name: string;
+    description: string;
+    status: 'connected' | 'disconnected' | 'error';
+    tools: number;
+    enabled: boolean;
+    registered: boolean;
+    lastSeen?: string;
+    error?: string;
+}
+
+// Define default/always-enabled servers
+const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
 const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger }: ChatPanelProps) => {
     const { profile } = useContext(AccountContext);
@@ -46,46 +60,37 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const [mcpStatusLoading, setMcpStatusLoading] = useState(false);
     const [showMcpModal, setShowMcpModal] = useState(false);
 
-    // MCP Server selection state
-    const [mcpServers, setMcpServers] = useState([
-        {
-            name: 'filesystem',
-            description: 'File system operations in /tmp directory',
-            status: 'connected' as const,
-            tools: 6,
-            enabled: true
-        },
-        {
-            name: 'web3-mcp',
-            description: 'Web3 blockchain interactions',
-            status: 'disconnected' as const,
-            tools: 12,
-            enabled: false
-        },
-        {
-            name: 'nodit',
-            description: 'Blockchain data queries via Nodit API',
-            status: 'error' as const,
-            tools: 8,
-            enabled: false
-        }
-    ]);
+    // MCP Server selection state - now using real data
+    const [mcpServers, setMcpServers] = useState<MCPServer[]>([]);
+    const [mcpServersLoading, setMcpServersLoading] = useState(false);
+    const [showMcpServerModal, setShowMcpServerModal] = useState(false);
 
     // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Helper function to check if server is default
+    const isDefaultServer = (serverName: string) => {
+        return DEFAULT_SERVERS.includes(serverName);
+    };
 
     // Auto-scroll to bottom when new messages arrive
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Load MCP status on component mount
+    // Load MCP status and servers on component mount
     useEffect(() => {
         loadMCPStatus();
+        loadMCPServers();
+        
         // Refresh MCP status every 30 seconds
-        const interval = setInterval(loadMCPStatus, 30000);
-        return () => clearInterval(interval);
+        // const interval = setInterval(() => {
+        //     loadMCPStatus();
+        //     loadMCPServers();
+        // }, 30000);
+        
+        // return () => clearInterval(interval);
     }, []);
 
     const loadMCPStatus = async () => {
@@ -118,6 +123,44 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             });
         } finally {
             setMcpStatusLoading(false);
+        }
+    };
+
+    const loadMCPServers = async () => {
+        setMcpServersLoading(true);
+        try {
+            const response = await fetch('/api/mcp/servers');
+            const data = await response.json();
+
+            if (data.success) {
+                // Transform the server data to match our interface
+                const transformedServers: MCPServer[] = data.servers.map((server: any) => {
+                    const isDefault = isDefaultServer(server.name);
+                    const previousEnabled = mcpServers.find(s => s.name === server.name)?.enabled ?? false;
+                    
+                    return {
+                        name: server.name,
+                        description: server.description,
+                        status: server.connected ? 'connected' : (server.error ? 'error' : 'disconnected'),
+                        tools: server.tools || 0,
+                        // Default servers are always enabled, others preserve their previous state
+                        enabled: isDefault ? true : (server.connected ? previousEnabled : false),
+                        registered: server.registered,
+                        lastSeen: server.lastSeen,
+                        error: server.error
+                    };
+                });
+
+                setMcpServers(transformedServers);
+            } else {
+                console.error('Failed to load MCP servers:', data.error);
+                // Keep existing servers if API call fails
+            }
+        } catch (error) {
+            console.error('Error loading MCP servers:', error);
+            // Keep existing servers if network error
+        } finally {
+            setMcpServersLoading(false);
         }
     };
 
@@ -179,8 +222,13 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const getCurrentTimestamp = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // Handle MCP server selection
+    // Handle MCP server selection - updated to handle default servers
     const handleServerToggle = (serverName: string, enabled: boolean) => {
+        // Don't allow disabling default servers
+        if (isDefaultServer(serverName) && !enabled) {
+            return;
+        }
+
         setMcpServers(prev => prev.map(server =>
             server.name === serverName
                 ? { ...server, enabled }
@@ -188,10 +236,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         ));
     };
 
-    // Get enabled server names for API call
+    // Get enabled server names for API call - includes default servers
     const getEnabledServers = () => {
         return mcpServers
-            .filter(server => server.enabled && server.status === 'connected')
+            .filter(server => {
+                // Include if it's a default server OR if it's enabled and connected
+                return (isDefaultServer(server.name) && server.status === 'connected') || 
+                       (server.enabled && server.status === 'connected');
+            })
             .map(server => server.name);
     };
 
@@ -304,7 +356,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 });
             }
 
-            console.log("enabledServers :", getEnabledServers())
+            const enabledServers = getEnabledServers();
+            console.log("enabledServers (including defaults):", enabledServers);
 
             // Send request to chat API with MCP enabled
             const response = await fetch('/api/chat', {
@@ -315,8 +368,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     currentMessage: currentMessage,
                     selectedModel: selectedModel,
                     mcpConfig: {
-                        // enabledServers: mcpEnabled ? getEnabledServers() : []
-                        enabledServers: getEnabledServers()
+                        enabledServers: enabledServers
                     }
                 }),
                 signal: controller.signal // Add abort signal
@@ -453,21 +505,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         }
     };
 
-    // if (!profile) {
-    //     return (
-    //         <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-900">
-    //             <h2 className="text-xl font-semibold mb-2">You're not logged in</h2>
-    //             <p className="mb-4 text-gray-600">Please log in to access this AI chat panel</p>
-    //             <Link
-    //                 href="/dashboard"
-    //                 className="whitespace-nowrap px-5 py-2 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors"
-    //             >
-    //                 Go to Login
-    //             </Link>
-    //         </div>
-    //     );
-    // }
-
     return (
         <div className="flex-1 flex flex-col">
             {/* MCP Management Modal */}
@@ -476,6 +513,15 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 onClose={() => setShowMcpModal(false)}
                 mcpStatus={mcpStatus}
                 onStatusUpdate={loadMCPStatus}
+            />
+
+            {/* MCP Server Selection Modal */}
+            <MCPServerModal
+                isOpen={showMcpServerModal}
+                onClose={() => setShowMcpServerModal(false)}
+                servers={mcpServers}
+                onServerToggle={handleServerToggle}
+                onRefresh={loadMCPServers}
             />
 
             {/* Delete Confirmation Modal */}
@@ -502,7 +548,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 </div>
             )}
 
-            {/* Chat Header with Clean Design */}
+            {/* Chat Header with Enhanced Server Selection */}
             <ChatHeader
                 isStreaming={isStreaming}
                 hasMessages={chatHistory.length > 0}
@@ -512,6 +558,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 onServerToggle={handleServerToggle}
                 onStopStreaming={handleStopStreaming}
                 onClearMessages={handleClearAllMessages}
+                onOpenServerModal={() => setShowMcpServerModal(true)}
             />
 
             {!profile && (
@@ -527,70 +574,64 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         </Link>
                     </div>
                 </>
-            )
+            )}
 
-            }
+            {profile && (
+                <>
+                    {/* Chat Messages */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+                        {chatHistory.length === 0 ? (
+                            <WelcomeMessage
+                                mcpEnabled={mcpEnabled}
+                                mcpStatus={mcpStatus}
+                                onPromptClick={setMessage}
+                            />
+                        ) : (
+                            chatHistory.map((msg, index) => (
+                                <div key={msg.id} className="relative group">
+                                    <ChatMessageItem
+                                        message={msg}
+                                        isLoading={isLoading && index === chatHistory.length - 1}
+                                        isLast={index === chatHistory.length - 1}
+                                    />
 
-            {
-                profile && (
-                    <>
-                        {/* Chat Messages */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-                            {chatHistory.length === 0 ? (
-                                <WelcomeMessage
-                                    mcpEnabled={mcpEnabled}
-                                    mcpStatus={mcpStatus}
-                                    onPromptClick={setMessage}
-                                />
-                            ) : (
-                                chatHistory.map((msg, index) => (
-                                    <div key={msg.id} className="relative group">
-                                        <ChatMessageItem
-                                            message={msg}
-                                            isLoading={isLoading && index === chatHistory.length - 1}
-                                            isLast={index === chatHistory.length - 1}
-                                        />
+                                    {/* Delete Message Button */}
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(msg.id)}
+                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 transition-all duration-200"
+                                        title="Delete this message"
+                                        disabled={deletingMessages.has(msg.id)}
+                                    >
+                                        {deletingMessages.has(msg.id) ? (
+                                            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                                        ) : (
+                                            <X size={16} className="text-gray-400 hover:text-red-600" />
+                                        )}
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
 
-                                        {/* Delete Message Button */}
-                                        <button
-                                            onClick={() => setShowDeleteConfirm(msg.id)}
-                                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 transition-all duration-200"
-                                            title="Delete this message"
-                                            disabled={deletingMessages.has(msg.id)}
-                                        >
-                                            {deletingMessages.has(msg.id) ? (
-                                                <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                                            ) : (
-                                                <X size={16} className="text-gray-400 hover:text-red-600" />
-                                            )}
-                                        </button>
-                                    </div>
-                                ))
-                            )}
-                            <div ref={messagesEndRef} />
-                        </div>
-
-                        {/* Chat Input */}
-                        <ChatInput
-                            message={message}
-                            isLoading={isLoading}
-                            isStreaming={isStreaming}
-                            mcpEnabled={mcpEnabled}
-                            mcpStatus={mcpStatus}
-                            selectedModel={selectedModel}
-                            textareaRef={textareaRef}
-                            onMessageChange={setMessage}
-                            onSendMessage={handleSendMessage}
-                            onKeyPress={handleKeyPress}
-                            onStopStreaming={handleStopStreaming}
-                            onModelChange={setSelectedModel}
-                        />
-                    </>
-                )
-            }
-
-
-        </div >
+                    {/* Chat Input */}
+                    <ChatInput
+                        message={message}
+                        isLoading={isLoading}
+                        isStreaming={isStreaming}
+                        mcpEnabled={mcpEnabled}
+                        mcpStatus={mcpStatus}
+                        selectedModel={selectedModel}
+                        textareaRef={textareaRef}
+                        onMessageChange={setMessage}
+                        onSendMessage={handleSendMessage}
+                        onKeyPress={handleKeyPress}
+                        onStopStreaming={handleStopStreaming}
+                        onModelChange={setSelectedModel}
+                    />
+                </>
+            )}
+        </div>
     );
 };
 

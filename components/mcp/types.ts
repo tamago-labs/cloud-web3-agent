@@ -27,19 +27,19 @@ export interface ChatMessage {
     mcpCalls?: string[];
     charts?: string[];
 }
-
+ 
 // Server configurations
 export const serverConfigs: Record<string, {description: string; features: string[]}> = {
     'filesystem': {
-        description: 'File operations (read, write, list directories)',
+        description: 'Provides access to local files on the server (always off, as file utilities are not available).',
         features: ['Read files', 'Write files', 'List directories', 'File management']
     },
-    'web3-mcp': {
-        description: 'Blockchain interactions and Web3 operations',
+    'agent-base': {
+        description: 'Consists of cached API specs from Nodit MCP and provides base tools for other Web3 MCPs (always online).',
         features: ['Token balances', 'Transaction history', 'DeFi protocols', 'NFT data']
     },
     'nodit': {
-        description: 'Blockchain data queries via Nodit API',
+        description: 'Nodit MCP server used as the base for accessing on-chain data (always online).',
         features: ['Multi-chain support', 'Real-time data', 'Historical analytics', 'Token metrics']
     }
 };

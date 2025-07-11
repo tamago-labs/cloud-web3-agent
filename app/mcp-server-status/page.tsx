@@ -255,7 +255,7 @@ const MCPServerStatusPage = () => {
                             <div className="ml-4">
                                 <div className="text-2xl font-bold text-gray-900">
                                     {/*{totalTools}*/}
-                                    100+
+                                    50+
                                 </div>
                                 <div className="text-sm text-gray-600">Available Tools</div>
                             </div>

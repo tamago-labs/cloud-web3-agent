@@ -1,4 +1,4 @@
-import { ChatService } from '@/lib/chat-enhanced';
+import { ChatService } from '@/lib/chat'
 import { getMCPClient } from '@/lib/mcp/railway-client';
 import { NextRequest, NextResponse } from 'next/server';
 

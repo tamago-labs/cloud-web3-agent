@@ -33,7 +33,7 @@ export class RailwayMCPClient {
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_MCP_SERVICE_URL || 'https://decentral-mcp-server-production.up.railway.app';
     this.apiKey = process.env.NEXT_PUBLIC_MCP_API_KEY || '';
-    
+
     if (!this.apiKey) {
       console.warn('NEXT_PUBLIC_MCP_API_KEY not found in environment variables');
     }
@@ -41,7 +41,7 @@ export class RailwayMCPClient {
 
   private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -72,7 +72,7 @@ export class RailwayMCPClient {
 
   async connectServer(serverName: string, config?: any): Promise<void> {
     console.log(`[MCP] Connecting to server: ${serverName}`);
-    
+
     try {
       await this.makeRequest('/api/mcp/connect', {
         method: 'POST',
@@ -81,7 +81,7 @@ export class RailwayMCPClient {
           config
         })
       });
-      
+
       console.log(`[MCP] Successfully connected to ${serverName}`);
     } catch (error) {
       console.error(`[MCP] Failed to connect to ${serverName}:`, error);
@@ -91,12 +91,12 @@ export class RailwayMCPClient {
 
   async disconnectServer(serverName: string): Promise<void> {
     console.log(`[MCP] Disconnecting from server: ${serverName}`);
-    
+
     try {
       await this.makeRequest(`/api/mcp/disconnect/${serverName}`, {
         method: 'DELETE'
       });
-      
+
       console.log(`[MCP] Successfully disconnected from ${serverName}`);
     } catch (error) {
       console.error(`[MCP] Failed to disconnect from ${serverName}:`, error);
@@ -107,12 +107,12 @@ export class RailwayMCPClient {
   async listServers(): Promise<{ connected: string[]; registered: string[]; status: MCPServerStatus[] }> {
     try {
       const result = await this.makeRequest('/api/mcp/servers');
-      
+
       // If the response has the expected format, return it
       if (result.connected && result.registered) {
         return result;
       }
-      
+
       // Otherwise, return empty arrays to prevent errors
       return {
         connected: [],
@@ -137,7 +137,7 @@ export class RailwayMCPClient {
 
   async callTool(serverName: string, toolName: string, arguments_: any): Promise<any> {
     console.log(`[MCP] Calling tool: ${serverName}.${toolName}`, { arguments: arguments_ });
-    
+
     try {
       const result = await this.makeRequest('/api/mcp/tools/call', {
         method: 'POST',
@@ -168,7 +168,7 @@ export class RailwayMCPClient {
 
   async readResource(serverName: string, uri: string): Promise<any> {
     console.log(`[MCP] Reading resource: ${serverName} - ${uri}`);
-    
+
     try {
       const result = await this.makeRequest('/api/mcp/resources/read', {
         method: 'POST',
@@ -195,15 +195,15 @@ export class RailwayMCPClient {
       ]);
 
       const serverConfigs: any = {
-        'filesystem': 'File operations (read, write, list directories)',
-        'web3-mcp': 'Blockchain interactions and Web3 operations', 
-        'nodit': 'Blockchain data queries via Nodit API'
+        'filesystem': 'Provides access to local files on the server (always off, as file utilities are not available).',
+        'nodit': 'Nodit MCP server used as the base for accessing on-chain data (always on).',
+        'base-agent': 'Consists of cached API specs from Nodit MCP and provides base tools for other Web3 MCPs.',
       };
 
       const detailedStatus: MCPServerStatus[] = serversList.registered.map(serverName => {
         const isConnected = serversList.connected.includes(serverName);
         const serverTools = toolsList[serverName] || [];
-        
+
         return {
           name: serverName,
           connected: isConnected,
@@ -233,8 +233,8 @@ export class RailwayMCPClient {
           claudeTools.push({
             name: `${serverName}__${tool.name}`,
             description: `${tool.description} (via ${serverName})`,
-            input_schema: tool.inputSchema || { 
-              type: 'object', 
+            input_schema: tool.inputSchema || {
+              type: 'object',
               properties: {},
               required: []
             }
@@ -264,7 +264,7 @@ export class RailwayMCPClient {
   // Initialize common MCP servers
   async initializeServers(serverNames: string[] = ['filesystem', 'web3-mcp']): Promise<void> {
     console.log(`[MCP] Initializing servers: ${serverNames.join(', ')}`);
-    
+
     for (const serverName of serverNames) {
       try {
         // Check if already connected
@@ -312,10 +312,10 @@ export class RailwayMCPClient {
   async testConnection(): Promise<{ success: boolean; message: string; details?: any }> {
     try {
       const health = await this.healthCheck();
-      
+
       if (health.status === 'healthy') {
         const servers = await this.listServers();
-        
+
         return {
           success: true,
           message: 'Connected to Railway MCP service successfully',

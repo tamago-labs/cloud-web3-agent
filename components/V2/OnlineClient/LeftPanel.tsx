@@ -87,13 +87,7 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
     return (
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b border-gray-200">
-                {/* <div className="flex items-center justify-between mb-2">
-                    <h2 className="font-semibold text-gray-900">Online Client</h2>
-                    <Link href="/" className="text-xs text-gray-500">
-                        Back to Home
-                    </Link> 
-                </div> */}
+            <div className="p-4 border-b border-gray-200"> 
                 <button
                     onClick={handleNewConversation}
                     className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2 group font-medium"

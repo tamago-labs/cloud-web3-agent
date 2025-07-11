@@ -30,14 +30,14 @@ export const WelcomeMessage: React.FC<WelcomeMessageProps> = ({
 
     return (
         <div className="text-center text-gray-500 py-12">
-            <div className="text-lg font-medium mb-2">No setup required</div>
+            <div className="text-lg font-medium mb-2">AI Assistance with Online MCP Servers</div>
             <p className="text-sm mb-4">
-                Ask anything about blockchain, DeFi, or portfolio analysis — all powered by real-time data.
-                {mcpEnabled && mcpStatus?.healthy && (
+                Ask anything about blockchain, DeFi, or portfolio analysis powered by real-time data.
+                {/* {mcpEnabled && mcpStatus?.healthy && (
                     <span className="block mt-1 text-green-600">
                         🔧 Tools enabled - I can perform file operations and blockchain queries
                     </span>
-                )}
+                )} */}
             </p>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg mx-auto">
                 {prompts.map((prompt, index) => {
