@@ -9,11 +9,14 @@ const Footer = ({ showAddress = true }: any) => {
 
 
                         <div className="flex-1">
-                            <div className="flex items-center mb-3">
+                            {/* <div className="flex items-center mb-3">
                                 <span className="text-gray-900 text-base md:text-lg font-bold">Tamago Blockchain Labs Co., Ltd.</span>
                                 <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
                                     Since 2022
                                 </span>
+                            </div> */}
+                            <div className="text-gray-900 transition mb-2 font-medium">
+                                Tamago Blockchain Labs Co., Ltd.
                             </div>
                             <p className="text-gray-600 mb-3 text-sm max-w-md">
                                 Co-Working Q, 1-1, JR Hakata City B1F, Hakata<br /> Fukuoka, Japan 812-0012
@@ -27,7 +30,7 @@ const Footer = ({ showAddress = true }: any) => {
                                 </div>
                             </div>
                         </div>
- 
+
                         <div className="flex flex-col md:flex-row gap-6 md:gap-8">
                             <div>
                                 <h4 className="text-gray-900 font-medium mb-3">Platform</h4>
@@ -53,8 +56,8 @@ const Footer = ({ showAddress = true }: any) => {
                                     <Link href="https://github.com/tamago-labs/cloud-web3-agent" target="_blank" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         GitHub
                                     </Link>
-                                    <Link href="/mcp-server-status" className="block text-gray-600 hover:text-gray-900 text-sm transition">
-                                        MCP Server Status
+                                    <Link href="/server-status" className="block text-gray-600 hover:text-gray-900 text-sm transition">
+                                        Server Status
                                     </Link>
                                 </div>
                             </div>
