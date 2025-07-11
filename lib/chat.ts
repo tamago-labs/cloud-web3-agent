@@ -17,6 +17,30 @@ export interface ChatMessage {
     stopReason?: string;
 }
 
+interface ToolCall {
+    id: string;
+    name: string;
+    input: any;
+    status: 'pending' | 'running' | 'completed' | 'error';
+    output?: any;
+    error?: string;
+    startTime?: number;
+    endTime?: number;
+}
+
+interface StreamChunk {
+    type: 'text' | 'tool_start' | 'tool_progress' | 'tool_complete' | 'tool_error' | 'tool_result';
+    content: string;
+    toolCall?: ToolCall;
+    toolResult?: {
+        toolId: string;
+        input: any;
+        output?: any;
+        error?: string;
+        duration?: number;
+    };
+}
+
 export class ChatService {
     private client: BedrockRuntimeClient;
 
@@ -33,7 +57,6 @@ export class ChatService {
     }
 
     private getAwsConfig(): { awsAccessKey: string; awsSecretKey: string; awsRegion: string } {
-    
         return {
             awsAccessKey: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || "",
             awsSecretKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || "",
@@ -45,7 +68,7 @@ export class ChatService {
         chatHistory: ChatMessage[],
         currentMessage: string,
         mcpConfig: any
-    ): AsyncGenerator<string, { stopReason?: string }, unknown> {
+    ): AsyncGenerator<StreamChunk, { stopReason?: string }, unknown> {
 
         if (mcpConfig && mcpConfig.enabledServers.length > 0) {
             return yield* this.streamChatWithMCP(chatHistory, currentMessage, mcpConfig.enabledServers);
@@ -70,7 +93,6 @@ export class ChatService {
                 });
 
                 const apiResponse: any = await this.client.send(command);
-                let streamedText = '';
 
                 for await (const item of apiResponse.body) {
                     if (item.chunk?.bytes) {
@@ -82,8 +104,10 @@ export class ChatService {
                                 finalStopReason = chunk.delta.stop_reason;
                             } else if (chunkType === "content_block_delta") {
                                 if (chunk.delta?.type === 'text_delta' && chunk.delta?.text) {
-                                    yield chunk.delta.text;
-                                    streamedText += chunk.delta.text;
+                                    yield {
+                                        type: 'text',
+                                        content: chunk.delta.text
+                                    };
                                 }
                             }
                         } catch (parseError) {
@@ -106,18 +130,28 @@ export class ChatService {
         chatHistory: ChatMessage[],
         currentMessage: string,
         enabledServers: string[]
-    ): AsyncGenerator<string, { stopReason?: string }, unknown> {
+    ): AsyncGenerator<StreamChunk, { stopReason?: string }, unknown> {
 
         const mcpClient = getMCPClient();
+        const activeCalls = new Map<string, ToolCall>();
 
         // Initialize MCP servers
         try {
-            yield `🔧 Initializing MCP services: ${enabledServers.join(', ')}...\n`;
+            yield {
+                type: 'text',
+                content: `🔧 Initializing MCP services: ${enabledServers.join(', ')}...\n`
+            };
             await mcpClient.initializeServers(enabledServers);
-            yield `✅ MCP services ready\n\n`;
+            yield {
+                type: 'text',
+                content: `✅ MCP services ready\n\n`
+            };
         } catch (error) {
             console.error('MCP initialization failed:', error);
-            yield `⚠️  MCP services unavailable, continuing without tools\n\n`;
+            yield {
+                type: 'text',
+                content: `⚠️  MCP services unavailable, continuing without tools\n\n`
+            };
             // Continue without MCP if it fails
             return yield* this.streamChat(chatHistory, currentMessage, false);
         }
@@ -166,17 +200,35 @@ export class ChatService {
                             } else if (chunkType === "content_block_start") {
                                 if (chunk.content_block?.type === 'tool_use') {
                                     hasToolUse = true;
+                                    const toolCall: ToolCall = {
+                                        id: chunk.content_block.id,
+                                        name: chunk.content_block.name,
+                                        input: {},
+                                        status: 'pending',
+                                        startTime: Date.now()
+                                    };
+                                    
                                     pendingToolUses.push({
                                         id: chunk.content_block.id,
                                         name: chunk.content_block.name,
                                         input: {},
                                         inputJson: ''
                                     });
-                                    yield `\n\n🔧 Using ${chunk.content_block.name}...\n`;
+                                    
+                                    activeCalls.set(toolCall.id, toolCall);
+                                    
+                                    yield {
+                                        type: 'tool_start',
+                                        content: `\n\n🔧 Using ${chunk.content_block.name}...\n`,
+                                        toolCall: toolCall
+                                    };
                                 }
                             } else if (chunkType === "content_block_delta") {
                                 if (chunk.delta?.type === 'text_delta' && chunk.delta?.text) {
-                                    yield chunk.delta.text;
+                                    yield {
+                                        type: 'text',
+                                        content: chunk.delta.text
+                                    };
                                     streamedText += chunk.delta.text;
                                 } else if (chunk.delta?.type === 'input_json_delta' && chunk.delta?.partial_json) {
                                     const lastTool = pendingToolUses[pendingToolUses.length - 1];
@@ -190,9 +242,30 @@ export class ChatService {
                                     if (lastTool.inputJson.trim()) {
                                         try {
                                             lastTool.input = JSON.parse(lastTool.inputJson);
+                                            
+                                            // Update the active call with parsed input
+                                            const activeCall = activeCalls.get(lastTool.id);
+                                            if (activeCall) {
+                                                activeCall.input = lastTool.input;
+                                                activeCall.status = 'running';
+
+                                                // Emit tool input captured event
+                                                yield {
+                                                    type: 'tool_result',
+                                                    content: '',
+                                                    toolResult: {
+                                                        toolId: lastTool.id,
+                                                        input: lastTool.input
+                                                    }
+                                                };
+                                            }
                                         } catch (parseError) {
                                             console.error('Failed to parse tool input JSON:', parseError);
-                                            yield `\n❌ Tool input parsing failed\n`;
+                                            yield {
+                                                type: 'tool_error',
+                                                content: `\n❌ Tool input parsing failed\n`,
+                                                toolCall: activeCalls.get(lastTool.id)
+                                            };
                                             lastTool.input = {};
                                         }
                                     } else {
@@ -241,9 +314,37 @@ export class ChatService {
                 // Execute tools via MCP and add results
                 const toolResults: any[] = [];
                 for (const toolUse of pendingToolUses) {
+                    const activeCall = activeCalls.get(toolUse.id);
+                    if (!activeCall) continue;
+
                     try {
-                        yield `\n🔄 Executing ${toolUse.name}...\n`;
+                        activeCall.status = 'running';
+                        yield {
+                            type: 'tool_progress',
+                            content: `\n🔄 Executing ${toolUse.name}...\n`,
+                            toolCall: activeCall
+                        };
+
+                        // Execute the tool and capture the full result
+                        const executionStartTime = Date.now();
                         const result = await this.executeMCPTool(mcpClient, toolUse.name, toolUse.input);
+                        const executionEndTime = Date.now();
+
+                        activeCall.status = 'completed';
+                        activeCall.output = result;
+                        activeCall.endTime = executionEndTime;
+
+                        // Emit detailed tool result
+                        yield {
+                            type: 'tool_result',
+                            content: '',
+                            toolResult: {
+                                toolId: toolUse.id,
+                                input: toolUse.input,
+                                output: result,
+                                duration: executionEndTime - executionStartTime
+                            }
+                        };
 
                         toolResults.push({
                             type: 'tool_result',
@@ -251,9 +352,32 @@ export class ChatService {
                             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
                         });
 
-                        yield `✅ ${toolUse.name} completed\n`;
+                        yield {
+                            type: 'tool_complete',
+                            content: `✅ ${toolUse.name} completed (${executionEndTime - executionStartTime}ms)\n`,
+                            toolCall: activeCall
+                        };
                     } catch (error) {
                         console.error(`Tool execution error for ${toolUse.name}:`, error);
+                        
+                        if (activeCall) {
+                            activeCall.status = 'error';
+                            activeCall.error = error instanceof Error ? error.message : 'Unknown error';
+                            activeCall.endTime = Date.now();
+
+                            // Emit tool error result
+                            yield {
+                                type: 'tool_result',
+                                content: '',
+                                toolResult: {
+                                    toolId: toolUse.id,
+                                    input: toolUse.input,
+                                    error: activeCall.error,
+                                    duration: activeCall.endTime - (activeCall.startTime || Date.now())
+                                }
+                            };
+                        }
+
                         toolResults.push({
                             type: 'tool_result',
                             tool_use_id: toolUse.id,
@@ -263,7 +387,12 @@ export class ChatService {
                             }],
                             is_error: true
                         });
-                        yield `❌ ${toolUse.name} failed: ${error instanceof Error ? error.message : 'Unknown error'}\n`;
+
+                        yield {
+                            type: 'tool_error',
+                            content: `❌ ${toolUse.name} failed: ${error instanceof Error ? error.message : 'Unknown error'}\n`,
+                            toolCall: activeCall
+                        };
                     }
                 }
 
@@ -275,7 +404,10 @@ export class ChatService {
                     });
                 }
 
-                yield `\n`;
+                yield {
+                    type: 'text',
+                    content: `\n`
+                };
             }
 
         } catch (error: any) {

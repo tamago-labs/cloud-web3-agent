@@ -33,10 +33,8 @@ export const MCPServerModal: React.FC<MCPServerModalProps> = ({
     isOpen,
     onClose,
     servers,
-    onServerToggle,
-    onRefresh
-}) => {
-    const [loading, setLoading] = useState(false);
+    onServerToggle
+}) => { 
     const [serverTools, setServerTools] = useState<Record<string, MCPTool[]>>({});
 
     // Load tools for each server
@@ -48,8 +46,8 @@ export const MCPServerModal: React.FC<MCPServerModalProps> = ({
 
     const loadAllTools = async () => {
         try {
-            const response = await fetch('/api/mcp/tools');
-            const data = await response.json();
+            const response = await fetch('/api/mcp/tools'); 
+            const data = await response.json(); 
             if (data.success) {
                 setServerTools(data.tools || {});
             }
@@ -103,22 +101,7 @@ export const MCPServerModal: React.FC<MCPServerModalProps> = ({
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        {/*{onRefresh && (
-                            <button
-                                onClick={() => {
-                                    setLoading(true);
-                                    onRefresh();
-                                    loadAllTools().finally(() => setLoading(false));
-                                }}
-                                disabled={loading}
-                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                                title="Refresh server status"
-                            >
-                                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                            </button>
-                        )}*/}
-                        
+                    <div className="flex items-center gap-2">  
                         <button
                             onClick={onClose}
                             className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -155,7 +138,7 @@ export const MCPServerModal: React.FC<MCPServerModalProps> = ({
                                 <Server className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No MCP Servers Found</h3>
                                 <p className="text-gray-600">
-                                    Make sure your Railway MCP service is running and accessible.
+                                    Likely services are disconnected.
                                 </p>
                             </div>
                         )}

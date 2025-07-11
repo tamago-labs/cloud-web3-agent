@@ -23,14 +23,14 @@ const Hero = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Try MCP Servers for <br /> 
+                            Try MCP Servers for <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                                 Web3 Insight
                             </span>
                         </h1>
 
                         <p className="text-sm md:text-lg text-gray-600 mb-8 max-w-xl">
-                        Discover plug-and-play tools that let let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains
+                            Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains
                         </p>
 
                         <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">
@@ -43,11 +43,12 @@ const Hero = () => {
                                 Online Client
                             </Link>
                         </div>
-
+                        
                         <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
+                            
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span>10+ MCP Servers</span>
+                                <span>70+ MCP Tools</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>

@@ -1,23 +1,27 @@
 "use client"
 
 import React from 'react';
-import { Bitcoin, TrendingUp, Eye, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
+import { Bitcoin, Cloud, TrendingUp, Eye, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
 import Link from "next/link";
 
 // Mini Features Section
 const QuickFeatures = () => {
     const features = [
-        {
-            icon: <TrendingUp className="w-5 h-5" />,
-            text: "Get instant portfolio insights and cross-chain balance analysis without manual tracking"
-        },
+        // {
+        //     icon: <TrendingUp className="w-5 h-5" />,
+        //     text: "Get instant portfolio insights and cross-chain balance analysis without manual tracking"
+        // },
         {
             icon: <BarChart3 className="w-5 h-5" />,
             text: "Track whale activity and large token movements for market intelligence and alpha"
-        }, 
+        },
         {
             icon: <Bitcoin className="w-5 h-5" />,
             text: "Monitor network health, mining trends, and real-time analytics across Bitcoin and EVM chains"
+        },
+        {
+            icon: <Cloud className="w-5 h-5" />,
+            text: "Private AI on AWS Bedrock. Your data stays secure and never trains public models"
         }
     ];
 

@@ -168,7 +168,7 @@ const ServerCard = ({
 
             {/* Features */}
             <div className="mb-6">
-                <div className="flex flex-wrap gap-1 mb-2">
+                {/* <div className="flex flex-wrap gap-1 mb-2">
                     {server.features.slice(0, 3).map((feature: string, idx: number) => (
                         <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
                             {feature}
@@ -179,7 +179,7 @@ const ServerCard = ({
                             +{server.features.length - 3} more
                         </span>
                     )}
-                </div>
+                </div> */}
                 <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>by {server.author}</span>
                 </div>
@@ -187,10 +187,10 @@ const ServerCard = ({
 
             {/* Actions */}
             <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 group">
+                <Link href="/client" className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 group">
                     <span>Try Online</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
+                </Link>
                 <Link href={`/servers/${ server.id }`} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
                     <span className="text-sm text-gray-600">Details</span>
                 </Link>
@@ -226,12 +226,12 @@ export function ServerCardSkeleton() {
             </div>
 
             {/* Features */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            {/* <div className="flex flex-wrap gap-2 mb-6">
                 {[...Array(3)].map((_, i) => (
                     <div key={i} className="w-20 h-5 bg-gray-200 rounded" />
                 ))}
                 <div className="w-12 h-5 bg-gray-100 rounded" />
-            </div>
+            </div> */}
 
             {/* Footer */}
             <div className="h-4 w-24 bg-gray-300 rounded mb-4" />

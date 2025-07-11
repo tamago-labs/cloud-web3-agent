@@ -1,4 +1,3 @@
-
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
@@ -20,6 +19,7 @@ interface ChatPanelProps {
     refreshTrigger: number;
 }
 
+
 interface MCPServer {
     name: string;
     description: string;
@@ -31,6 +31,35 @@ interface MCPServer {
     error?: string;
 }
 
+// interface ToolResult {
+//     id: string;
+//     name: string;
+//     status: 'pending' | 'running' | 'completed' | 'error';
+//     input?: any;
+//     output?: any;
+//     error?: string;
+//     startTime?: number;
+//     endTime?: number;
+// }
+
+interface ToolResultData {
+    toolId: string;
+    name: string;
+    input: any;
+    output?: any;
+    error?: string;
+    duration?: number;
+    status: 'pending' | 'running' | 'completed' | 'error';
+    startTime?: number;
+    endTime?: number;
+}
+
+// Enhanced ChatMessage type to support tool results
+interface EnhancedChatMessage extends ChatMessage {
+    toolResults?: ToolResultData[];
+    hasToolCalls?: boolean;
+}
+
 // Define default/always-enabled servers
 const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
@@ -40,7 +69,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     // Chat state
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+    const [chatHistory, setChatHistory] = useState<EnhancedChatMessage[]>([]);
     const [currentConversationId, setCurrentConversationId] = useState<string | null>(selectedConversation);
 
     // Streaming control state
@@ -65,6 +94,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const [mcpServersLoading, setMcpServersLoading] = useState(false);
     const [showMcpServerModal, setShowMcpServerModal] = useState(false);
 
+    // Tool tracking state
+    const [activeToolCalls, setActiveToolCalls] = useState<Map<string, ToolResultData>>(new Map());
+
+    // Add these state variables to your ChatPanel component
+    const [activeToolResults, setActiveToolResults] = useState<Map<string, ToolResultData>>(new Map());
+    const [completedToolResults, setCompletedToolResults] = useState<ToolResultData[]>([]);
+
+
     // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -83,14 +120,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     useEffect(() => {
         loadMCPStatus();
         loadMCPServers();
-        
-        // Refresh MCP status every 30 seconds
-        // const interval = setInterval(() => {
-        //     loadMCPStatus();
-        //     loadMCPServers();
-        // }, 30000);
-        
-        // return () => clearInterval(interval);
     }, []);
 
     const loadMCPStatus = async () => {
@@ -137,7 +166,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 const transformedServers: MCPServer[] = data.servers.map((server: any) => {
                     const isDefault = isDefaultServer(server.name);
                     const previousEnabled = mcpServers.find(s => s.name === server.name)?.enabled ?? false;
-                    
+
                     return {
                         name: server.name,
                         description: server.description,
@@ -154,11 +183,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 setMcpServers(transformedServers);
             } else {
                 console.error('Failed to load MCP servers:', data.error);
-                // Keep existing servers if API call fails
             }
         } catch (error) {
             console.error('Error loading MCP servers:', error);
-            // Keep existing servers if network error
         } finally {
             setMcpServersLoading(false);
         }
@@ -199,7 +226,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 id: msg.messageId || msg.id,
                 type: msg.sender,
                 message: msg.content,
-                timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                toolResults: [],
+                hasToolCalls: false
             }));
             setChatHistory(messages);
         } catch (error) {
@@ -241,8 +270,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         return mcpServers
             .filter(server => {
                 // Include if it's a default server OR if it's enabled and connected
-                return (isDefaultServer(server.name) && server.status === 'connected') || 
-                       (server.enabled && server.status === 'connected');
+                return (isDefaultServer(server.name) && server.status === 'connected') ||
+                    (server.enabled && server.status === 'connected');
             })
             .map(server => server.name);
     };
@@ -267,6 +296,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         });
     };
 
+
+
     // Delete single message function
     const handleDeleteMessage = async (messageId: string) => {
         setDeletingMessages(prev => new Set(prev).add(messageId));
@@ -274,10 +305,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         try {
             // Remove from UI immediately for better UX
             setChatHistory(prev => prev.filter(msg => msg.id !== messageId));
-
-            // Call API to delete from database if needed
-            // await messageAPI.deleteMessage(messageId);
-
             setShowDeleteConfirm(null);
         } catch (error) {
             console.error('Error deleting message:', error);
@@ -303,22 +330,25 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
         try {
             setChatHistory([]);
-            // await conversationAPI.clearMessages(currentConversationId);
         } catch (error) {
             console.error('Error clearing messages:', error);
             // Reload conversation if clear failed
-            loadConversation(currentConversationId);
+            if (currentConversationId) {
+                loadConversation(currentConversationId);
+            }
         }
     };
 
     const handleSendMessage = async () => {
         if (!message.trim() || isLoading || isStreaming) return;
 
-        const userMessage: ChatMessage = {
+        const userMessage: EnhancedChatMessage = {
             id: generateId(),
             type: 'user',
             message: message.trim(),
-            timestamp: getCurrentTimestamp()
+            timestamp: getCurrentTimestamp(),
+            toolResults: [],
+            hasToolCalls: false
         };
 
         setChatHistory(prev => [...prev, userMessage]);
@@ -330,6 +360,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         // Create abort controller for this request
         const controller = new AbortController();
         setStreamController(controller);
+
+        // Reset tool tracking
+        setActiveToolCalls(new Map());
 
         try {
             // Handle conversation creation if needed
@@ -371,7 +404,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         enabledServers: enabledServers
                     }
                 }),
-                signal: controller.signal // Add abort signal
+                signal: controller.signal
             });
 
             if (!response.ok) {
@@ -379,12 +412,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             }
 
             // Create assistant message
-            const assistantMessage: ChatMessage = {
+            const assistantMessage: EnhancedChatMessage = {
                 id: generateId(),
                 type: 'assistant',
                 message: '',
                 timestamp: getCurrentTimestamp(),
-                mcpCalls: []
+                mcpCalls: [],
+                toolResults: [],
+                hasToolCalls: false
             };
 
             setChatHistory(prev => [...prev, assistantMessage]);
@@ -394,8 +429,10 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             const decoder = new TextDecoder();
 
             if (reader) {
+                const decoder = new TextDecoder();
                 let accumulatedMessage = '';
-                let currentMcpCalls: string[] = [];
+                let currentToolResults: ToolResultData[] = [];
+                const activeTools = new Map<string, ToolResultData>();
 
                 try {
                     while (true) {
@@ -420,30 +457,131 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                                     }
 
                                     if (data.chunk) {
-                                        const chunkText = data.chunk;
-                                        accumulatedMessage += chunkText;
+                                        const chunkData = data.chunk;
 
-                                        // Detect MCP tool usage
-                                        if (chunkText.includes('🔧 Using ') || chunkText.includes('🔄 Executing ')) {
-                                            const match = chunkText.match(/(?:🔧 Using |🔄 Executing )([^.]+)/);
-                                            if (match && !currentMcpCalls.includes(match[1])) {
-                                                currentMcpCalls.push(match[1]);
+                                        // Handle different chunk types
+                                        if (typeof chunkData === 'string') {
+                                            // Legacy text chunk
+                                            accumulatedMessage += chunkData;
+                                        } else if (chunkData.type) {
+                                            // Enhanced chunk with type
+                                            switch (chunkData.type) {
+                                                case 'text':
+                                                    accumulatedMessage += chunkData.content;
+                                                    break;
+
+                                                case 'tool_start':
+                                                    if (chunkData.toolCall) {
+                                                        const toolResult: ToolResultData = {
+                                                            toolId: chunkData.toolCall.id,
+                                                            name: chunkData.toolCall.name,
+                                                            input: chunkData.toolCall.input,
+                                                            status: 'pending',
+                                                            startTime: chunkData.toolCall.startTime || Date.now()
+                                                        };
+
+                                                        activeTools.set(toolResult.toolId, toolResult);
+                                                        setActiveToolResults(new Map(activeTools));
+                                                    }
+                                                    accumulatedMessage += chunkData.content;
+                                                    break;
+
+                                                case 'tool_progress':
+                                                    if (chunkData.toolCall) {
+                                                        const existing = activeTools.get(chunkData.toolCall.id);
+                                                        if (existing) {
+                                                            existing.status = 'running';
+                                                            activeTools.set(existing.toolId, existing);
+                                                            setActiveToolResults(new Map(activeTools));
+                                                        }
+                                                    }
+                                                    accumulatedMessage += chunkData.content;
+                                                    break;
+
+                                                case 'tool_result':
+                                                    if (chunkData.toolResult) {
+                                                        const existing = activeTools.get(chunkData.toolResult.toolId);
+                                                        if (existing) {
+                                                            // Update with input/output data
+                                                            if (chunkData.toolResult.input) {
+                                                                existing.input = chunkData.toolResult.input;
+                                                            }
+                                                            if (chunkData.toolResult.output) {
+                                                                existing.output = chunkData.toolResult.output;
+                                                                existing.status = 'completed';
+                                                                existing.endTime = Date.now();
+                                                            }
+                                                            if (chunkData.toolResult.error) {
+                                                                existing.error = chunkData.toolResult.error;
+                                                                existing.status = 'error';
+                                                                existing.endTime = Date.now();
+                                                            }
+                                                            if (chunkData.toolResult.duration) {
+                                                                existing.duration = chunkData.toolResult.duration;
+                                                            }
+
+                                                            activeTools.set(existing.toolId, existing);
+                                                            setActiveToolResults(new Map(activeTools));
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 'tool_complete':
+                                                    if (chunkData.toolCall) {
+                                                        const existing = activeTools.get(chunkData.toolCall.id);
+                                                        if (existing) {
+                                                            existing.status = 'completed';
+                                                            existing.endTime = chunkData.toolCall.endTime || Date.now();
+                                                            existing.output = chunkData.toolCall.output;
+
+                                                            activeTools.set(existing.toolId, existing);
+                                                            setActiveToolResults(new Map(activeTools));
+
+                                                            // Add to completed results for the message
+                                                            currentToolResults.push({ ...existing });
+                                                        }
+                                                    }
+                                                    accumulatedMessage += chunkData.content;
+                                                    break;
+
+                                                case 'tool_error':
+                                                    if (chunkData.toolCall) {
+                                                        const existing = activeTools.get(chunkData.toolCall.id);
+                                                        if (existing) {
+                                                            existing.status = 'error';
+                                                            existing.error = chunkData.toolCall.error;
+                                                            existing.endTime = chunkData.toolCall.endTime || Date.now();
+
+                                                            activeTools.set(existing.toolId, existing);
+                                                            setActiveToolResults(new Map(activeTools));
+
+                                                            // Add to completed results for the message
+                                                            currentToolResults.push({ ...existing });
+                                                        }
+                                                    }
+                                                    accumulatedMessage += chunkData.content;
+                                                    break;
                                             }
                                         }
 
-                                        // Update the last assistant message
+                                        // Update the last assistant message with accumulated content and tool results
                                         setChatHistory(prev => {
                                             const newHistory = [...prev];
                                             const lastMessage = newHistory[newHistory.length - 1];
                                             if (lastMessage && lastMessage.type === 'assistant') {
                                                 lastMessage.message = accumulatedMessage;
-                                                lastMessage.mcpCalls = [...currentMcpCalls];
+                                                lastMessage.toolResults = [...currentToolResults];
+                                                lastMessage.hasToolCalls = currentToolResults.length > 0;
                                             }
                                             return newHistory;
                                         });
                                     }
 
                                     if (data.done) {
+                                        // Clear active tool tracking
+                                        setActiveToolResults(new Map());
+                                        setCompletedToolResults(currentToolResults);
+
                                         // Save assistant message to database
                                         if (activeConversationId && accumulatedMessage) {
                                             await messageAPI.createMessage({
@@ -480,11 +618,13 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             } else {
                 console.error('Chat error:', error);
 
-                const errorMessage: ChatMessage = {
+                const errorMessage: EnhancedChatMessage = {
                     id: generateId(),
                     type: 'assistant',
                     message: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error occurred'}. Please try again.`,
-                    timestamp: getCurrentTimestamp()
+                    timestamp: getCurrentTimestamp(),
+                    toolResults: [],
+                    hasToolCalls: false
                 };
 
                 setChatHistory(prev => [...prev, errorMessage]);
@@ -493,6 +633,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             setIsLoading(false);
             setIsStreaming(false);
             setStreamController(null);
+            setActiveToolCalls(new Map());
         }
     };
 

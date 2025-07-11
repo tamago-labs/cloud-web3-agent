@@ -39,11 +39,8 @@ const Header = ({ bgColor }: any) => {
                         </Link>
                         <Link href="/client" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                             Online Client
-                        </Link>
-                        {/*<Link href="/mcp-client" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                            MCP Client
-                        </Link> */}
-                        <a href="https://github.com/tamago-labs/cloud-web3-agent" target="_blank" className="text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center">
+                        </Link> 
+                        <a href="https://docs.tamagolabs.com" target="_blank" className="text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center">
                             Docs
                             <ExternalLink className="ml-1 h-4 w-4" />
                         </a>

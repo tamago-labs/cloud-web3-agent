@@ -37,9 +37,16 @@ export async function POST(request: NextRequest) {
                     );
 
                     for await (const chunk of chatGenerator) {
-                        // Send each chunk as server-sent event
-                        const data = `data: ${JSON.stringify({ chunk })}\n\n`;
-                        controller.enqueue(new TextEncoder().encode(data));
+                        // Handle different chunk types from enhanced streaming
+                        if (typeof chunk === 'string') {
+                            // Legacy string chunk support
+                            const data = `data: ${JSON.stringify({ chunk })}\n\n`;
+                            controller.enqueue(new TextEncoder().encode(data));
+                        } else if (chunk && typeof chunk === 'object') {
+                            // Enhanced chunk with type and tool information
+                            const data = `data: ${JSON.stringify({ chunk })}\n\n`;
+                            controller.enqueue(new TextEncoder().encode(data));
+                        }
                     }
 
                     // Send completion signal

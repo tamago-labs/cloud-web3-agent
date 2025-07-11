@@ -127,7 +127,7 @@ export class RailwayMCPClient {
 
   async listTools(): Promise<Record<string, MCPTool[]>> {
     try {
-      const result = await this.makeRequest('/api/mcp/tools');
+      const result = await this.makeRequest('/api/mcp/tools'); 
       return result.tools || {};
     } catch (error) {
       console.error('[MCP] Failed to list tools:', error);
