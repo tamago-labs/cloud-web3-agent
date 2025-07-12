@@ -5,92 +5,11 @@ const RightPanel = () => {
     const [activeTab, setActiveTab] = useState('artifacts');
     const [selectedArtifact, setSelectedArtifact] = useState<any>(null);
 
-    const artifacts = [
-        {
-            id: 1,
-            title: "USDC/ETH Pool Analysis",
-            type: "chart",
-            description: "Liquidity distribution and volume analysis for Uniswap V3 pool",
-            createdAt: "2 minutes ago",
-            size: "245 KB",
-            icon: <BarChart3 className="w-4 h-4" />,
-            preview: "TVL: $245.7M, Volume: $89.2M, Fee APR: 12.4%",
-            status: "ready",
-            chartType: "liquidity-heatmap"
-        },
-        {
-            id: 2,
-            title: "Portfolio Risk Report",
-            type: "report",
-            description: "Comprehensive risk assessment with recommendations",
-            createdAt: "1 hour ago",
-            size: "1.2 MB",
-            icon: <FileText className="w-4 h-4" />,
-            preview: "Risk Score: 7.2/10, IL Risk: 8.2%, Optimization: 3 suggestions",
-            status: "ready",
-            chartType: "risk-dashboard"
-        },
-        {
-            id: 3,
-            title: "Yield Opportunities Chart",
-            type: "chart",
-            description: "Top 10 yield farming opportunities comparison",
-            createdAt: "3 hours ago",
-            size: "156 KB",
-            icon: <TrendingUp className="w-4 h-4" />,
-            preview: "Best APY: 24.5% (Curve), Lowest Risk: 8.2% (Aave)",
-            status: "ready",
-            chartType: "yield-comparison"
-        },
-        {
-            id: 4,
-            title: "TVL Distribution Map",
-            type: "chart",
-            description: "Geographic distribution of DeFi protocol TVL",
-            createdAt: "1 day ago",
-            size: "892 KB",
-            icon: <Map className="w-4 h-4" />,
-            preview: "US: 45%, EU: 28%, Asia: 22%, Others: 5%",
-            status: "ready",
-            chartType: "geo-map"
-        },
-        {
-            id: 5,
-            title: "Gas Price Analysis",
-            type: "chart",
-            description: "Historical gas price trends and predictions",
-            createdAt: "2 days ago",
-            size: "324 KB",
-            icon: <Activity className="w-4 h-4" />,
-            preview: "Avg: 45 gwei, Peak: 120 gwei, Predicted: 38 gwei",
-            status: "ready",
-            chartType: "time-series"
-        }
-    ];
+    // Empty artifacts array - will be populated when real artifacts are generated
+    const artifacts: any[] = [];
 
-    const mcpLogs = [
-        {
-            type: 'success',
-            server: 'DeFi Analytics',
-            action: 'generateLiquidityChart()',
-            timestamp: '2:34:45 PM',
-            artifact: 'USDC/ETH Pool Analysis'
-        },
-        {
-            type: 'success',
-            server: 'Risk Calculator',
-            action: 'generateRiskReport()',
-            timestamp: '1:15:23 PM',
-            artifact: 'Portfolio Risk Report'
-        },
-        {
-            type: 'info',
-            server: 'Yield Scanner',
-            action: 'fetchYieldData()',
-            timestamp: '11:42:10 AM',
-            artifact: 'Yield Opportunities Chart'
-        }
-    ];
+    // Empty activity logs - will be populated when real MCP calls are made
+    const mcpLogs: any[] = [];
 
     const getArtifactTypeColor = (type: any) => {
         switch (type) {
@@ -239,7 +158,7 @@ const RightPanel = () => {
                                             Ask the AI to generate charts, reports, or visualizations and they'll appear here
                                         </p>
                                         <div className="text-xs text-gray-500">
-                                            Try: "Generate a TVL chart for Uniswap"
+                                            Try: "Show me latest 3 blocks on Arbitrum"
                                         </div>
                                     </div>
                                 )}
@@ -252,40 +171,47 @@ const RightPanel = () => {
                     <div className="p-4">
                         <div className="mb-4">
                             <h3 className="font-semibold text-gray-900 mb-2">Recent Activity</h3>
-                            <p className="text-sm text-gray-600">MCP server calls that generated artifacts</p>
+                            <p className="text-sm text-gray-600">MCP server calls and generated artifacts</p>
                         </div>
 
-                        <div className="space-y-3">
-                            {mcpLogs.map((log, index) => (
-                                <div key={index} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className={`w-2 h-2 rounded-full ${
-                                            log.type === 'success' ? 'bg-green-500' : 
-                                            log.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-                                        }`}></div>
-                                        <span className="font-medium text-sm text-gray-900">{log.server}</span>
-                                        <span className="text-xs text-gray-500 ml-auto">{log.timestamp}</span>
-                                    </div>
-                                    <div className="text-xs text-gray-600 font-mono ml-4 mb-1">{log.action}</div>
-                                    <div className="text-xs text-gray-500 ml-4">
-                                        → Generated: <span className="font-medium">{log.artifact}</span>
-                                    </div>
+                        {mcpLogs.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Activity className="w-8 h-8 text-gray-400" />
                                 </div>
-                            ))}
-                        </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No Activity Yet</h3>
+                                <p className="text-gray-600 text-sm mb-4 max-w-xs mx-auto">
+                                    Start chatting with AI to see MCP server activity here
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {mcpLogs.map((log, index) => (
+                                    <div key={index} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className={`w-2 h-2 rounded-full ${
+                                                log.type === 'success' ? 'bg-green-500' : 
+                                                log.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                                            }`}></div>
+                                            <span className="font-medium text-sm text-gray-900">{log.server}</span>
+                                            <span className="text-xs text-gray-500 ml-auto">{log.timestamp}</span>
+                                        </div>
+                                        <div className="text-xs text-gray-600 font-mono ml-4 mb-1">{log.action}</div>
+                                        <div className="text-xs text-gray-500 ml-4">
+                                            → Generated: <span className="font-medium">{log.artifact}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
                         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <h4 className="font-medium text-gray-900 mb-2">Quick Actions</h4>
-                            <div className="space-y-2">
-                                <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-blue-100 rounded transition-colors">
-                                    Generate price chart
-                                </button>
-                                <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-blue-100 rounded transition-colors">
-                                    Create portfolio report
-                                </button>
-                                <button className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-blue-100 rounded transition-colors">
-                                    Export all artifacts
-                                </button>
+                            <h4 className="font-medium text-gray-900 mb-2">Available Tools</h4>
+                            <div className="space-y-2 text-sm text-gray-600">
+                                <div>• Portfolio analysis across chains</div>
+                                <div>• NFT collection insights</div>
+                                <div>• DeFi analytics and liquidity pools</div>
+                                <div>• Block and transaction data</div>
                             </div>
                         </div>
                     </div>
