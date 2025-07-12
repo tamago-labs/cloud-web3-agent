@@ -53,7 +53,7 @@ const Footer = ({ showAddress = true }: any) => {
                                     <Link href="https://docs.tamagolabs.com" target="_blank" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         Documentation
                                     </Link>
-                                    <Link href="https://github.com/tamago-labs/cloud-web3-agent" target="_blank" className="block text-gray-600 hover:text-gray-900 text-sm transition">
+                                    <Link href="https://github.com/tamago-labs/decentral-mcp-server" target="_blank" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         GitHub
                                     </Link>
                                     <Link href="/server-status" className="block text-gray-600 hover:text-gray-900 text-sm transition">
