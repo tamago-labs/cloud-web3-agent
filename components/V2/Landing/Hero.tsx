@@ -23,7 +23,7 @@ const Hero = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Try MCP Servers for <br />
+                            Chat with AI  for <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                                 Web3 Insight
                             </span>
@@ -43,9 +43,9 @@ const Hero = () => {
                                 Online Client
                             </Link>
                         </div>
-                        
+
                         <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
-                            
+
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                 <span>70+ MCP Tools</span>

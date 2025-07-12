@@ -1,7 +1,7 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
-import { toolResultAPI, conversationAPI, messageAPI } from '@/lib/api';
+import { creditAPI, conversationAPI, messageAPI, toolResultAPI, enhancedMessageAPI, enhancedToolResultAPI } from '@/lib/api';
 import { X, Square, Trash2 } from 'lucide-react';
 
 // Import our MCP components
@@ -64,6 +64,20 @@ interface EnhancedChatMessage extends ChatMessage {
     hasToolCalls?: boolean;
 }
 
+// Add these interfaces with your existing ones
+interface CreditInfo {
+    current: number;
+    used: number;
+    total: number;
+    remaining: number;
+}
+
+interface CostEstimate {
+    aiCost: number;
+    toolCost: number;
+    totalCost: number;
+}
+
 // Define default/always-enabled servers
 const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
@@ -105,6 +119,10 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const [activeToolResults, setActiveToolResults] = useState<Map<string, ToolResultData>>(new Map());
     const [completedToolResults, setCompletedToolResults] = useState<ToolResultData[]>([]);
 
+    // Add these state variables with your existing state
+    const [userCredits, setUserCredits] = useState<CreditInfo | null>(null);
+    const [estimatedCost, setEstimatedCost] = useState<CostEstimate | null>(null);
+    const [showCreditWarning, setShowCreditWarning] = useState(false);
 
     // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -125,6 +143,71 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         loadMCPStatus();
         loadMCPServers();
     }, []);
+
+    // Load user credits when component mounts
+    useEffect(() => {
+        if (profile?.id) {
+            loadUserCredits();
+        }
+    }, [profile]);
+
+    // Function to load user credits
+    const loadUserCredits = async () => {
+        if (!profile?.id) return;
+
+        try {
+            const credits = await creditAPI.getUserCredits(profile.id);
+            setUserCredits(credits);
+
+            // Show warning if credits are low
+            if (credits.current < 0.10) { // Less than $0.10
+                setShowCreditWarning(true);
+            }
+        } catch (error) {
+            console.error('Error loading user credits:', error);
+        }
+    };
+
+
+    // Function to estimate cost before sending message
+    const estimateMessageCost = (message: string, enabledServers: string[]): CostEstimate => {
+        const inputTokens = creditAPI.estimateTokens(message);
+        const outputTokens = inputTokens * 2; // Rough estimate: output is usually 2x input
+
+        // AI cost
+        const aiCost = creditAPI.calculateAICost(selectedModel, inputTokens, outputTokens);
+
+        // Tool cost (estimate based on enabled servers)
+        const estimatedToolCalls = Math.min(enabledServers.length, 3); // Max 3 tools typically
+        const toolCost = creditAPI.calculateToolCost(estimatedToolCalls);
+
+        return {
+            aiCost,
+            toolCost,
+            totalCost: aiCost + toolCost
+        };
+    };
+
+    // Enhanced message input handler with cost estimation
+    const handleMessageChange = (newMessage: string) => {
+        setMessage(newMessage);
+
+        if (newMessage.trim() && userCredits) {
+            const enabledServers = getEnabledServers();
+            const cost = estimateMessageCost(newMessage.trim(), enabledServers);
+            setEstimatedCost(cost);
+
+            // Check if user has enough credits
+            if (cost.totalCost > userCredits.current) {
+                setShowCreditWarning(true);
+            } else {
+                setShowCreditWarning(false);
+            }
+        } else {
+            setEstimatedCost(null);
+            setShowCreditWarning(false);
+        }
+    };
 
     const loadMCPStatus = async () => {
         if (!mcpEnabled) return;
@@ -330,15 +413,17 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
 
 
-    // Enhanced streaming handler that saves tool results to database
     const handleStreamingWithDatabaseSave = async (
         reader: ReadableStreamDefaultReader<Uint8Array>,
-        assistantMessageId: string // We'll need to create the message first to get this ID
+        conversationId: string,
+        userId: string
     ) => {
         const decoder = new TextDecoder();
         let accumulatedMessage = '';
         let currentToolResults: ToolResultData[] = [];
         const activeTools = new Map<string, ToolResultData>();
+        let totalInputTokens = creditAPI.estimateTokens(message); // Estimate from user input
+        let totalOutputTokens = 0;
         const savedToolResults = new Map<string, string>(); // toolId -> database ID
 
         try {
@@ -363,10 +448,12 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
                                 if (typeof chunkData === 'string') {
                                     accumulatedMessage += chunkData;
+                                    totalOutputTokens += creditAPI.estimateTokens(chunkData);
                                 } else if (chunkData.type) {
                                     switch (chunkData.type) {
                                         case 'text':
                                             accumulatedMessage += chunkData.content;
+                                            totalOutputTokens += creditAPI.estimateTokens(chunkData.content);
                                             break;
 
                                         case 'tool_start':
@@ -383,182 +470,65 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                                                 activeTools.set(toolResult.toolId, toolResult);
                                                 setActiveToolResults(new Map(activeTools));
 
-                                                // Save to database immediately when tool starts
-                                                try {
-                                                    const dbToolResult: DatabaseToolResult = {
-                                                        messageId: assistantMessageId,
-                                                        toolId: toolResult.toolId,
-                                                        toolName: toolResult.name,
-                                                        serverName: toolResult.serverName,
-                                                        status: 'pending',
-                                                        input: JSON.stringify(toolResult.input),
-                                                        metadata: JSON.stringify({
-                                                            userAgent: navigator.userAgent,
-                                                            timestamp: new Date().toISOString()
-                                                        })
-                                                    };
+                                                // Save tool usage cost immediately
+                                                await creditAPI.logUsageAndDeductCredits({
+                                                    userId: userId,
+                                                    serverId: toolResult.serverName,
+                                                    conversationId: conversationId,
+                                                    type: 'tool',
+                                                    toolName: toolResult.name,
+                                                    success: true
+                                                });
 
-                                                    const savedResult = await toolResultAPI.createToolResult(dbToolResult);
-                                                    if (savedResult?.id) {
-                                                        savedToolResults.set(toolResult.toolId, savedResult.id);
-                                                        toolResult.id = savedResult.id;
-                                                    }
-                                                } catch (error) {
-                                                    console.error('Failed to save tool result to database:', error);
-                                                }
+
                                             }
                                             accumulatedMessage += chunkData.content;
                                             break;
 
                                         case 'tool_result':
-                                            if (chunkData.toolResult) {
-                                                const existing = activeTools.get(chunkData.toolResult.toolId);
+                                        case 'tool_progress':
+                                        case 'tool_complete':
+                                        case 'tool_error':
+                                            // Handle tool state updates
+                                            if (chunkData.toolCall || chunkData.toolResult) {
+                                                const toolId = chunkData.toolCall?.id || chunkData.toolResult?.toolId;
+                                                const existing = activeTools.get(toolId);
+
                                                 if (existing) {
-                                                    if (chunkData.toolResult.input) {
-                                                        existing.input = chunkData.toolResult.input;
-                                                    }
-                                                    if (chunkData.toolResult.output) {
-                                                        existing.output = chunkData.toolResult.output;
+                                                    // Update tool state
+                                                    if (chunkData.toolResult?.input) existing.input = chunkData.toolResult.input;
+                                                    if (chunkData.toolResult?.output) existing.output = chunkData.toolResult.output;
+                                                    if (chunkData.toolResult?.error) existing.error = chunkData.toolResult.error;
+                                                    if (chunkData.toolCall?.output) existing.output = chunkData.toolCall.output;
+                                                    if (chunkData.toolCall?.error) existing.error = chunkData.toolCall.error;
+
+                                                    // Update status based on chunk type
+                                                    if (chunkData.type === 'tool_progress') existing.status = 'running';
+                                                    if (chunkData.type === 'tool_complete') {
                                                         existing.status = 'completed';
                                                         existing.endTime = Date.now();
                                                         existing.duration = existing.endTime - (existing.startTime || 0);
+                                                        currentToolResults.push({ ...existing });
                                                     }
-                                                    if (chunkData.toolResult.error) {
-                                                        existing.error = chunkData.toolResult.error;
+                                                    if (chunkData.type === 'tool_error') {
                                                         existing.status = 'error';
                                                         existing.endTime = Date.now();
                                                         existing.duration = existing.endTime - (existing.startTime || 0);
-                                                    }
-                                                    if (chunkData.toolResult.duration) {
-                                                        existing.duration = chunkData.toolResult.duration;
+                                                        currentToolResults.push({ ...existing });
                                                     }
 
                                                     activeTools.set(existing.toolId, existing);
                                                     setActiveToolResults(new Map(activeTools));
-
-                                                    // Update database record
-                                                    const dbId = savedToolResults.get(existing.toolId);
-                                                    if (dbId) {
-                                                        try {
-                                                            await toolResultAPI.updateToolResult(dbId, {
-                                                                status: existing.status,
-                                                                input: JSON.stringify(existing.input),
-                                                                output: JSON.stringify(existing.output),
-                                                                error: existing.error,
-                                                                duration: existing.duration,
-                                                                metadata: JSON.stringify({
-                                                                    completedAt: new Date().toISOString(),
-                                                                    inputSize: JSON.stringify(existing.input || {}).length,
-                                                                    outputSize: existing.output ? JSON.stringify(existing.output).length : 0
-                                                                })
-                                                            });
-                                                        } catch (error) {
-                                                            console.error('Failed to update tool result in database:', error);
-                                                        }
-                                                    }
                                                 }
                                             }
-                                            break;
-
-                                        case 'tool_progress':
-                                            if (chunkData.toolCall) {
-                                                const existing = activeTools.get(chunkData.toolCall.id);
-                                                if (existing) {
-                                                    existing.status = 'running';
-                                                    activeTools.set(existing.toolId, existing);
-                                                    setActiveToolResults(new Map(activeTools));
-
-                                                    // Update status in database
-                                                    const dbId = savedToolResults.get(existing.toolId);
-                                                    if (dbId) {
-                                                        try {
-                                                            await toolResultAPI.updateToolResult(dbId, {
-                                                                status: 'running'
-                                                            });
-                                                        } catch (error) {
-                                                            console.error('Failed to update tool status in database:', error);
-                                                        }
-                                                    }
-                                                }
+                                            if (chunkData.content) {
+                                                accumulatedMessage += chunkData.content;
                                             }
-                                            accumulatedMessage += chunkData.content;
-                                            break;
-
-                                        case 'tool_complete':
-                                            if (chunkData.toolCall) {
-                                                const existing = activeTools.get(chunkData.toolCall.id);
-                                                if (existing) {
-                                                    existing.status = 'completed';
-                                                    existing.endTime = Date.now();
-                                                    existing.duration = existing.endTime - (existing.startTime || 0);
-                                                    if (chunkData.toolCall.output) {
-                                                        existing.output = chunkData.toolCall.output;
-                                                    }
-
-                                                    activeTools.set(existing.toolId, existing);
-                                                    setActiveToolResults(new Map(activeTools));
-                                                    currentToolResults.push({ ...existing });
-
-                                                    // Final update to database
-                                                    const dbId = savedToolResults.get(existing.toolId);
-                                                    if (dbId) {
-                                                        try {
-                                                            await toolResultAPI.updateToolResult(dbId, {
-                                                                status: 'completed',
-                                                                output: JSON.stringify(existing.output),
-                                                                duration: existing.duration,
-                                                                metadata: JSON.stringify({
-                                                                    completedAt: new Date().toISOString(),
-                                                                    finalStatus: 'completed'
-                                                                })
-                                                            });
-                                                        } catch (error) {
-                                                            console.error('Failed to complete tool result in database:', error);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            accumulatedMessage += chunkData.content;
-                                            break;
-
-                                        case 'tool_error':
-                                            if (chunkData.toolCall) {
-                                                const existing = activeTools.get(chunkData.toolCall.id);
-                                                if (existing) {
-                                                    existing.status = 'error';
-                                                    existing.error = chunkData.toolCall.error;
-                                                    existing.endTime = Date.now();
-                                                    existing.duration = existing.endTime - (existing.startTime || 0);
-
-                                                    activeTools.set(existing.toolId, existing);
-                                                    setActiveToolResults(new Map(activeTools));
-                                                    currentToolResults.push({ ...existing });
-
-                                                    // Update error in database
-                                                    const dbId = savedToolResults.get(existing.toolId);
-                                                    if (dbId) {
-                                                        try {
-                                                            await toolResultAPI.updateToolResult(dbId, {
-                                                                status: 'error',
-                                                                error: existing.error,
-                                                                duration: existing.duration,
-                                                                metadata: JSON.stringify({
-                                                                    errorAt: new Date().toISOString(),
-                                                                    finalStatus: 'error'
-                                                                })
-                                                            });
-                                                        } catch (error) {
-                                                            console.error('Failed to save tool error in database:', error);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            accumulatedMessage += chunkData.content;
                                             break;
                                     }
                                 }
 
-                                // Update the chat message with accumulated content and tool results
+                                // Update chat message in UI
                                 setChatHistory(prev => {
                                     const newHistory = [...prev];
                                     const lastMessage = newHistory[newHistory.length - 1] as EnhancedChatMessage;
@@ -572,19 +542,56 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                             }
 
                             if (data.done) {
-                                // Clear active tool tracking and finalize results
-                                setActiveToolResults(new Map());
-
-                                // Update the assistant message with final content
-                                if (assistantMessageId && accumulatedMessage) {
+                                // NOW save the complete assistant message to database (ONCE)
+                                if (accumulatedMessage.trim()) {
                                     try {
-                                        // Update message content in database
-                                        await messageAPI.updateMessage(assistantMessageId, {
+                                        // Save the assistant message
+                                        const savedAssistantMessage = await messageAPI.createMessage({
+                                            conversationId: conversationId,
+                                            messageId: generateId(),
+                                            sender: 'assistant',
                                             content: accumulatedMessage,
-                                            stopReason: 'completed'
+                                            timestamp: new Date().toISOString(),
+                                            position: chatHistory.length + 1
                                         });
-                                    } catch (error) {
-                                        console.error('Failed to update message in database:', error);
+
+                                        // Save tool results if any
+                                        if (currentToolResults.length > 0 && savedAssistantMessage?.id) {
+                                            for (const toolResult of currentToolResults) {
+                                                await toolResultAPI.createToolResult({
+                                                    messageId: savedAssistantMessage.id,
+                                                    toolId: toolResult.toolId,
+                                                    toolName: toolResult.name,
+                                                    serverName: toolResult.serverName,
+                                                    status: toolResult.status,
+                                                    input: JSON.stringify(toolResult.input),
+                                                    output: JSON.stringify(toolResult.output),
+                                                    error: toolResult.error,
+                                                    duration: toolResult.duration,
+                                                    metadata: JSON.stringify({
+                                                        startTime: toolResult.startTime,
+                                                        endTime: toolResult.endTime
+                                                    })
+                                                });
+                                            }
+                                        }
+
+                                        // Log AI usage cost
+                                        if (totalInputTokens > 0 || totalOutputTokens > 0) {
+                                            await creditAPI.logUsageAndDeductCredits({
+                                                userId: userId,
+                                                conversationId: conversationId,
+                                                messageId: savedAssistantMessage?.id,
+                                                type: 'ai',
+                                                model: selectedModel,
+                                                inputTokens: totalInputTokens,
+                                                outputTokens: totalOutputTokens,
+                                                success: true
+                                            });
+                                        }
+
+                                    } catch (saveError) {
+                                        console.error('Failed to save assistant message:', saveError);
                                     }
                                 }
                                 break;
@@ -612,9 +619,15 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         return parts.length > 1 ? parts[0] : 'unknown';
     };
 
-    // Enhanced handleSendMessage function
-    const handleSendMessage = async () => {
-        if (!message.trim() || isLoading || isStreaming) return;
+    // Enhanced handleSendMessage with credit tracking
+    const handleSendMessageWithCredits = async () => {
+        if (!message.trim() || isLoading || isStreaming || !profile?.id) return;
+
+        // Check credits before sending
+        if (userCredits && estimatedCost && estimatedCost.totalCost > userCredits.current) {
+            alert('Insufficient credits. Please add more credits to continue.');
+            return;
+        }
 
         const userMessage: EnhancedChatMessage = {
             id: generateId(),
@@ -632,7 +645,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         setIsStreaming(true);
 
         // Create abort controller for this request
-        const controller: any = new AbortController();
+        const controller = new AbortController();
         setStreamController(controller);
 
         // Reset tool tracking
@@ -648,13 +661,20 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 if (newConversation) {
                     activeConversationId = newConversation.id;
                     setCurrentConversationId(newConversation.id);
+
+                    // Track conversation creation cost
+                    await creditAPI.logUsageAndDeductCredits({
+                        userId: profile.id,
+                        conversationId: newConversation.id,
+                        type: 'conversation',
+                        success: true
+                    });
                 }
             }
 
-            // Save user message to database first
-            let userMessageDbId: string | undefined;
+            // Save user message to database
             if (activeConversationId) {
-                const savedUserMessage = await messageAPI.createMessage({
+                await messageAPI.createMessage({
                     conversationId: activeConversationId,
                     messageId: generateId(),
                     sender: 'user',
@@ -662,22 +682,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     timestamp: new Date().toISOString(),
                     position: chatHistory.length
                 });
-                userMessageDbId = savedUserMessage?.id;
             }
 
-            // Create assistant message in database to get ID for tool results
-            let assistantMessageDbId: string | undefined;
-            if (activeConversationId) {
-                const savedAssistantMessage = await messageAPI.createMessage({
-                    conversationId: activeConversationId,
-                    messageId: generateId(),
-                    sender: 'assistant',
-                    content: '', // Will be updated as we stream
-                    timestamp: new Date().toISOString(),
-                    position: chatHistory.length + 1
-                });
-                assistantMessageDbId = savedAssistantMessage?.id;
-            }
+            // DO NOT create assistant message yet - wait for streaming to complete
 
             const enabledServers = getEnabledServers();
             console.log("enabledServers (including defaults):", enabledServers);
@@ -701,7 +708,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Create assistant message in UI
+            // Create assistant message in UI only
             const assistantMessage: EnhancedChatMessage = {
                 id: generateId(),
                 type: 'assistant',
@@ -714,11 +721,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
             setChatHistory(prev => [...prev, assistantMessage]);
 
-            // Read streaming response with database saving
+            // Read streaming response and save to database at the end
             const reader = response.body?.getReader();
-            if (reader && assistantMessageDbId) {
-                await handleStreamingWithDatabaseSave(reader, assistantMessageDbId);
+            if (reader && activeConversationId) {
+                await handleStreamingWithDatabaseSave(reader, activeConversationId, profile.id);
             }
+
+            // Reload user credits after completion
+            await loadUserCredits();
 
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
@@ -742,6 +752,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             setIsStreaming(false);
             setStreamController(null);
             setActiveToolResults(new Map());
+            setEstimatedCost(null);
         }
     };
 
@@ -760,12 +771,12 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     id: tr.id,
                     toolId: tr.toolId,
                     name: tr.toolName,
-                    input: JSON.parse(tr.input),
-                    output: JSON.parse(tr.output),
+                    input: tr.input ? (typeof tr.input === 'string' ? JSON.parse(tr.input) : tr.input) : {},
+                    output: tr.output ? (typeof tr.output === 'string' ? JSON.parse(tr.output) : tr.output) : null,
                     error: tr.error,
                     status: tr.status,
-                    startTime: tr.createdAt ? new Date(tr.createdAt).getTime() : undefined,
-                    endTime: tr.createdAt ? new Date(tr.createdAt).getTime() : undefined,
+                    startTime: tr.createdAt ? new Date(tr.createdAt).getTime() : new Date(tr.createdAt).getTime(),
+                    endTime: tr.updatedAt ? new Date(tr.updatedAt).getTime() : new Date(tr.updatedAt).getTime(),
                     duration: tr.duration,
                     serverName: tr.serverName
                 })) : [],
@@ -778,11 +789,12 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         }
     };
 
+
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (!isStreaming) {
-                handleSendMessage();
+                handleSendMessageWithCredits();
             }
         }
     };
@@ -830,6 +842,36 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 </div>
             )}
 
+            {/* Credit Warning Modal */}
+            {showCreditWarning && (
+                <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+                        <h3 className="text-lg font-semibold text-red-600 mb-2">Low Credits Warning</h3>
+                        <p className="text-gray-600 mb-4">
+                            {userCredits && estimatedCost && estimatedCost.totalCost > userCredits.current
+                                ? 'You don\'t have enough credits for this message.'
+                                : 'Your credit balance is low. Consider adding more credits.'
+                            }
+                        </p>
+                        <div className="flex space-x-3 justify-end">
+                            <button
+                                onClick={() => setShowCreditWarning(false)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            >
+                                Continue
+                            </button>
+                            <button
+                                onClick={() => {/* Open add credits modal */ }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            >
+                                Add Credits
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             {/* Chat Header with Enhanced Server Selection */}
             <ChatHeader
                 isStreaming={isStreaming}
@@ -856,6 +898,10 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         </Link>
                     </div>
                 </>
+            )}
+
+            {profile && (
+                <CreditDisplay credits={userCredits} estimatedCost={estimatedCost} />
             )}
 
             {profile && (
@@ -905,8 +951,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         mcpStatus={mcpStatus}
                         selectedModel={selectedModel}
                         textareaRef={textareaRef}
-                        onMessageChange={setMessage}
-                        onSendMessage={handleSendMessage}
+                        onMessageChange={handleMessageChange}
+                        onSendMessage={handleSendMessageWithCredits}
                         onKeyPress={handleKeyPress}
                         onStopStreaming={handleStopStreaming}
                         onModelChange={setSelectedModel}
@@ -922,5 +968,46 @@ ChatPanel.defaultProps = {
     onConversationCreated: () => { },
     refreshTrigger: 0
 };
+
+
+// Credit display component
+const CreditDisplay: React.FC<{ credits: CreditInfo | null; estimatedCost: CostEstimate | null }> = ({
+    credits,
+    estimatedCost
+}) => {
+    if (!credits) return null;
+
+    return (
+        <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200 text-sm">
+            <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                    <span className="text-gray-600">Credits:</span>
+                    <span className={`font-medium ${credits.current < 0.10 ? 'text-red-600' :
+                        credits.current < 1.00 ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                        ${credits.current.toFixed(4)}
+                    </span>
+                </div>
+
+                {estimatedCost && (
+                    <div className="flex items-center space-x-2">
+                        <span className="text-gray-600">Est. cost:</span>
+                        <span className="font-medium text-blue-600">
+                            ${estimatedCost.totalCost.toFixed(4)}
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            <button
+                onClick={() => {/* Add credits modal */ }}
+                className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700"
+            >
+                Add Credits
+            </button>
+        </div>
+    );
+};
+
 
 export default ChatPanel;

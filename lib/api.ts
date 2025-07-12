@@ -334,7 +334,7 @@ export const messageAPI = {
             const client = generateClient<Schema>({
                 authMode: "userPool"
             });
- 
+
             const { data: updatedMessage } = await client.models.Message.update({
                 id: messageId,
                 ...updateData
@@ -491,7 +491,7 @@ export const toolResultAPI = {
             console.error('Error deleting tool result:', error);
             throw error;
         }
-    }, 
+    },
 };
 
 // Server API functions
@@ -531,3 +531,358 @@ export const serverAPI = {
     }
 
 }
+
+
+// Simplified pricing configuration
+const PRICING = {
+    // AI Model pricing (per 1M tokens)
+    ai: {
+        'claude-sonnet-4': {
+            input: 3.00,   // $3.00 per 1M input tokens
+            output: 15.00  // $15.00 per 1M output tokens
+        }
+    },
+    // Unified tool pricing
+    tool: {
+        base: 0.001  // $0.001 per tool execution (regardless of which tool)
+    },
+    // Base conversation cost
+    conversation: {
+        base: 0.01  // $0.01 per conversation
+    }
+};
+
+// Credit/Usage tracking API
+export const creditAPI = {
+    // Calculate cost for AI usage
+    calculateAICost(model: string, inputTokens: number, outputTokens: number): number {
+        const modelPricing = PRICING.ai[model as keyof typeof PRICING.ai] || PRICING.ai['claude-sonnet-4'];
+
+        const inputCost = (inputTokens / 1_000_000) * modelPricing.input;
+        const outputCost = (outputTokens / 1_000_000) * modelPricing.output;
+
+        return inputCost + outputCost;
+    },
+
+    // Calculate cost for tool usage (unified pricing)
+    calculateToolCost(executionCount: number = 1): number {
+        return PRICING.tool.base * executionCount;
+    },
+
+    // Estimate tokens from text (rough approximation)
+    estimateTokens(text: string): number {
+        // Rough estimation: 1 token ≈ 4 characters for English text
+        return Math.ceil(text.length / 4);
+    },
+
+    // Create usage log and deduct credits
+    async logUsageAndDeductCredits(usageData: {
+        userId: string;
+        serverId?: string;
+        conversationId?: string;
+        messageId?: string;
+        type: 'ai' | 'tool' | 'conversation';
+        model?: string;
+        toolName?: string;
+        inputTokens?: number;
+        outputTokens?: number;
+        executionTime?: number;
+        success?: boolean;
+        metadata?: any;
+    }): Promise<{ success: boolean; cost: number; remainingCredits: number; error?: string }> {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            // Calculate cost based on usage type
+            let cost = 0;
+            let tokensUsed = 0;
+
+            switch (usageData.type) {
+                case 'ai':
+                    if (usageData.model && usageData.inputTokens && usageData.outputTokens) {
+                        cost = this.calculateAICost(usageData.model, usageData.inputTokens, usageData.outputTokens);
+                        tokensUsed = usageData.inputTokens + usageData.outputTokens;
+                    }
+                    break;
+
+                case 'tool':
+                    cost = this.calculateToolCost(1); // Unified tool cost
+                    tokensUsed = 1; // 1 execution
+                    break;
+
+                case 'conversation':
+                    cost = PRICING.conversation.base;
+                    tokensUsed = 1;
+                    break;
+            }
+
+            // Get current user profile
+            const { data: user } = await client.models.User.get({ id: usageData.userId });
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            const currentCredits = user.credits || 0;
+            const currentUsed = user.creditsUsed || 0;
+
+            // Check if user has enough credits
+            if (currentCredits < cost) {
+                return {
+                    success: false,
+                    cost,
+                    remainingCredits: currentCredits,
+                    error: 'Insufficient credits'
+                };
+            }
+
+            // Create usage log
+            await client.models.UsageLogs.create({
+                userId: usageData.userId,
+                serverId: usageData.serverId || 'ai-service',
+                tokensUsed: Math.round(tokensUsed),
+                cpuMs: usageData.executionTime || 0,
+                success: usageData.success ?? true
+            });
+
+            // Update user credits
+            const newCredits = currentCredits - cost;
+            const newUsed = currentUsed + cost;
+
+            await client.models.User.update({
+                id: usageData.userId,
+                credits: newCredits,
+                creditsUsed: newUsed
+            });
+
+            return {
+                success: true,
+                cost,
+                remainingCredits: newCredits
+            };
+
+        } catch (error) {
+            console.error('Error logging usage and deducting credits:', error);
+            return {
+                success: false,
+                cost: 0,
+                remainingCredits: 0,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+        }
+    },
+
+    // Get user's credit information
+    async getUserCredits(userId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: user } = await client.models.User.get({ id: userId });
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            return {
+                current: user.credits || 0,
+                used: user.creditsUsed || 0,
+                total: user.totalCredits || 0,
+                remaining: (user.credits || 0)
+            };
+        } catch (error) {
+            console.error('Error fetching user credits:', error);
+            throw error;
+        }
+    },
+
+    // Add credits to user account
+    async addCredits(userId: string, amount: number) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: user } = await client.models.User.get({ id: userId });
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            const newCredits = (user.credits || 0) + amount;
+            const newTotal = (user.totalCredits || 0) + amount;
+
+            await client.models.User.update({
+                id: userId,
+                credits: newCredits,
+                totalCredits: newTotal
+            });
+
+            return {
+                success: true,
+                newBalance: newCredits,
+                totalCredits: newTotal
+            };
+        } catch (error) {
+            console.error('Error adding credits:', error);
+            throw error;
+        }
+    },
+
+    // Get usage statistics
+    async getUsageStats(userId: string, timeframe: 'day' | 'week' | 'month' = 'month') {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            // Calculate date range
+            const now = new Date();
+            const startDate = new Date();
+
+            switch (timeframe) {
+                case 'day':
+                    startDate.setDate(now.getDate() - 1);
+                    break;
+                case 'week':
+                    startDate.setDate(now.getDate() - 7);
+                    break;
+                case 'month':
+                    startDate.setMonth(now.getMonth() - 1);
+                    break;
+            }
+
+            const { data: usageLogs } = await client.models.UsageLogs.list({
+                filter: {
+                    userId: { eq: userId },
+                    createdAt: { ge: startDate.toISOString() }
+                }
+            });
+
+            // Aggregate statistics
+            const stats = {
+                totalExecutions: usageLogs.length,
+                totalTokens: usageLogs.reduce((sum, log) => sum + (log.tokensUsed || 0), 0),
+                totalCpuMs: usageLogs.reduce((sum, log) => sum + (log.cpuMs || 0), 0),
+                successRate: usageLogs.length > 0 ?
+                    (usageLogs.filter(log => log.success).length / usageLogs.length) * 100 : 0,
+                byDay: this.groupByDay(usageLogs),
+                timeframe
+            };
+
+            return stats;
+        } catch (error) {
+            console.error('Error fetching usage stats:', error);
+            throw error;
+        }
+    },
+
+    // Helper to group usage by day
+    groupByDay(usageLogs: any[]) {
+        const byDay: Record<string, { executions: number; tokens: number; cpuMs: number }> = {};
+
+        usageLogs.forEach(log => {
+            const day = new Date(log.createdAt).toISOString().split('T')[0];
+            if (!byDay[day]) {
+                byDay[day] = { executions: 0, tokens: 0, cpuMs: 0 };
+            }
+            byDay[day].executions++;
+            byDay[day].tokens += log.tokensUsed || 0;
+            byDay[day].cpuMs += log.cpuMs || 0;
+        });
+
+        return byDay;
+    }
+};
+
+// Enhanced message API with credit tracking
+export const enhancedMessageAPI = {
+    ...messageAPI, // Include existing message API functions
+
+    // Create message with credit tracking for AI usage
+    async createMessageWithCredits(messageData: {
+        conversationId: string;
+        messageId: string;
+        sender: string;
+        content: string;
+        timestamp: string;
+        position: number;
+        stopReason?: string;
+        userId: string;
+        model?: string;
+        inputTokens?: number;
+        outputTokens?: number;
+    }) {
+        try {
+            // Create the message first
+            const message = await messageAPI.createMessage(messageData);
+
+            // Track AI usage if it's an assistant message
+            if (messageData.sender === 'assistant' && messageData.model) {
+                const inputTokens = messageData.inputTokens || creditAPI.estimateTokens(messageData.content);
+                const outputTokens = messageData.outputTokens || creditAPI.estimateTokens(messageData.content);
+
+                await creditAPI.logUsageAndDeductCredits({
+                    userId: messageData.userId,
+                    conversationId: messageData.conversationId,
+                    messageId: message?.id,
+                    type: 'ai',
+                    model: messageData.model,
+                    inputTokens,
+                    outputTokens,
+                    success: true
+                });
+            }
+
+            return message;
+        } catch (error) {
+            console.error('Error creating message with credits:', error);
+            throw error;
+        }
+    }
+};
+
+// Enhanced tool result API with credit tracking
+export const enhancedToolResultAPI = {
+    ...toolResultAPI, // Include existing tool result API functions
+
+    // Create tool result with credit tracking
+    async createToolResultWithCredits(toolResultData: {
+        messageId: string;
+        toolId: string;
+        toolName: string;
+        serverName?: string;
+        status: 'pending' | 'running' | 'completed' | 'error';
+        input?: any;
+        output?: any;
+        error?: string;  
+        duration?: number;
+        metadata?: any;
+        userId: string;
+        conversationId?: string;
+    }) {
+        try {
+            // Create the tool result first
+            const toolResult = await toolResultAPI.createToolResult(toolResultData);
+
+            // Track tool usage and deduct credits when tool starts
+            if (toolResultData.status === 'pending') {
+                await creditAPI.logUsageAndDeductCredits({
+                    userId: toolResultData.userId,
+                    serverId: toolResultData.serverName,
+                    conversationId: toolResultData.conversationId,
+                    messageId: toolResultData.messageId,
+                    type: 'tool',
+                    toolName: toolResultData.toolName,
+                    executionTime: toolResultData.duration,
+                    success: false
+                });
+            }
+
+            return toolResult;
+        } catch (error) {
+            console.error('Error creating tool result with credits:', error);
+            throw error;
+        }
+    }
+};

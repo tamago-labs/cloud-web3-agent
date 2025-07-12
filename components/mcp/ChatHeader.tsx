@@ -56,13 +56,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                             <span>Home</span>
                         </Link>
                         
-                        <Link
+                        {/* <Link
                             href="/dashboard"
                             className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
                         >
                             <User size={16} />
                             <span>Dashboard</span>
-                        </Link>
+                        </Link> */}
                     </nav>
                 </div>
 
