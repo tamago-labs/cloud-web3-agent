@@ -1,12 +1,12 @@
 
-import Navbar from "@/components/Navbar";
-import { Providers } from "../providers";
-import {  Mulish } from "next/font/google";
 
-const MulishFont = Mulish({
-    weight: ["400", "500", "700", "800"],
+import { Providers } from "./providers";
+import { Inter } from "next/font/google";
+
+const InterFont = Inter({
+    weight: ["400", "500", "700"],
     subsets: ["latin"],
-  });
+});
 
 export default function DashboardLayout({
     children
@@ -14,16 +14,10 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     return (
-        <Providers> 
-            <div className={`${MulishFont.className} min-h-screen flex flex-row `}>
-                <div className="w-[200px]">
-                    <Navbar/>
-                </div>
-                <div className="flex-grow">
-                    {children}
-                </div> 
+        <Providers>
+            <div className={`${InterFont.className} min-h-screen flex flex-col `}>
+                {children}
             </div>
-            
         </Providers>
     )
 }
