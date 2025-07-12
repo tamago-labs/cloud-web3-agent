@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Head from 'next/head'
-import Footer from "@/components/Footer"
-import Header from "@/components/Header";
+import Head from 'next/head' 
 import { Inter } from "next/font/google";
 import { Providers } from "./providers"
 
@@ -11,10 +9,9 @@ const InterFont = Inter({
   subsets: ["latin"],
 });
 
-
 export const metadata: Metadata = {
-  title: "Tamago Labs | The MCP Hub for Web3",
-  description: "Run, test, and deploy decentralized AI agents with MCP servers and multi-chain Web3 integration—no setup required.",
+  title: "Generate Web3 Charts by Chatting with AI | Bohdi Tree Analytics",
+  description: "Ask questions like 'Show Aave TVL' or 'Track Vitalik’s wallet' and get real-time blockchain charts instantly—no SQL, no setup, just chat.",
 };
 
 export default function RootLayout({

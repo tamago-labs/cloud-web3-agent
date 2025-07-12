@@ -1,6 +1,18 @@
+"use client"
+
+import { useEffect, useContext, useState } from "react";
 import Link from 'next/link';
 
 const Footer = ({ showAddress = true }: any) => {
+
+    const [brand, setBrand] = useState('bohdi_tree');
+
+    useEffect(() => {
+        const currentDomain = window.location.origin
+        setBrand(currentDomain.includes("tamagolabs.com") ? "Tamago Labs" : "Bohdi Tree Analytics"); // or window.location.hostname
+    }, []);
+
+
     return (
         <footer className="mt-auto bg-gray-50">
             <div className="bg-white py-8 border-t border-gray-200">
@@ -16,7 +28,7 @@ const Footer = ({ showAddress = true }: any) => {
                                 </span>
                             </div> */}
                             <div className="text-gray-900 transition mb-2 font-medium">
-                                Tamago Blockchain Labs Co., Ltd.
+                                Operated By: Tamago Blockchain Labs, Inc.
                             </div>
                             <p className="text-gray-600 mb-3 text-sm max-w-md">
                                 Co-Working Q, 1-1, JR Hakata City B1F, Hakata<br /> Fukuoka, Japan 812-0012
@@ -69,8 +81,8 @@ const Footer = ({ showAddress = true }: any) => {
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div className="text-sm text-gray-600">
                                 © {new Date().getFullYear()}{' '}
-                                <Link href="https://tamagolabs.com" className="text-gray-900 hover:text-blue-600 transition font-medium">
-                                    Tamago Labs
+                                <Link href="/" className="text-gray-900 hover:text-blue-600 transition font-medium">
+                                    {brand}
                                 </Link>
                                 . All rights reserved.
                             </div>
