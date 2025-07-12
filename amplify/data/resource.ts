@@ -143,7 +143,23 @@ const schema = a.schema({
     content: a.string(),
     timestamp: a.datetime(),
     stopReason: a.string(),
-    position: a.integer() // If we can reorder
+    position: a.integer(), // If we can reorder
+    toolResults: a.hasMany("ToolResult", "toolResultId")
+  }).authorization((allow) => [
+    allow.owner()
+  ]),
+  ToolResult: a.model({
+    messageId: a.id().required(),
+    message: a.belongsTo('Message', "toolResultId"),
+    toolId: a.string(),
+    toolName: a.string(),
+    serverName: a.string(),
+    status: a.string(),
+    input: a.json(),
+    output: a.json(),
+    error: a.string(),
+    duration: a.integer(),
+    metadata: a.json()
   }).authorization((allow) => [
     allow.owner()
   ]),
