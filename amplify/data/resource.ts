@@ -144,13 +144,13 @@ const schema = a.schema({
     timestamp: a.datetime(),
     stopReason: a.string(),
     position: a.integer(), // If we can reorder
-    toolResults: a.hasMany("ToolResult", "toolResultId")
+    toolResults: a.hasMany("ToolResult", "messageId")
   }).authorization((allow) => [
     allow.owner()
   ]),
   ToolResult: a.model({
     messageId: a.id().required(),
-    message: a.belongsTo('Message', "toolResultId"),
+    message: a.belongsTo('Message', "messageId"),
     toolId: a.string(),
     toolName: a.string(),
     serverName: a.string(),
