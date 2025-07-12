@@ -122,6 +122,10 @@ export const MCPServerModal: React.FC<MCPServerModalProps> = ({
                                         return
                                     }
 
+                                    if ( server.status !== 'connected') {
+                                        return
+                                    }
+
                                     return (
                                         <ServerCard
                                         key={server.name}
@@ -192,6 +196,7 @@ const ServerCard: React.FC<{
     isDefault: boolean;
     onToggle: () => void;
 }> = ({ server, tools, isDefault, onToggle }) => {
+    
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'connected':

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
-import { conversationAPI, messageAPI } from '@/lib/api';
+import { toolResultAPI, conversationAPI, messageAPI } from '@/lib/api';
 import { X, Square, Trash2 } from 'lucide-react';
 
 // Import our MCP components
@@ -31,27 +31,31 @@ interface MCPServer {
     error?: string;
 }
 
-// interface ToolResult {
-//     id: string;
-//     name: string;
-//     status: 'pending' | 'running' | 'completed' | 'error';
-//     input?: any;
-//     output?: any;
-//     error?: string;
-//     startTime?: number;
-//     endTime?: number;
-// }
-
 interface ToolResultData {
+    id?: string; // Database ID once saved
     toolId: string;
     name: string;
-    input: any;
+    input?: any;
     output?: any;
     error?: string;
     duration?: number;
     status: 'pending' | 'running' | 'completed' | 'error';
     startTime?: number;
     endTime?: number;
+    serverName?: string;
+}
+
+interface DatabaseToolResult {
+    messageId: string;
+    toolId: string;
+    toolName: string;
+    serverName?: string;
+    status: 'pending' | 'running' | 'completed' | 'error';
+    input?: any;
+    output?: any;
+    error?: string;
+    duration?: number;
+    metadata?: any;
 }
 
 // Enhanced ChatMessage type to support tool results
@@ -219,22 +223,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         };
     }, [streamController]);
 
-    const loadConversation = async (conversationId: string) => {
-        try {
-            const data = await conversationAPI.getConversationWithMessages(conversationId);
-            const messages = data.messages.map((msg: any) => ({
-                id: msg.messageId || msg.id,
-                type: msg.sender,
-                message: msg.content,
-                timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                toolResults: [],
-                hasToolCalls: false
-            }));
-            setChatHistory(messages);
-        } catch (error) {
-            console.error('Error loading conversation:', error);
-        }
-    };
+
 
     useEffect(() => {
         scrollToBottom();
@@ -339,6 +328,291 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         }
     };
 
+
+
+    // Enhanced streaming handler that saves tool results to database
+    const handleStreamingWithDatabaseSave = async (
+        reader: ReadableStreamDefaultReader<Uint8Array>,
+        assistantMessageId: string // We'll need to create the message first to get this ID
+    ) => {
+        const decoder = new TextDecoder();
+        let accumulatedMessage = '';
+        let currentToolResults: ToolResultData[] = [];
+        const activeTools = new Map<string, ToolResultData>();
+        const savedToolResults = new Map<string, string>(); // toolId -> database ID
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                if (streamController && streamController.signal.aborted) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.error) throw new Error(data.error);
+
+                            if (data.chunk) {
+                                const chunkData = data.chunk;
+
+                                if (typeof chunkData === 'string') {
+                                    accumulatedMessage += chunkData;
+                                } else if (chunkData.type) {
+                                    switch (chunkData.type) {
+                                        case 'text':
+                                            accumulatedMessage += chunkData.content;
+                                            break;
+
+                                        case 'tool_start':
+                                            if (chunkData.toolCall) {
+                                                const toolResult: ToolResultData = {
+                                                    toolId: chunkData.toolCall.id,
+                                                    name: chunkData.toolCall.name,
+                                                    input: chunkData.toolCall.input || {},
+                                                    status: 'pending',
+                                                    startTime: Date.now(),
+                                                    serverName: extractServerName(chunkData.toolCall.name)
+                                                };
+
+                                                activeTools.set(toolResult.toolId, toolResult);
+                                                setActiveToolResults(new Map(activeTools));
+
+                                                // Save to database immediately when tool starts
+                                                try {
+                                                    const dbToolResult: DatabaseToolResult = {
+                                                        messageId: assistantMessageId,
+                                                        toolId: toolResult.toolId,
+                                                        toolName: toolResult.name,
+                                                        serverName: toolResult.serverName,
+                                                        status: 'pending',
+                                                        input: JSON.stringify(toolResult.input),
+                                                        metadata: JSON.stringify({
+                                                            userAgent: navigator.userAgent,
+                                                            timestamp: new Date().toISOString()
+                                                        })
+                                                    };
+
+                                                    const savedResult = await toolResultAPI.createToolResult(dbToolResult);
+                                                    if (savedResult?.id) {
+                                                        savedToolResults.set(toolResult.toolId, savedResult.id);
+                                                        toolResult.id = savedResult.id;
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Failed to save tool result to database:', error);
+                                                }
+                                            }
+                                            accumulatedMessage += chunkData.content;
+                                            break;
+
+                                        case 'tool_result':
+                                            if (chunkData.toolResult) {
+                                                const existing = activeTools.get(chunkData.toolResult.toolId);
+                                                if (existing) {
+                                                    if (chunkData.toolResult.input) {
+                                                        existing.input = chunkData.toolResult.input;
+                                                    }
+                                                    if (chunkData.toolResult.output) {
+                                                        existing.output = chunkData.toolResult.output;
+                                                        existing.status = 'completed';
+                                                        existing.endTime = Date.now();
+                                                        existing.duration = existing.endTime - (existing.startTime || 0);
+                                                    }
+                                                    if (chunkData.toolResult.error) {
+                                                        existing.error = chunkData.toolResult.error;
+                                                        existing.status = 'error';
+                                                        existing.endTime = Date.now();
+                                                        existing.duration = existing.endTime - (existing.startTime || 0);
+                                                    }
+                                                    if (chunkData.toolResult.duration) {
+                                                        existing.duration = chunkData.toolResult.duration;
+                                                    }
+
+                                                    activeTools.set(existing.toolId, existing);
+                                                    setActiveToolResults(new Map(activeTools));
+
+                                                    // Update database record
+                                                    const dbId = savedToolResults.get(existing.toolId);
+                                                    if (dbId) {
+                                                        try {
+                                                            await toolResultAPI.updateToolResult(dbId, {
+                                                                status: existing.status,
+                                                                input: JSON.stringify(existing.input),
+                                                                output: JSON.stringify(existing.output),
+                                                                error: existing.error,
+                                                                duration: existing.duration,
+                                                                metadata: JSON.stringify({
+                                                                    completedAt: new Date().toISOString(),
+                                                                    inputSize: JSON.stringify(existing.input || {}).length,
+                                                                    outputSize: existing.output ? JSON.stringify(existing.output).length : 0
+                                                                })
+                                                            });
+                                                        } catch (error) {
+                                                            console.error('Failed to update tool result in database:', error);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            break;
+
+                                        case 'tool_progress':
+                                            if (chunkData.toolCall) {
+                                                const existing = activeTools.get(chunkData.toolCall.id);
+                                                if (existing) {
+                                                    existing.status = 'running';
+                                                    activeTools.set(existing.toolId, existing);
+                                                    setActiveToolResults(new Map(activeTools));
+
+                                                    // Update status in database
+                                                    const dbId = savedToolResults.get(existing.toolId);
+                                                    if (dbId) {
+                                                        try {
+                                                            await toolResultAPI.updateToolResult(dbId, {
+                                                                status: 'running'
+                                                            });
+                                                        } catch (error) {
+                                                            console.error('Failed to update tool status in database:', error);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            accumulatedMessage += chunkData.content;
+                                            break;
+
+                                        case 'tool_complete':
+                                            if (chunkData.toolCall) {
+                                                const existing = activeTools.get(chunkData.toolCall.id);
+                                                if (existing) {
+                                                    existing.status = 'completed';
+                                                    existing.endTime = Date.now();
+                                                    existing.duration = existing.endTime - (existing.startTime || 0);
+                                                    if (chunkData.toolCall.output) {
+                                                        existing.output = chunkData.toolCall.output;
+                                                    }
+
+                                                    activeTools.set(existing.toolId, existing);
+                                                    setActiveToolResults(new Map(activeTools));
+                                                    currentToolResults.push({ ...existing });
+
+                                                    // Final update to database
+                                                    const dbId = savedToolResults.get(existing.toolId);
+                                                    if (dbId) {
+                                                        try {
+                                                            await toolResultAPI.updateToolResult(dbId, {
+                                                                status: 'completed',
+                                                                output: JSON.stringify(existing.output),
+                                                                duration: existing.duration,
+                                                                metadata: JSON.stringify({
+                                                                    completedAt: new Date().toISOString(),
+                                                                    finalStatus: 'completed'
+                                                                })
+                                                            });
+                                                        } catch (error) {
+                                                            console.error('Failed to complete tool result in database:', error);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            accumulatedMessage += chunkData.content;
+                                            break;
+
+                                        case 'tool_error':
+                                            if (chunkData.toolCall) {
+                                                const existing = activeTools.get(chunkData.toolCall.id);
+                                                if (existing) {
+                                                    existing.status = 'error';
+                                                    existing.error = chunkData.toolCall.error;
+                                                    existing.endTime = Date.now();
+                                                    existing.duration = existing.endTime - (existing.startTime || 0);
+
+                                                    activeTools.set(existing.toolId, existing);
+                                                    setActiveToolResults(new Map(activeTools));
+                                                    currentToolResults.push({ ...existing });
+
+                                                    // Update error in database
+                                                    const dbId = savedToolResults.get(existing.toolId);
+                                                    if (dbId) {
+                                                        try {
+                                                            await toolResultAPI.updateToolResult(dbId, {
+                                                                status: 'error',
+                                                                error: existing.error,
+                                                                duration: existing.duration,
+                                                                metadata: JSON.stringify({
+                                                                    errorAt: new Date().toISOString(),
+                                                                    finalStatus: 'error'
+                                                                })
+                                                            });
+                                                        } catch (error) {
+                                                            console.error('Failed to save tool error in database:', error);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            accumulatedMessage += chunkData.content;
+                                            break;
+                                    }
+                                }
+
+                                // Update the chat message with accumulated content and tool results
+                                setChatHistory(prev => {
+                                    const newHistory = [...prev];
+                                    const lastMessage = newHistory[newHistory.length - 1] as EnhancedChatMessage;
+                                    if (lastMessage && lastMessage.type === 'assistant') {
+                                        lastMessage.message = accumulatedMessage;
+                                        lastMessage.toolResults = [...currentToolResults];
+                                        lastMessage.hasToolCalls = currentToolResults.length > 0;
+                                    }
+                                    return newHistory;
+                                });
+                            }
+
+                            if (data.done) {
+                                // Clear active tool tracking and finalize results
+                                setActiveToolResults(new Map());
+
+                                // Update the assistant message with final content
+                                if (assistantMessageId && accumulatedMessage) {
+                                    try {
+                                        // Update message content in database
+                                        await messageAPI.updateMessage(assistantMessageId, {
+                                            content: accumulatedMessage,
+                                            stopReason: 'completed'
+                                        });
+                                    } catch (error) {
+                                        console.error('Failed to update message in database:', error);
+                                    }
+                                }
+                                break;
+                            }
+                        } catch (parseError) {
+                            console.error('Error parsing SSE data:', parseError);
+                        }
+                    }
+                }
+            }
+        } catch (readError) {
+            if (streamController && !streamController.signal.aborted) {
+                console.error('Error reading stream:', readError);
+                throw readError;
+            }
+        } finally {
+            reader.releaseLock();
+        }
+    };
+
+    // Helper function to extract server name from tool name
+    const extractServerName = (toolName: string): string => {
+        // Tool names are in format "serverName__toolName"
+        const parts = toolName.split('__');
+        return parts.length > 1 ? parts[0] : 'unknown';
+    };
+
+    // Enhanced handleSendMessage function
     const handleSendMessage = async () => {
         if (!message.trim() || isLoading || isStreaming) return;
 
@@ -358,11 +632,11 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         setIsStreaming(true);
 
         // Create abort controller for this request
-        const controller = new AbortController();
+        const controller: any = new AbortController();
         setStreamController(controller);
 
         // Reset tool tracking
-        setActiveToolCalls(new Map());
+        setActiveToolResults(new Map());
 
         try {
             // Handle conversation creation if needed
@@ -377,9 +651,10 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 }
             }
 
-            // Save user message to database
+            // Save user message to database first
+            let userMessageDbId: string | undefined;
             if (activeConversationId) {
-                await messageAPI.createMessage({
+                const savedUserMessage = await messageAPI.createMessage({
                     conversationId: activeConversationId,
                     messageId: generateId(),
                     sender: 'user',
@@ -387,6 +662,21 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     timestamp: new Date().toISOString(),
                     position: chatHistory.length
                 });
+                userMessageDbId = savedUserMessage?.id;
+            }
+
+            // Create assistant message in database to get ID for tool results
+            let assistantMessageDbId: string | undefined;
+            if (activeConversationId) {
+                const savedAssistantMessage = await messageAPI.createMessage({
+                    conversationId: activeConversationId,
+                    messageId: generateId(),
+                    sender: 'assistant',
+                    content: '', // Will be updated as we stream
+                    timestamp: new Date().toISOString(),
+                    position: chatHistory.length + 1
+                });
+                assistantMessageDbId = savedAssistantMessage?.id;
             }
 
             const enabledServers = getEnabledServers();
@@ -411,7 +701,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Create assistant message
+            // Create assistant message in UI
             const assistantMessage: EnhancedChatMessage = {
                 id: generateId(),
                 type: 'assistant',
@@ -424,196 +714,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
             setChatHistory(prev => [...prev, assistantMessage]);
 
-            // Read streaming response
+            // Read streaming response with database saving
             const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
-
-            if (reader) {
-                const decoder = new TextDecoder();
-                let accumulatedMessage = '';
-                let currentToolResults: ToolResultData[] = [];
-                const activeTools = new Map<string, ToolResultData>();
-
-                try {
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-
-                        // Check if streaming was cancelled
-                        if (controller.signal.aborted) {
-                            break;
-                        }
-
-                        const chunk = decoder.decode(value);
-                        const lines = chunk.split('\n');
-
-                        for (const line of lines) {
-                            if (line.startsWith('data: ')) {
-                                try {
-                                    const data = JSON.parse(line.slice(6));
-
-                                    if (data.error) {
-                                        throw new Error(data.error);
-                                    }
-
-                                    if (data.chunk) {
-                                        const chunkData = data.chunk;
-
-                                        // Handle different chunk types
-                                        if (typeof chunkData === 'string') {
-                                            // Legacy text chunk
-                                            accumulatedMessage += chunkData;
-                                        } else if (chunkData.type) {
-                                            // Enhanced chunk with type
-                                            switch (chunkData.type) {
-                                                case 'text':
-                                                    accumulatedMessage += chunkData.content;
-                                                    break;
-
-                                                case 'tool_start':
-                                                    if (chunkData.toolCall) {
-                                                        const toolResult: ToolResultData = {
-                                                            toolId: chunkData.toolCall.id,
-                                                            name: chunkData.toolCall.name,
-                                                            input: chunkData.toolCall.input,
-                                                            status: 'pending',
-                                                            startTime: chunkData.toolCall.startTime || Date.now()
-                                                        };
-
-                                                        activeTools.set(toolResult.toolId, toolResult);
-                                                        setActiveToolResults(new Map(activeTools));
-                                                    }
-                                                    accumulatedMessage += chunkData.content;
-                                                    break;
-
-                                                case 'tool_progress':
-                                                    if (chunkData.toolCall) {
-                                                        const existing = activeTools.get(chunkData.toolCall.id);
-                                                        if (existing) {
-                                                            existing.status = 'running';
-                                                            activeTools.set(existing.toolId, existing);
-                                                            setActiveToolResults(new Map(activeTools));
-                                                        }
-                                                    }
-                                                    accumulatedMessage += chunkData.content;
-                                                    break;
-
-                                                case 'tool_result':
-                                                    if (chunkData.toolResult) {
-                                                        const existing = activeTools.get(chunkData.toolResult.toolId);
-                                                        if (existing) {
-                                                            // Update with input/output data
-                                                            if (chunkData.toolResult.input) {
-                                                                existing.input = chunkData.toolResult.input;
-                                                            }
-                                                            if (chunkData.toolResult.output) {
-                                                                existing.output = chunkData.toolResult.output;
-                                                                existing.status = 'completed';
-                                                                existing.endTime = Date.now();
-                                                            }
-                                                            if (chunkData.toolResult.error) {
-                                                                existing.error = chunkData.toolResult.error;
-                                                                existing.status = 'error';
-                                                                existing.endTime = Date.now();
-                                                            }
-                                                            if (chunkData.toolResult.duration) {
-                                                                existing.duration = chunkData.toolResult.duration;
-                                                            }
-
-                                                            activeTools.set(existing.toolId, existing);
-                                                            setActiveToolResults(new Map(activeTools));
-                                                        }
-                                                    }
-                                                    break;
-
-                                                case 'tool_complete':
-                                                    if (chunkData.toolCall) {
-                                                        const existing = activeTools.get(chunkData.toolCall.id);
-                                                        if (existing) {
-                                                            existing.status = 'completed';
-                                                            existing.endTime = chunkData.toolCall.endTime || Date.now();
-                                                            existing.output = chunkData.toolCall.output;
-
-                                                            activeTools.set(existing.toolId, existing);
-                                                            setActiveToolResults(new Map(activeTools));
-
-                                                            // Add to completed results for the message
-                                                            currentToolResults.push({ ...existing });
-                                                        }
-                                                    }
-                                                    accumulatedMessage += chunkData.content;
-                                                    break;
-
-                                                case 'tool_error':
-                                                    if (chunkData.toolCall) {
-                                                        const existing = activeTools.get(chunkData.toolCall.id);
-                                                        if (existing) {
-                                                            existing.status = 'error';
-                                                            existing.error = chunkData.toolCall.error;
-                                                            existing.endTime = chunkData.toolCall.endTime || Date.now();
-
-                                                            activeTools.set(existing.toolId, existing);
-                                                            setActiveToolResults(new Map(activeTools));
-
-                                                            // Add to completed results for the message
-                                                            currentToolResults.push({ ...existing });
-                                                        }
-                                                    }
-                                                    accumulatedMessage += chunkData.content;
-                                                    break;
-                                            }
-                                        }
-
-                                        // Update the last assistant message with accumulated content and tool results
-                                        setChatHistory(prev => {
-                                            const newHistory = [...prev];
-                                            const lastMessage = newHistory[newHistory.length - 1];
-                                            if (lastMessage && lastMessage.type === 'assistant') {
-                                                lastMessage.message = accumulatedMessage;
-                                                lastMessage.toolResults = [...currentToolResults];
-                                                lastMessage.hasToolCalls = currentToolResults.length > 0;
-                                            }
-                                            return newHistory;
-                                        });
-                                    }
-
-                                    if (data.done) {
-                                        // Clear active tool tracking
-                                        setActiveToolResults(new Map());
-                                        setCompletedToolResults(currentToolResults);
-
-                                        // Save assistant message to database
-                                        if (activeConversationId && accumulatedMessage) {
-                                            await messageAPI.createMessage({
-                                                conversationId: activeConversationId,
-                                                messageId: generateId(),
-                                                sender: 'assistant',
-                                                content: accumulatedMessage,
-                                                timestamp: new Date().toISOString(),
-                                                position: chatHistory.length + 1
-                                            });
-                                        }
-                                        break;
-                                    }
-                                } catch (parseError) {
-                                    console.error('Error parsing SSE data:', parseError);
-                                }
-                            }
-                        }
-                    }
-                } catch (readError) {
-                    if (!controller.signal.aborted) {
-                        console.error('Error reading stream:', readError);
-                        throw readError;
-                    }
-                } finally {
-                    reader.releaseLock();
-                }
+            if (reader && assistantMessageDbId) {
+                await handleStreamingWithDatabaseSave(reader, assistantMessageDbId);
             }
 
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
-                // Streaming was cancelled, this is expected
                 console.log('Streaming cancelled by user');
             } else {
                 console.error('Chat error:', error);
@@ -633,7 +741,40 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             setIsLoading(false);
             setIsStreaming(false);
             setStreamController(null);
-            setActiveToolCalls(new Map());
+            setActiveToolResults(new Map());
+        }
+    };
+
+    // Enhanced loadConversation function to load tool results from database
+    const loadConversation = async (conversationId: string) => {
+        try {
+            const data = await conversationAPI.getConversationWithMessages(conversationId);
+
+            // Convert database messages to UI format
+            const messages: EnhancedChatMessage[] = data.messages.map((msg: any) => ({
+                id: msg.messageId || msg.id,
+                type: msg.sender,
+                message: msg.content,
+                timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                toolResults: msg.toolResults ? msg.toolResults.map((tr: any) => ({
+                    id: tr.id,
+                    toolId: tr.toolId,
+                    name: tr.toolName,
+                    input: JSON.parse(tr.input),
+                    output: JSON.parse(tr.output),
+                    error: tr.error,
+                    status: tr.status,
+                    startTime: tr.createdAt ? new Date(tr.createdAt).getTime() : undefined,
+                    endTime: tr.createdAt ? new Date(tr.createdAt).getTime() : undefined,
+                    duration: tr.duration,
+                    serverName: tr.serverName
+                })) : [],
+                hasToolCalls: msg.toolResults && msg.toolResults.length > 0
+            }));
+
+            setChatHistory(messages);
+        } catch (error) {
+            console.error('Error loading conversation:', error);
         }
     };
 

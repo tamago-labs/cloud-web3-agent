@@ -1,6 +1,6 @@
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
- 
+
 // User Profile API functions
 export const userProfileAPI = {
     // Get user profile by ID  
@@ -101,9 +101,9 @@ export const conversationAPI = {
                     }
                 }
             });
-            
+
             // Sort by creation date (newest first)
-            return conversations.sort((a, b) => 
+            return conversations.sort((a, b) =>
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             );
         } catch (error) {
@@ -155,8 +155,28 @@ export const conversationAPI = {
                 }
             });
 
+            // Get tool results for all messages
+            const messagesWithToolResults = await Promise.all(
+                messages.map(async (message) => {
+                    const { data: toolResults } = await client.models.ToolResult.list({
+                        filter: {
+                            messageId: {
+                                eq: message.id
+                            }
+                        }
+                    });
+
+                    return {
+                        ...message,
+                        toolResults: toolResults.sort((a, b) =>
+                            new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+                        )
+                    };
+                })
+            );
+
             // Sort messages by position (chronological order)
-            const sortedMessages = messages.sort((a, b) => 
+            const sortedMessages = messagesWithToolResults.sort((a, b) =>
                 (a.position || 0) - (b.position || 0)
             );
 
@@ -188,7 +208,7 @@ export const conversationAPI = {
         }
     },
 
-    // Delete conversation and all its messages
+    // Delete conversation and all its messages and tool results
     async deleteConversation(conversationId: string) {
         try {
             const client = generateClient<Schema>({
@@ -204,8 +224,22 @@ export const conversationAPI = {
                 }
             });
 
-            // Delete all messages
+            // Delete all tool results for all messages
             for (const message of messages) {
+                const { data: toolResults } = await client.models.ToolResult.list({
+                    filter: {
+                        messageId: {
+                            eq: message.id
+                        }
+                    }
+                });
+
+                // Delete each tool result
+                for (const toolResult of toolResults) {
+                    await client.models.ToolResult.delete({ id: toolResult.id });
+                }
+
+                // Delete the message
                 await client.models.Message.delete({ id: message.id });
             }
 
@@ -213,7 +247,7 @@ export const conversationAPI = {
             const { data: deletedConversation } = await client.models.Conversation.delete({
                 id: conversationId
             });
-            
+
             return deletedConversation;
         } catch (error) {
             console.error('Error deleting conversation:', error);
@@ -247,7 +281,7 @@ export const messageAPI = {
         }
     },
 
-    // Get messages for a conversation
+    // Get messages for a conversation with tool results
     async getConversationMessages(conversationId: string) {
         try {
             const client = generateClient<Schema>({
@@ -262,15 +296,202 @@ export const messageAPI = {
                 }
             });
 
+            // Get tool results for each message
+            const messagesWithToolResults = await Promise.all(
+                messages.map(async (message) => {
+                    const { data: toolResults } = await client.models.ToolResult.list({
+                        filter: {
+                            messageId: {
+                                eq: message.id
+                            }
+                        }
+                    });
+
+                    return {
+                        ...message,
+                        toolResults: toolResults.sort((a, b) =>
+                            new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+                        )
+                    };
+                })
+            );
+
             // Sort by position (chronological order)
-            return messages.sort((a, b) => 
+            return messagesWithToolResults.sort((a, b) =>
                 (a.position || 0) - (b.position || 0)
             );
         } catch (error) {
             console.error('Error fetching messages:', error);
             throw error;
         }
+    },
+
+    async updateMessage(messageId: string, updateData: {
+        content?: string;
+        stopReason?: string;
+    }) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+ 
+            const { data: updatedMessage } = await client.models.Message.update({
+                id: messageId,
+                ...updateData
+            });
+            return updatedMessage;
+        } catch (error) {
+            console.error('Error updating message:', error);
+            throw error;
+        }
+    },
+
+    // Delete a specific message and its tool results
+    async deleteMessage(messageId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            // First delete all tool results for this message
+            const { data: toolResults } = await client.models.ToolResult.list({
+                filter: {
+                    messageId: {
+                        eq: messageId
+                    }
+                }
+            });
+
+            // Delete each tool result
+            for (const toolResult of toolResults) {
+                await client.models.ToolResult.delete({ id: toolResult.id });
+            }
+
+            // Then delete the message
+            const { data: deletedMessage } = await client.models.Message.delete({
+                id: messageId
+            });
+
+            return deletedMessage;
+        } catch (error) {
+            console.error('Error deleting message:', error);
+            throw error;
+        }
     }
+};
+
+// ToolResult API functions
+export const toolResultAPI = {
+
+    // Create new tool result
+    async createToolResult(toolResultData: {
+        messageId: string;
+        toolId: string;
+        toolName: string;
+        serverName?: string;
+        status: 'pending' | 'running' | 'completed' | 'error';
+        input?: any;
+        output?: any;
+        error?: string;
+        duration?: number;
+        metadata?: any;
+    }) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: newToolResult } = await client.models.ToolResult.create(toolResultData);
+            return newToolResult;
+        } catch (error) {
+            console.error('Error creating tool result:', error);
+            throw error;
+        }
+    },
+
+    // Update tool result (for status changes, adding output, etc.)
+    async updateToolResult(toolResultId: string, updateData: {
+        status?: 'pending' | 'running' | 'completed' | 'error';
+        input?: any;
+        output?: any;
+        error?: string;
+        duration?: number;
+        metadata?: any;
+    }) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: updatedToolResult } = await client.models.ToolResult.update({
+                id: toolResultId,
+                ...updateData
+            });
+            return updatedToolResult;
+        } catch (error) {
+            console.error('Error updating tool result:', error);
+            throw error;
+        }
+    },
+
+    // Get tool results for a specific message
+    async getMessageToolResults(messageId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: toolResults } = await client.models.ToolResult.list({
+                filter: {
+                    messageId: {
+                        eq: messageId
+                    }
+                }
+            });
+
+            // Sort by start time (chronological order)
+            return toolResults.sort((a, b) =>
+                new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+            );
+        } catch (error) {
+            console.error('Error fetching tool results:', error);
+            throw error;
+        }
+    },
+
+    // Get a specific tool result
+    async getToolResult(toolResultId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: toolResult } = await client.models.ToolResult.get({
+                id: toolResultId
+            });
+            return toolResult;
+        } catch (error) {
+            console.error('Error fetching tool result:', error);
+            throw error;
+        }
+    },
+
+    // Delete a tool result
+    async deleteToolResult(toolResultId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: deletedToolResult } = await client.models.ToolResult.delete({
+                id: toolResultId
+            });
+            return deletedToolResult;
+        } catch (error) {
+            console.error('Error deleting tool result:', error);
+            throw error;
+        }
+    }, 
 };
 
 // Server API functions
@@ -310,4 +531,3 @@ export const serverAPI = {
     }
 
 }
- 
