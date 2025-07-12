@@ -26,7 +26,7 @@ const Header = ({ bgColor }: any) => {
                     <div className="flex justify-start lg:w-0 lg:flex-1">
                         <Link href="/" className="flex items-center">
                             <span className="text-gray-900 text-xl font-bold font-mono">
-                                [tamago_labs]
+                                [bohdi_tree]
                             </span>
                         </Link>
                     </div>
