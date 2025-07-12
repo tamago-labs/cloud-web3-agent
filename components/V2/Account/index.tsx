@@ -89,7 +89,7 @@ const AccountContainer = () => {
 
             // Load conversations
             const conversationsData = await conversationAPI.getUserConversations(profile.username);
-            setConversations(conversationsData.map(conv => ({
+            setConversations(conversationsData.map((conv: any) => ({
                 id: conv.id,
                 title: conv.title,
                 createdAt: conv.createdAt,
