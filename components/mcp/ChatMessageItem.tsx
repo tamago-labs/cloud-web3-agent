@@ -269,7 +269,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
     // Parse tool calls and results from message content
     const parseToolInformation = (content: string) => {
         const toolResults: ToolResult[] = [];
-        const toolPattern = /🔧 Using ([^.]+)\.\.\.\n(.*?)(?=🔧|✅|❌|$)/gs;
+        const toolPattern = /🔧 Using ([^.]+)\.\.\.\n([\s\S]*?)(?=🔧|✅|❌|$)/g;
         const completedPattern = /✅ ([^.]+) completed/g;
         const errorPattern = /❌ ([^.]+) failed: (.+)/g;
 
