@@ -25,7 +25,7 @@ enum Prompt {
 
 const Configuration = ({ agent, increaseTick }: any) => {
 
-    const [{ data, isLoading, hasError }, promptEnhance] = useAIGeneration("PromptEnhance");
+    // const [{ data, isLoading, hasError }, promptEnhance] = useAIGeneration("PromptEnhance");
 
     const { addToMarketplace, updateAgent, setAgentActive, saveAgentAutomation, saveMarketplace } = useDatabase()
 
@@ -247,49 +247,49 @@ const Configuration = ({ agent, increaseTick }: any) => {
     }, [listing, increaseTick])
 
 
-    const onEnhance = useCallback(async (promptType: Prompt, promptA: string, promptB: string, promptC: string) => {
+    // const onEnhance = useCallback(async (promptType: Prompt, promptA: string, promptB: string, promptC: string) => {
 
-        dispatch({ processingPrompt: promptType })
-        const prompt = promptType === Prompt.INPUT ? promptA : promptType === Prompt.DECISION ? promptB : promptC
+    //     dispatch({ processingPrompt: promptType })
+    //     const prompt = promptType === Prompt.INPUT ? promptA : promptType === Prompt.DECISION ? promptB : promptC
 
-        promptEnhance({
-            prompt: [
-                `Help correct following prompt and return only prompt`,
-                prompt
-            ].join("\n")
-        })
+    //     promptEnhance({
+    //         prompt: [
+    //             `Help correct following prompt and return only prompt`,
+    //             prompt
+    //         ].join("\n")
+    //     })
 
-    }, [])
+    // }, [])
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        if (data && isLoading === false) {
-            const matches = data.match(/"([^"]+)"/g);
-            if (matches && matches[0]) {
-                const newPrompt = matches[0].replaceAll(`"`, ``)
-                if (processingPrompt === Prompt.INPUT) {
-                    dispatch({
-                        promptInput: newPrompt
-                    })
-                } else if (processingPrompt === Prompt.DECISION) {
-                    dispatch({
-                        promptDecision: newPrompt
-                    })
-                } else if (processingPrompt === Prompt.EXECUTE) {
-                    dispatch({
-                        promptExecute: newPrompt
-                    })
-                }
-            }
+    //     if (data && isLoading === false) {
+    //         const matches = data.match(/"([^"]+)"/g);
+    //         if (matches && matches[0]) {
+    //             const newPrompt = matches[0].replaceAll(`"`, ``)
+    //             if (processingPrompt === Prompt.INPUT) {
+    //                 dispatch({
+    //                     promptInput: newPrompt
+    //                 })
+    //             } else if (processingPrompt === Prompt.DECISION) {
+    //                 dispatch({
+    //                     promptDecision: newPrompt
+    //                 })
+    //             } else if (processingPrompt === Prompt.EXECUTE) {
+    //                 dispatch({
+    //                     promptExecute: newPrompt
+    //                 })
+    //             }
+    //         }
 
-        }
+    //     }
 
-    }, [data, processingPrompt, isLoading])
+    // }, [data, processingPrompt, isLoading])
 
     return (
         <>
 
-            <BaseModal
+            {/* <BaseModal
                 visible={isLoading}
             >
                 <div className="px-2 sm:px-6 pt-5 pb-4">
@@ -312,7 +312,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                         </div>
                     )}
                 </div>
-            </BaseModal>
+            </BaseModal> */}
 
             <BaseModal
                 visible={modal !== undefined}
@@ -497,7 +497,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                             </div>
 
                             {/* Prompt Editor */}
-                            <div className="mt-4">
+                            {/* <div className="mt-4">
                                 <label htmlFor="name" className="block mb-1.5 text-sm font-medium text-gray-400">
                                     {
                                         prompt === Prompt.INPUT && "Define the prompt to gather data from sources supported by the SDK (you may need to check)"
@@ -536,7 +536,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                         onChange={(e) => dispatch({ promptExecute: e.target.value })}
                                     ></textarea>
                                 )}
-                            </div>
+                            </div> */}
 
                             <div className="py-1.5 flex flex-row">
                                 <div className="text-sm my-auto text-gray-400">
@@ -544,14 +544,14 @@ const Configuration = ({ agent, increaseTick }: any) => {
                                     {prompt === Prompt.DECISION && `${promptDecision.length} characters`}
                                     {prompt === Prompt.EXECUTE && `${promptExecute.length} characters`}
                                 </div>
-                                <button
+                                {/* <button
                                     disabled={isLoading}
                                     onClick={() => {
                                         onEnhance(prompt, promptInput, promptDecision, promptExecute)
                                     }}
                                     className="bg-gradient-to-r cursor-pointer my-auto ml-auto   from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 px-4 py-2 rounded-lg font-medium transition flex items-center">
                                     Enhance this prompt
-                                </button>
+                                </button> */}
                             </div>
 
                             {/* Schedule Settings */}
