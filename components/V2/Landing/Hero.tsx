@@ -34,15 +34,16 @@ const Hero = () => {
                         </p>
 
                         <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">
-                            <Link href="/browse" className="px-2 md:px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">
-                                Browse Servers
+                            <Link href="/discover" className="px-2 md:px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">
+                                <BarChart3 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                                Discover
                             </Link>
-                            <Link href="/client" className="px-2 md:px-7 py-3 bg-white hover:bg-gray-50 rounded-lg font-medium text-gray-700 flex items-center justify-center transition border border-gray-300 hover:border-gray-400">
-                                <Play className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
-
+                            <Link href="/client" className="px-2 md:px-7 py-3 bg-white hover:bg-gray-50 rounded-lg font-medium text-gray-700 flex items-center justify-center transition border border-gray-300 hover:border-gray-400 group">
+                                <MessageSquare className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                                 Start Chat
                             </Link>
                         </div>
+
 
                         <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
                             <div className="flex items-center gap-2">

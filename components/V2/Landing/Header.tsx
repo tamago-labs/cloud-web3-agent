@@ -12,8 +12,8 @@ const Header = ({ bgColor }: any) => {
 
     const [currentDomain, setCurrentDomain] = useState('bohdi_tree');
 
-    useEffect(() => { 
-        const currentDomain = window.location.origin 
+    useEffect(() => {
+        const currentDomain = window.location.origin
         setCurrentDomain(currentDomain.includes("tamagolabs.com") ? "tamago_labs" : "bohdi_tree"); // or window.location.hostname
     }, []);
 
@@ -33,8 +33,11 @@ const Header = ({ bgColor }: any) => {
 
                     {/* Desktop navigation */}
                     <nav className="hidden md:flex space-x-2 md:space-x-8">
+                        <Link href="/discover" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                            Discover
+                        </Link>
                         <Link href="/browse" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                            Browse All
+                            Servers
                         </Link>
                         <Link href="/client" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                             Online Client

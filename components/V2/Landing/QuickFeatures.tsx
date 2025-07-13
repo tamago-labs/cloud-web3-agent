@@ -52,7 +52,7 @@ const QuickFeatures = () => {
                         How It Works
                     </h2>
                     <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-                        Transform your questions into powerful Web3 analytics in three simple steps
+                        Transform your questions into powerful Web3 analytics in simple steps
                     </p>
 
                     <div className="grid md:grid-cols-3 gap-8">

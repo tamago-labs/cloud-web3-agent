@@ -47,15 +47,18 @@ const Footer = ({ showAddress = true }: any) => {
                             <div>
                                 <h4 className="text-gray-900 font-medium mb-3">Platform</h4>
                                 <div className="space-y-2">
+                                    <Link href="/discover" className="block text-gray-600 hover:text-gray-900 text-sm transition">
+                                        Community Analytics
+                                    </Link>
                                     <Link href="/browse" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         Browse Servers
                                     </Link>
                                     <Link href="/client" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         Online Client
                                     </Link>
-                                    <Link href="/submit" className="block text-gray-600 hover:text-gray-900 text-sm transition">
+                                    {/* <Link href="/submit" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         Submit Server
-                                    </Link>
+                                    </Link> */}
                                 </div>
                             </div>
 
@@ -65,11 +68,14 @@ const Footer = ({ showAddress = true }: any) => {
                                     <Link href="https://docs.tamagolabs.com" target="_blank" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         Documentation
                                     </Link>
-                                    <Link href="https://github.com/tamago-labs/decentral-mcp-server" target="_blank" className="block text-gray-600 hover:text-gray-900 text-sm transition">
+                                    {/* <Link href="https://github.com/tamago-labs/decentral-mcp-server" target="_blank" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         GitHub
-                                    </Link>
+                                    </Link> */}
                                     <Link href="/server-status" className="block text-gray-600 hover:text-gray-900 text-sm transition">
                                         Server Status
+                                    </Link>
+                                    <Link href="/submit" className="block text-gray-600 hover:text-gray-900 text-sm transition">
+                                        Submit Server
                                     </Link>
                                 </div>
                             </div>
