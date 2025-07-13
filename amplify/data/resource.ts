@@ -1,31 +1,31 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createAgent } from "../functions/createAgent/resource"
 import { deployAgent } from "../functions/deployAgent/resource"
-import { agentChat } from "../functions/agentChat/resource";
-import { agentCronos } from "../functions/agentCronos/resource"
+// import { agentChat } from "../functions/agentChat/resource";
+// import { agentCronos } from "../functions/agentCronos/resource"
 import { scheduler } from "../functions/scheduler/resource"
 
 const schema = a.schema({
-  AgentChat: a
-    .query()
-    .arguments({
-      messages: a.json(),
-      agentId: a.string()
-    })
-    .returns(a.json())
-    .handler(a.handler.function(agentChat))
-    .authorization((allow) => [allow.authenticated()])
-  ,
-  AgentCronos: a
-    .query()
-    .arguments({
-      messages: a.json(),
-      agentId: a.string()
-    })
-    .returns(a.json())
-    .handler(a.handler.function(agentCronos))
-    .authorization((allow) => [allow.authenticated()])
-  ,
+  // AgentChat: a
+  //   .query()
+  //   .arguments({
+  //     messages: a.json(),
+  //     agentId: a.string()
+  //   })
+  //   .returns(a.json())
+  //   .handler(a.handler.function(agentChat))
+  //   .authorization((allow) => [allow.authenticated()])
+  // ,
+  // AgentCronos: a
+  //   .query()
+  //   .arguments({
+  //     messages: a.json(),
+  //     agentId: a.string()
+  //   })
+  //   .returns(a.json())
+  //   .handler(a.handler.function(agentCronos))
+  //   .authorization((allow) => [allow.authenticated()])
+  // ,
   PromptEnhance: a.generation({
     aiModel: a.ai.model("Claude 3.5 Sonnet"),
     systemPrompt: 'You are a helpful assistant that completes prompts for automation tasks on the Web3 AI-agent platform.',
