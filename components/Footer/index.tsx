@@ -7,10 +7,10 @@ const Footer = ({ showAddress = true }: any) => {
 
     const [brand, setBrand] = useState('bohdi_tree');
 
-    useEffect(() => {
-        const currentDomain = window.location.origin
-        setBrand(currentDomain.includes("tamagolabs.com") ? "Tamago Labs" : "Bohdi Tree Analytics"); // or window.location.hostname
-    }, []);
+    // useEffect(() => {
+    //     const currentDomain = window.location.origin
+    //     setBrand(currentDomain.includes("tamagolabs.com") ? "Tamago Labs" : "Bohdi Tree Analytics"); // or window.location.hostname
+    // }, []);
 
 
     return (

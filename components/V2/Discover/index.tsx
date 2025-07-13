@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, TrendingUp, TrendingDown, Eye, Heart, ArrowUpRight } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
-import * as d3 from 'd3';
+ 
 import Link from "next/link";
 import Header from "../Landing/Header"
 import ComingSoonModal from "@/components/modals/ComingSoonModal";
