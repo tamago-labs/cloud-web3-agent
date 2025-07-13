@@ -23,14 +23,15 @@ const Hero = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Chat with AI  for <br />
+                            Dune Analytics via Chat<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                                Web3 Insight
+                                No SQL Required
                             </span>
                         </h1>
 
-                        <p className="text-sm md:text-lg text-gray-600 mb-8 max-w-xl">
-                            Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains
+
+                        <p className="text-sm md:text-lg text-gray-600 mb-4 max-w-xl">
+                            Ask questions like <strong>"Show Aave TVL"</strong> or <strong>"Track Vitalik’s wallet"</strong> and get real-time blockchain charts and analytics instantly. No SQL, no setup — just chat, powered by various MCP servers.
                         </p>
 
                         <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">

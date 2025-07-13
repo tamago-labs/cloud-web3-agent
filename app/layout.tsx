@@ -10,7 +10,7 @@ const InterFont = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Generate Web3 Charts by Chatting with AI | Bohdi Tree Analytics",
+  title: "Dune Analytics via Chat – No SQL Needed | Bodhi Tree Analytics",
   description: "Ask questions like 'Show Aave TVL' or 'Track Vitalik’s wallet' and get real-time blockchain charts instantly—no SQL, no setup, just chat.",
 };
 

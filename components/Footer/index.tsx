@@ -43,7 +43,7 @@ const Footer = ({ showAddress = true }: any) => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+                        <div className="flex  flex-row gap-6 md:gap-8">
                             <div>
                                 <h4 className="text-gray-900 font-medium mb-3">Platform</h4>
                                 <div className="space-y-2">
