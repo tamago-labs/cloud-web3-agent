@@ -3,18 +3,25 @@
 import { useEffect, useState } from 'react';
 import { Authenticator, useTheme, View, Heading, Image, Text, Button, ThemeProvider, Theme } from '@aws-amplify/ui-react';
 import Link from "next/link"
- 
+
 const components = {
     Header() {
         const { tokens } = useTheme();
+
+        const [currentDomain, setCurrentDomain] = useState('bohdi_tree');
+
+        useEffect(() => {
+            const currentDomain = window.location.origin
+            setCurrentDomain(currentDomain.includes("tamagolabs.com") ? "tamago_labs" : "bohdi_tree"); // or window.location.hostname
+        }, []);
 
         return (
             <View textAlign="center" padding={tokens.space.large}>
                 <Link href="/" className="inline-flex mb-[20px] mt-[20px]">
                     <span className="text-gray-900 text-xl font-bold font-mono">
-                        [tamago_labs]
+                        [{currentDomain}]
                     </span>
-                </Link> 
+                </Link>
             </View>
         );
     },

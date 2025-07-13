@@ -1,10 +1,19 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from 'react';
-import { BookOpen, Cpu, Code, Zap, Cloud, Database, Key, Puzzle, Infinity, FileJson, Network, BrainCircuit, Layers, Globe, ArrowRight, ArrowRightLeft, MessageSquare, ServerCrash, SmartphoneNfc, BadgeCheck, Share2, Blocks, Play, Sparkles } from 'lucide-react';
+import { BookOpen, Cpu, Code, Zap, Cloud, Database, Key, Puzzle, Infinity, FileJson, Network, BrainCircuit, Layers, Globe, ArrowRight, ArrowRightLeft, MessageSquare, ServerCrash, SmartphoneNfc, BadgeCheck, Share2, Blocks, Play, Sparkles, BarChart3 } from 'lucide-react';
 import Link from "next/link"
 
 const Hero = () => {
+
+    const [heroType, setHeroType] = useState(1);
+
+    useEffect(() => {
+        const currentDomain = window.location.origin
+        setHeroType(currentDomain.includes("tamagolabs.com") ? 1 : 2); // or window.location.hostname
+    }, []);
+
+
     return (
         <>
             <div className="absolute inset-0 z-0">
@@ -22,30 +31,49 @@ const Hero = () => {
                             </span>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Chat with AI  for <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                                Web3 Insight
-                            </span>
-                        </h1>
+                        {heroType === 1 && (
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                                Chat with AI for<br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                                    Web3 Insight
+                                </span>
+                            </h1>
+                        )}
+                        {heroType === 2 && (
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                                Dune Analytics via Chat<br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                                    No SQL Required
+                                </span>
+                            </h1>
+                        )}
 
-                        <p className="text-sm md:text-lg text-gray-600 mb-8 max-w-xl">
-                            Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains
-                        </p>
+                        {heroType === 1 && (
+                            <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
+                                Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
+                            </p>
+                        )}
+
+                        {heroType === 2 && (
+                            <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
+                                Ask questions like <strong>"Show Aave TVL"</strong> or <strong>"Track Vitalik’s wallet"</strong> and get real-time blockchain charts and analytics instantly. No SQL, no setup — just chat, powered by various MCP servers.
+                            </p>
+                        )}
+
 
                         <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">
-                            <Link href="/browse" className="px-2 md:px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">
-                                <Play className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
-                                Try MCP Servers
+                            <Link href="/discover" className="px-2 md:px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">
+                                <BarChart3 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                                Discover
                             </Link>
-                            <Link href="/client" className="px-2 md:px-7 py-3 bg-white hover:bg-gray-50 rounded-lg font-medium text-gray-700 flex items-center justify-center transition border border-gray-300 hover:border-gray-400">
-                                <Sparkles className="w-4 h-4 mr-2" />
-                                Online Client
+                            <Link href="/client" className="px-2 md:px-7 py-3 bg-white hover:bg-gray-50 rounded-lg font-medium text-gray-700 flex items-center justify-center transition border border-gray-300 hover:border-gray-400 group">
+                                <MessageSquare className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                                Start Chat
                             </Link>
                         </div>
 
-                        <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
 
+                        <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                 <span>70+ MCP Tools</span>
@@ -65,12 +93,10 @@ const Hero = () => {
                         {/*<OrbitalParticles /> */}
                     </div>
                 </div>
-
             </div>
         </>
     )
 }
-
 
 const GeometricGrid = () => {
     const canvasRef = useRef(null);
@@ -105,7 +131,7 @@ const GeometricGrid = () => {
             }
         }
 
-        // Create floating elements
+        // Create floating elements with Web3/tree theme
         for (let i = 0; i < 8; i++) {
             floatingElements.push({
                 x: Math.random() * canvas.width,
@@ -116,7 +142,7 @@ const GeometricGrid = () => {
                 floatSpeed: Math.random() * 0.5 + 0.3,
                 floatOffset: Math.random() * Math.PI * 2,
                 type: Math.floor(Math.random() * 3), // 0: square, 1: circle, 2: triangle
-                color: ['#3B82F6', '#8B5CF6', '#06B6D4'][Math.floor(Math.random() * 3)]
+                color: ['#10B981', '#3B82F6', '#8B5CF6'][Math.floor(Math.random() * 3)] // Emerald, Blue, Purple
             });
         }
 
@@ -187,6 +213,5 @@ const GeometricGrid = () => {
         </div>
     );
 };
-
 
 export default Hero

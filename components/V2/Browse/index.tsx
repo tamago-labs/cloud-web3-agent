@@ -63,7 +63,7 @@ const BrowseAllContainer = () => {
                                 Browse All MCP Servers
                             </h1>
                             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Discover and try powerful Model Context Protocol servers for your Web3 development workflow
+                                See available Model Context Protocol (MCP) servers acting as the interface between real-time blockchain data and your AI agent
                             </p>
                         </div>
 

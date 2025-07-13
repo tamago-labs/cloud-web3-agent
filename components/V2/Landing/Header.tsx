@@ -3,20 +3,19 @@
 
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
-import { getCurrentUser, signIn } from 'aws-amplify/auth';
-import { useInterval } from 'usehooks-ts';
-import { userProfileAPI } from "@/lib/api";
-import { useContext, useState } from "react";
+import { useEffect, useContext, useState } from "react";
 import { AccountContext } from "@/contexts/account";
-import { ServerContext } from "@/contexts/server";
-
 
 const Header = ({ bgColor }: any) => {
 
-    const { profile, saveProfile } = useContext(AccountContext)
-    const [interval, setInterval] = useState(3000)
+    const { profile } = useContext(AccountContext)
 
+    const [currentDomain, setCurrentDomain] = useState('tamago_labs');
 
+    useEffect(() => {
+        const currentDomain = window.location.origin
+        setCurrentDomain(currentDomain.includes("tamagolabs.com") ? "tamago_labs" : "bohdi_tree"); // or window.location.hostname
+    }, []);
 
     return (
         <header className={`relative z-30 ${bgColor}`}>
@@ -26,7 +25,7 @@ const Header = ({ bgColor }: any) => {
                     <div className="flex justify-start lg:w-0 lg:flex-1">
                         <Link href="/" className="flex items-center">
                             <span className="text-gray-900 text-xl font-bold font-mono">
-                                [tamago_labs]
+                                [{currentDomain}]
                             </span>
                         </Link>
                     </div>
@@ -34,16 +33,22 @@ const Header = ({ bgColor }: any) => {
 
                     {/* Desktop navigation */}
                     <nav className="hidden md:flex space-x-2 md:space-x-8">
+                        <Link href="/discover" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                            Discover
+                        </Link>
                         <Link href="/browse" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                            Browse All
+                            Servers
                         </Link>
                         <Link href="/client" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                             Online Client
-                        </Link> 
-                        <a href="https://docs.tamagolabs.com" target="_blank" className="text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center">
+                        </Link>
+                        <Link href="/server-status" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                            Status
+                        </Link>
+                        {/* <a href="https://docs.tamagolabs.com" target="_blank" className="text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center">
                             Docs
                             <ExternalLink className="ml-1 h-4 w-4" />
-                        </a>
+                        </a> */}
                     </nav>
 
                     {/* CTA Buttons */}
