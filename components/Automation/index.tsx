@@ -74,12 +74,12 @@ const Automation = () => {
                     </div>
                 }
 
-                {selected && (
+                {/* {selected && (
                     <AgentPanel
                         agent={selected}
                         increaseTick={increaseTick}
                     />
-                )}
+                )} */}
 
             </div>
         </div>
