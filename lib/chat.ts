@@ -1,7 +1,8 @@
-import {
-    BedrockRuntimeClient,
-    InvokeModelWithResponseStreamCommand,
-} from "@aws-sdk/client-bedrock-runtime";
+import Anthropic from '@anthropic-ai/sdk';
+// import {
+//     BedrockRuntimeClient,
+//     InvokeModelWithResponseStreamCommand,
+// } from "@aws-sdk/client-bedrock-runtime";
 import { getMCPClient } from './mcp/railway-client';
 
 export interface AIResponse {
@@ -42,26 +43,13 @@ interface StreamChunk {
 }
 
 export class ChatService {
-    private client: BedrockRuntimeClient;
+    private client: Anthropic;
 
     constructor() {
-        const awsConfig = this.getAwsConfig();
-
-        this.client = new BedrockRuntimeClient({
-            region: awsConfig.awsRegion,
-            credentials: {
-                accessKeyId: awsConfig.awsAccessKey,
-                secretAccessKey: awsConfig.awsSecretKey,
-            }
+        this.client = new Anthropic({
+            apiKey: process.env.NEXT_PUBLIC_CLAUDE_API || "",
+            dangerouslyAllowBrowser: true
         });
-    }
-
-    private getAwsConfig(): { awsAccessKey: string; awsSecretKey: string; awsRegion: string } {
-        return {
-            awsAccessKey: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || "",
-            awsSecretKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || "",
-            awsRegion: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-southeast-1'
-        };
     }
 
     async *streamChat(
@@ -74,50 +62,31 @@ export class ChatService {
             return yield* this.streamChatWithMCP(chatHistory, currentMessage, mcpConfig.enabledServers);
         }
 
-        // Original implementation without MCP
+        // Original implementation without MCP using Claude SDK
         let messages = this.buildConversationMessages(chatHistory, currentMessage);
         let finalStopReason: string | undefined;
 
         try {
-            while (true) {
-                const payload = {
-                    anthropic_version: "bedrock-2023-05-31",
-                    max_tokens: 4000,
-                    messages: messages,
-                };
+            const stream = await this.client.messages.create({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 4000,
+                messages: messages,
+                stream: true
+            });
 
-                const command = new InvokeModelWithResponseStreamCommand({
-                    contentType: "application/json",
-                    body: JSON.stringify(payload),
-                    modelId: "apac.anthropic.claude-sonnet-4-20250514-v1:0",
-                });
-
-                const apiResponse: any = await this.client.send(command);
-
-                for await (const item of apiResponse.body) {
-                    if (item.chunk?.bytes) {
-                        try {
-                            const chunk = JSON.parse(new TextDecoder().decode(item.chunk.bytes));
-                            const chunkType = chunk.type;
-
-                            if (chunkType === "message_delta" && chunk.delta?.stop_reason) {
-                                finalStopReason = chunk.delta.stop_reason;
-                            } else if (chunkType === "content_block_delta") {
-                                if (chunk.delta?.type === 'text_delta' && chunk.delta?.text) {
-                                    yield {
-                                        type: 'text',
-                                        content: chunk.delta.text
-                                    };
-                                }
-                            }
-                        } catch (parseError) {
-                            console.error('Failed to parse chunk:', parseError);
-                        }
+            for await (const chunk of stream) {
+                if (chunk.type === 'message_delta' && chunk.delta.stop_reason) {
+                    finalStopReason = chunk.delta.stop_reason;
+                } else if (chunk.type === 'content_block_delta') {
+                    if (chunk.delta.type === 'text_delta') {
+                        yield {
+                            type: 'text',
+                            content: chunk.delta.text
+                        };
                     }
                 }
-
-                break; // No tools, so we're done
             }
+
         } catch (error: any) {
             console.error('Claude Service: API error:', error);
             throw new Error(`Claude API error: ${error.message}`);
@@ -167,114 +136,106 @@ export class ChatService {
         let finalStopReason: string | undefined;
 
         try {
+            // Continue streaming until no more tools are needed
             while (true) {
-                const payload = {
-                    anthropic_version: "bedrock-2023-05-31",
+                const stream = await this.client.messages.create({
+                    model: "claude-sonnet-4-20250514",
                     max_tokens: 4000,
-                    messages: messages,
                     tools: availableTools.length > 0 ? availableTools : undefined,
-                };
-
-                const command = new InvokeModelWithResponseStreamCommand({
-                    contentType: "application/json",
-                    body: JSON.stringify(payload),
-                    modelId: "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+                    messages: messages,
+                    stream: true
                 });
 
-                const apiResponse: any = await this.client.send(command);
-
+                let currentResponseContent: any[] = [];
                 let pendingToolUses: any[] = [];
                 let hasToolUse = false;
                 let streamedText = '';
 
-                // Process the response stream
-                for await (const item of apiResponse.body) {
-                    if (item.chunk?.bytes) {
-                        try {
-                            const chunk = JSON.parse(new TextDecoder().decode(item.chunk.bytes));
-                            const chunkType = chunk.type;
-
-                            if (chunkType === "message_delta" && chunk.delta?.stop_reason) {
-                                finalStopReason = chunk.delta.stop_reason;
-                                console.log('claude', `Stream ended with stop_reason: ${finalStopReason}`);
-                            } else if (chunkType === "content_block_start") {
-                                if (chunk.content_block?.type === 'tool_use') {
-                                    hasToolUse = true;
-                                    const toolCall: ToolCall = {
-                                        id: chunk.content_block.id,
-                                        name: chunk.content_block.name,
-                                        input: {},
-                                        status: 'pending',
-                                        startTime: Date.now()
-                                    };
-                                    
-                                    pendingToolUses.push({
-                                        id: chunk.content_block.id,
-                                        name: chunk.content_block.name,
-                                        input: {},
-                                        inputJson: ''
-                                    });
-                                    
-                                    activeCalls.set(toolCall.id, toolCall);
-                                    
-                                    yield {
-                                        type: 'tool_start',
-                                        content: `\n\n🔧 Using ${chunk.content_block.name}...\n`,
-                                        toolCall: toolCall
-                                    };
-                                }
-                            } else if (chunkType === "content_block_delta") {
-                                if (chunk.delta?.type === 'text_delta' && chunk.delta?.text) {
-                                    yield {
-                                        type: 'text',
-                                        content: chunk.delta.text
-                                    };
-                                    streamedText += chunk.delta.text;
-                                } else if (chunk.delta?.type === 'input_json_delta' && chunk.delta?.partial_json) {
-                                    const lastTool = pendingToolUses[pendingToolUses.length - 1];
-                                    if (lastTool) {
-                                        lastTool.inputJson += chunk.delta.partial_json;
-                                    }
-                                }
-                            } else if (chunkType === "content_block_stop") {
-                                const lastTool = pendingToolUses[pendingToolUses.length - 1];
-                                if (lastTool) {
-                                    if (lastTool.inputJson.trim()) {
-                                        try {
-                                            lastTool.input = JSON.parse(lastTool.inputJson);
-                                            
-                                            // Update the active call with parsed input
-                                            const activeCall = activeCalls.get(lastTool.id);
-                                            if (activeCall) {
-                                                activeCall.input = lastTool.input;
-                                                activeCall.status = 'running';
-
-                                                // Emit tool input captured event
-                                                yield {
-                                                    type: 'tool_result',
-                                                    content: '',
-                                                    toolResult: {
-                                                        toolId: lastTool.id,
-                                                        input: lastTool.input
-                                                    }
-                                                };
-                                            }
-                                        } catch (parseError) {
-                                            console.error('Failed to parse tool input JSON:', parseError);
-                                            yield {
-                                                type: 'tool_error',
-                                                content: `\n❌ Tool input parsing failed\n`,
-                                                toolCall: activeCalls.get(lastTool.id)
-                                            };
-                                            lastTool.input = {};
-                                        }
-                                    } else {
-                                        lastTool.input = {};
-                                    }
-                                }
+                for await (const chunk of stream) {
+                    if (chunk.type === 'message_delta' && chunk.delta.stop_reason) {
+                        finalStopReason = chunk.delta.stop_reason;
+                        console.log('claude', `Stream ended with stop_reason: ${finalStopReason}`);
+                    } else if (chunk.type === 'content_block_start') {
+                        if (chunk.content_block.type === 'tool_use') {
+                            hasToolUse = true;
+                            const toolCall: ToolCall = {
+                                id: chunk.content_block.id,
+                                name: chunk.content_block.name,
+                                input: {},
+                                status: 'pending',
+                                startTime: Date.now()
+                            };
+                            
+                            pendingToolUses.push({
+                                id: chunk.content_block.id,
+                                name: chunk.content_block.name,
+                                input: {},
+                                inputJson: ''
+                            });
+                            
+                            activeCalls.set(toolCall.id, toolCall);
+                            
+                            // Show brief tool usage indicator
+                            yield {
+                                type: 'tool_start',
+                                content: `\n\n🔧 Using ${chunk.content_block.name}...\n`,
+                                toolCall: toolCall
+                            };
+                        }
+                    } else if (chunk.type === 'content_block_delta') {
+                        if (chunk.delta.type === 'text_delta') {
+                            // Stream text content to user
+                            yield {
+                                type: 'text',
+                                content: chunk.delta.text
+                            };
+                            streamedText += chunk.delta.text;
+                        } else if (chunk.delta.type === 'input_json_delta') {
+                            // Accumulate tool input
+                            const lastTool = pendingToolUses[pendingToolUses.length - 1];
+                            if (lastTool) {
+                                lastTool.inputJson += chunk.delta.partial_json;
                             }
-                        } catch (parseError) {
-                            console.error('Failed to parse chunk:', parseError);
+                        }
+                    } else if (chunk.type === 'content_block_stop') {
+                        // Finalize tool input - always set input even if empty
+                        const lastTool = pendingToolUses[pendingToolUses.length - 1];
+                        if (lastTool) {
+                            if (lastTool.inputJson.trim()) {
+                                try {
+                                    lastTool.input = JSON.parse(lastTool.inputJson);
+                                    console.log("Parsed tool input:", lastTool.input);
+                                    
+                                    // Update the active call with parsed input
+                                    const activeCall = activeCalls.get(lastTool.id);
+                                    if (activeCall) {
+                                        activeCall.input = lastTool.input;
+                                        activeCall.status = 'running';
+
+                                        // Emit tool input captured event
+                                        yield {
+                                            type: 'tool_result',
+                                            content: '',
+                                            toolResult: {
+                                                toolId: lastTool.id,
+                                                input: lastTool.input
+                                            }
+                                        };
+                                    }
+                                } catch (parseError) {
+                                    console.error(`Failed to parse tool input JSON: ${parseError}`);
+                                    yield {
+                                        type: 'tool_error',
+                                        content: `\n❌ Tool input parsing failed\n`,
+                                        toolCall: activeCalls.get(lastTool.id)
+                                    };
+                                    lastTool.input = {}; // Default to empty object
+                                }
+                            } else {
+                                // No input provided - set to empty object
+                                lastTool.input = {};
+                                console.log("Tool requires no input, set to empty object:", lastTool.name);
+                            }
                         }
                     }
                 }
@@ -284,8 +245,10 @@ export class ChatService {
                     break;
                 }
 
-                // Build assistant message content for text
+                // Build assistant message content
                 const assistantContent: any[] = [];
+
+                // Add text content if we have any
                 if (streamedText.trim()) {
                     assistantContent.push({
                         type: 'text',
@@ -293,76 +256,89 @@ export class ChatService {
                     });
                 }
 
-                // Add tool use blocks
+                // Execute all pending tools and add tool uses to content
+                const toolResults: any[] = [];
                 for (const toolUse of pendingToolUses) {
+                    console.log("Processing tool use:", toolUse);
+
+                    // Add tool use to assistant content
                     assistantContent.push({
                         type: 'tool_use',
                         id: toolUse.id,
                         name: toolUse.name,
-                        input: toolUse.input
+                        input: toolUse.input || {} // Ensure we always have an object
                     });
-                }
 
-                // Add assistant message
-                if (assistantContent.length > 0) {
-                    messages.push({
-                        role: 'assistant',
-                        content: assistantContent
-                    });
-                }
-
-                // Execute tools via MCP and add results
-                const toolResults: any[] = [];
-                for (const toolUse of pendingToolUses) {
                     const activeCall = activeCalls.get(toolUse.id);
-                    if (!activeCall) continue;
-
+                    
                     try {
-                        activeCall.status = 'running';
-                        yield {
-                            type: 'tool_progress',
-                            content: `\n🔄 Executing ${toolUse.name}...\n`,
-                            toolCall: activeCall
-                        };
+                        if (activeCall) {
+                            activeCall.status = 'running';
+                            yield {
+                                type: 'tool_progress',
+                                content: `\n🔄 Executing ${toolUse.name}...\n`,
+                                toolCall: activeCall
+                            };
+                        }
 
-                        // Execute the tool and capture the full result
+                        // Execute tool even if input is empty (some tools don't need parameters)
                         const executionStartTime = Date.now();
-                        const result = await this.executeMCPTool(mcpClient, toolUse.name, toolUse.input);
+                        const result = await this.executeMCPTool(mcpClient, toolUse.name, toolUse.input || {});
                         const executionEndTime = Date.now();
 
-                        activeCall.status = 'completed';
-                        activeCall.output = result;
-                        activeCall.endTime = executionEndTime;
+                        if (activeCall) {
+                            activeCall.status = 'completed';
+                            activeCall.output = result;
+                            activeCall.endTime = executionEndTime;
 
-                        // Emit detailed tool result
-                        yield {
-                            type: 'tool_result',
-                            content: '',
-                            toolResult: {
-                                toolId: toolUse.id,
-                                input: toolUse.input,
-                                output: result,
-                                duration: executionEndTime - executionStartTime
+                            // Emit detailed tool result
+                            yield {
+                                type: 'tool_result',
+                                content: '',
+                                toolResult: {
+                                    toolId: toolUse.id,
+                                    input: toolUse.input,
+                                    output: result,
+                                    duration: executionEndTime - executionStartTime
+                                }
+                            };
+
+                            yield {
+                                type: 'tool_complete',
+                                content: `✅ ${toolUse.name} completed (${executionEndTime - executionStartTime}ms)\n`,
+                                toolCall: activeCall
+                            };
+                        }
+
+                        // Format result for Claude
+                        let resultContent = 'Tool executed successfully';
+                        if (typeof result === 'string') {
+                            resultContent = result;
+                        } else if (result && typeof result === 'object') {
+                            if (result.content && Array.isArray(result.content)) {
+                                const textContent = result.content
+                                    .filter((item: any) => item.type === 'text')
+                                    .map((item: any) => item.text)
+                                    .join('\n');
+                                resultContent = textContent || JSON.stringify(result, null, 2);
+                            } else {
+                                resultContent = JSON.stringify(result, null, 2);
                             }
-                        };
+                        }
 
                         toolResults.push({
                             type: 'tool_result',
                             tool_use_id: toolUse.id,
-                            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+                            content: resultContent
                         });
 
-                        yield {
-                            type: 'tool_complete',
-                            content: `✅ ${toolUse.name} completed (${executionEndTime - executionStartTime}ms)\n`,
-                            toolCall: activeCall
-                        };
-                    } catch (error) {
-                        console.error(`Tool execution error for ${toolUse.name}:`, error);
+                        console.log(`Tool executed successfully: ${toolUse.name}`);
+                    } catch (toolError: any) {
+                        console.log("Tool execution error:", toolError);
                         
                         if (activeCall) {
                             activeCall.status = 'error';
-                            activeCall.error = error instanceof Error ? error.message : 'Unknown error';
+                            activeCall.error = toolError.message;
                             activeCall.endTime = Date.now();
 
                             // Emit tool error result
@@ -376,34 +352,42 @@ export class ChatService {
                                     duration: activeCall.endTime - (activeCall.startTime || Date.now())
                                 }
                             };
+
+                            yield {
+                                type: 'tool_error',
+                                content: `❌ ${toolUse.name} failed: ${toolError.message}\n`,
+                                toolCall: activeCall
+                            };
                         }
 
                         toolResults.push({
                             type: 'tool_result',
                             tool_use_id: toolUse.id,
-                            content: [{
-                                type: 'text',
-                                text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
-                            }],
+                            content: `Error: ${toolError.message}`,
                             is_error: true
                         });
-
-                        yield {
-                            type: 'tool_error',
-                            content: `❌ ${toolUse.name} failed: ${error instanceof Error ? error.message : 'Unknown error'}\n`,
-                            toolCall: activeCall
-                        };
                     }
                 }
 
-                // Add tool results message
+                // Only add messages if we have content
+                if (assistantContent.length > 0) {
+                    messages.push({
+                        role: 'assistant',
+                        content: assistantContent
+                    });
+                }
+
                 if (toolResults.length > 0) {
                     messages.push({
                         role: 'user',
                         content: toolResults
                     });
+                } else {
+                    // If no tool results, break to avoid infinite loop
+                    break;
                 }
 
+                // Clear tool indicator and continue
                 yield {
                     type: 'text',
                     content: `\n`
@@ -475,16 +459,23 @@ export class ChatService {
         for (const msg of chatHistory) {
             messages.push({
                 role: msg.sender === 'user' ? 'user' : 'assistant',
-                content: [{ type: 'text', text: msg.content }]
+                content: msg.content
             });
         }
 
         // Add current message
         messages.push({
             role: 'user',
-            content: [{ type: 'text', text: currentMessage }]
+            content: currentMessage
         });
+
+        // Claude API has limits, so keep only recent messages if too many
+        const MAX_MESSAGES = 25;
+        if (messages.length > MAX_MESSAGES) {
+            return messages.slice(-MAX_MESSAGES);
+        }
 
         return messages;
     }
+ 
 }
