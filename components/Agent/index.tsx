@@ -20,7 +20,7 @@ enum Modal {
 
 const Agent = ({ agentId }: any) => {
 
-    const { getAgent } = useDatabase()
+    // const { getAgent } = useDatabase()
 
     const [agent, setAgent] = useState<any>()
 
@@ -35,9 +35,9 @@ const Agent = ({ agentId }: any) => {
 
     const { modal, loading, tick } = values
 
-    useEffect(() => {
-        agentId && getAgent(agentId).then(setAgent)
-    }, [agentId, tick])
+    // useEffect(() => {
+    //     agentId && getAgent(agentId).then(setAgent)
+    // }, [agentId, tick])
 
     const increaseTick = useCallback(() => {
         dispatch({ tick: tick + 1 })

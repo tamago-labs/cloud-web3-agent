@@ -21,7 +21,7 @@ const NewAgent = () => {
 
     const [checkMarketplaceModal, setMarketplaceModal] = useState<boolean>(true)
 
-    const { listAgents } = useDatabase()
+    // const { listAgents } = useDatabase()
 
     const router = useRouter()
 
@@ -42,16 +42,16 @@ const NewAgent = () => {
         }
     )
 
-    useEffect(() => {
-        if (profile && profile.id) {
-            listAgents(profile.id).then(
-                (agents) => {
-                    const total = agents.length
-                    dispatch({ agentName: `My Agent #${total + 1}` })
-                }
-            )
-        }
-    }, [profile])
+    // useEffect(() => {
+    //     if (profile && profile.id) {
+    //         listAgents(profile.id).then(
+    //             (agents) => {
+    //                 const total = agents.length
+    //                 dispatch({ agentName: `My Agent #${total + 1}` })
+    //             }
+    //         )
+    //     }
+    // }, [profile])
 
     const { agentName, selectedBlockchain, selectedSDK, errorMessage, loading, modal } = values
 

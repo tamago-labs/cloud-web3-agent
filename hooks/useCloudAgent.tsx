@@ -13,7 +13,7 @@ type Props = {
 
 const Provider = ({ children }: Props) => {
 
-    const { getProfile } = useDatabase()
+    // const { getProfile } = useDatabase()
 
     const [values, dispatch] = useReducer(
         (curVal: any, newVal: any) => ({ ...curVal, ...newVal }),
@@ -26,13 +26,13 @@ const Provider = ({ children }: Props) => {
 
     const loadProfile = useCallback((userId: string) => {
 
-        getProfile(userId).then(
-            (profile: any) => {
-                dispatch({
-                    profile
-                })
-            }
-        )
+        // getProfile(userId).then(
+        //     (profile: any) => {
+        //         dispatch({
+        //             profile
+        //         })
+        //     }
+        // )
 
     }, [])
 

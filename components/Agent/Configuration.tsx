@@ -27,7 +27,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
 
     // const [{ data, isLoading, hasError }, promptEnhance] = useAIGeneration("PromptEnhance");
 
-    const { addToMarketplace, updateAgent, setAgentActive, saveAgentAutomation, saveMarketplace } = useDatabase()
+    // const { addToMarketplace, updateAgent, setAgentActive, saveAgentAutomation, saveMarketplace } = useDatabase()
 
     const [values, dispatch] = useReducer(
         (curVal: any, newVal: any) => ({ ...curVal, ...newVal }),
@@ -110,15 +110,15 @@ const Configuration = ({ agent, increaseTick }: any) => {
     }, [agent])
 
     const onStart = useCallback(async () => {
-        await setAgentActive(agent.id, true)
-        increaseTick()
-        dispatch({ modal: "Agent started successfully" })
+        // await setAgentActive(agent.id, true)
+        // increaseTick()
+        // dispatch({ modal: "Agent started successfully" })
     }, [agent, increaseTick])
 
     const onPause = useCallback(async () => {
-        await setAgentActive(agent.id, false)
-        increaseTick()
-        dispatch({ modal: "Agent paused successfully" })
+        // await setAgentActive(agent.id, false)
+        // increaseTick()
+        // dispatch({ modal: "Agent paused successfully" })
     }, [agent, increaseTick])
 
     const onUpdate = useCallback(async () => {
@@ -126,7 +126,7 @@ const Configuration = ({ agent, increaseTick }: any) => {
             return
         }
 
-        await updateAgent(agent.id, agentName, isTestnet, subnetwork)
+        // await updateAgent(agent.id, agentName, isTestnet, subnetwork)
 
         increaseTick()
         dispatch({ modal: "Saved successfully" })
@@ -152,14 +152,14 @@ const Configuration = ({ agent, increaseTick }: any) => {
         }
 
         try {
-            await saveAgentAutomation({
-                agentId: agent.id,
-                promptInput,
-                promptDecision,
-                promptExecute,
-                schedule
-            })
-            dispatch({ modal: "Saved successfully" })
+            // await saveAgentAutomation({
+            //     agentId: agent.id,
+            //     promptInput,
+            //     promptDecision,
+            //     promptExecute,
+            //     schedule
+            // })
+            // dispatch({ modal: "Saved successfully" })
             increaseTick()
         } catch (e: any) {
             console.log(e)
@@ -188,15 +188,15 @@ const Configuration = ({ agent, increaseTick }: any) => {
 
         try {
 
-            await addToMarketplace({
-                agentId: agent.id,
-                publicName: listing.publicName,
-                description: listing.description,
-                category: listing.category,
-                price: listing.price,
-                blockchain: agent.blockchain,
-                sdkType: agent.sdkType
-            })
+            // await addToMarketplace({
+            //     agentId: agent.id,
+            //     publicName: listing.publicName,
+            //     description: listing.description,
+            //     category: listing.category,
+            //     price: listing.price,
+            //     blockchain: agent.blockchain,
+            //     sdkType: agent.sdkType
+            // })
 
             dispatch({ modal: "Your submission is being reviewed" })
             increaseTick()
@@ -228,14 +228,14 @@ const Configuration = ({ agent, increaseTick }: any) => {
 
         try {
 
-            await saveMarketplace({
-                listingId: listing.listingId,
-                publicName: listing.publicName,
-                description: listing.description,
-                category: listing.category,
-                price: listing.price,
-                isHidden: listing.isHidden
-            })
+            // await saveMarketplace({
+            //     listingId: listing.listingId,
+            //     publicName: listing.publicName,
+            //     description: listing.description,
+            //     category: listing.category,
+            //     price: listing.price,
+            //     isHidden: listing.isHidden
+            // })
 
             dispatch({ modal: "Your entry has been updated" })
             increaseTick()

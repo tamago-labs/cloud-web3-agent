@@ -18,14 +18,14 @@ const Marketplace = () => {
 
     const { profile } = useContext(CloudAgentContext)
 
-    const { listMarketplace } = useDatabase()
+    // const { listMarketplace } = useDatabase()
     const [items, setItems] = useState<any>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [modal, setModal] = useState<boolean>(false)
 
-    useEffect(() => {
-        listMarketplace().then(setItems)
-    }, [])
+    // useEffect(() => {
+    //     listMarketplace().then(setItems)
+    // }, [])
 
     const onDeploy = useCallback(async (item: any) => {
 
