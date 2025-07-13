@@ -139,7 +139,7 @@ const GeneratedArtifacts = () => {
 
     const ProfessionalChart = ({ data, chartType, trend }: { data: any[], chartType: string, trend: string }) => {
         const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
-        
+
         if (chartType === 'pie') {
             return (
                 <div className="h-48 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
@@ -158,7 +158,7 @@ const GeneratedArtifacts = () => {
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                             </Pie>
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: any) => [`${value}%`, 'Share']}
                                 contentStyle={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -167,8 +167,8 @@ const GeneratedArtifacts = () => {
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                 }}
                             />
-                            <Legend 
-                                verticalAlign="bottom" 
+                            <Legend
+                                verticalAlign="bottom"
                                 height={36}
                                 fontSize={12}
                                 wrapperStyle={{ paddingTop: '10px' }}
@@ -197,7 +197,7 @@ const GeneratedArtifacts = () => {
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                             </Pie>
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: any) => [`${value}%`, 'Share']}
                                 contentStyle={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -206,8 +206,8 @@ const GeneratedArtifacts = () => {
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                 }}
                             />
-                            <Legend 
-                                verticalAlign="bottom" 
+                            <Legend
+                                verticalAlign="bottom"
                                 height={36}
                                 fontSize={12}
                                 wrapperStyle={{ paddingTop: '10px' }}
@@ -223,19 +223,19 @@ const GeneratedArtifacts = () => {
                 <div className="h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
                     <ResponsiveContainer width="100%" height="100%">
                         <RechartsBar data={data}>
-                            <XAxis 
-                                dataKey="name" 
+                            <XAxis
+                                dataKey="name"
                                 fontSize={12}
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <YAxis 
+                            <YAxis
                                 fontSize={12}
                                 axisLine={false}
                                 tickLine={false}
                                 tickFormatter={(value) => `$${value}B`}
                             />
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: any) => [`$${value}B`, 'TVL']}
                                 contentStyle={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -244,9 +244,9 @@ const GeneratedArtifacts = () => {
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                 }}
                             />
-                            <Bar 
-                                dataKey="value" 
-                                fill="#3B82F6" 
+                            <Bar
+                                dataKey="value"
+                                fill="#3B82F6"
                                 radius={[4, 4, 0, 0]}
                             />
                         </RechartsBar>
@@ -262,23 +262,23 @@ const GeneratedArtifacts = () => {
                         <AreaChart data={data}>
                             <defs>
                                 <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={trendColor} stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor={trendColor} stopOpacity={0.1}/>
+                                    <stop offset="5%" stopColor={trendColor} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={trendColor} stopOpacity={0.1} />
                                 </linearGradient>
                             </defs>
-                            <XAxis 
-                                dataKey="time" 
+                            <XAxis
+                                dataKey="time"
                                 fontSize={12}
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <YAxis 
+                            <YAxis
                                 fontSize={12}
                                 axisLine={false}
                                 tickLine={false}
                                 tickFormatter={(value) => `${value} gwei`}
                             />
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: any) => [`${value} gwei`, 'Gas Price']}
                                 contentStyle={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -305,27 +305,27 @@ const GeneratedArtifacts = () => {
             return (
                 <div className="h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBar 
-                            data={data} 
+                        <RechartsBar
+                            data={data}
                             layout="horizontal"
                             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                         >
-                            <XAxis 
-                                type="number" 
+                            <XAxis
+                                type="number"
                                 fontSize={12}
                                 axisLine={false}
                                 tickLine={false}
                                 tickFormatter={(value) => `$${value}M`}
                             />
-                            <YAxis 
-                                type="category" 
-                                dataKey="name" 
+                            <YAxis
+                                type="category"
+                                dataKey="name"
                                 fontSize={10}
                                 axisLine={false}
                                 tickLine={false}
                                 width={80}
                             />
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: any) => [`$${value}M`, 'Volume']}
                                 contentStyle={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -334,9 +334,9 @@ const GeneratedArtifacts = () => {
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                 }}
                             />
-                            <Bar 
-                                dataKey="value" 
-                                fill="#8B5CF6" 
+                            <Bar
+                                dataKey="value"
+                                fill="#8B5CF6"
                                 radius={[0, 4, 4, 0]}
                             />
                         </RechartsBar>
@@ -350,18 +350,18 @@ const GeneratedArtifacts = () => {
             <div className="h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data}>
-                        <XAxis 
-                            dataKey="time" 
+                        <XAxis
+                            dataKey="time"
                             fontSize={12}
                             axisLine={false}
                             tickLine={false}
                         />
-                        <YAxis 
+                        <YAxis
                             fontSize={12}
                             axisLine={false}
                             tickLine={false}
                         />
-                        <Tooltip 
+                        <Tooltip
                             contentStyle={{
                                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                 border: '1px solid #e5e7eb',
@@ -369,11 +369,11 @@ const GeneratedArtifacts = () => {
                                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                             }}
                         />
-                        <Line 
-                            type="monotone" 
-                            dataKey="value" 
-                            stroke={trendColor} 
-                            strokeWidth={3} 
+                        <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke={trendColor}
+                            strokeWidth={3}
                             dot={{ fill: trendColor, strokeWidth: 2, r: 4 }}
                             activeDot={{ r: 6 }}
                         />
@@ -403,8 +403,8 @@ const GeneratedArtifacts = () => {
                             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group">
                                 {/* Chart - Prominent Display */}
                                 <div className="p-4">
-                                    <ProfessionalChart 
-                                        data={artifact.chart} 
+                                    <ProfessionalChart
+                                        data={artifact.chart}
                                         chartType={artifact.chartType}
                                         trend={artifact.trend}
                                     />
@@ -430,14 +430,13 @@ const GeneratedArtifacts = () => {
                                             <div className="text-2xl font-bold text-gray-900">
                                                 {artifact.currentValue}
                                             </div>
-                                            <div className={`text-sm font-medium flex items-center gap-1 ${
-                                                artifact.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                                            }`}>
+                                            <div className={`text-sm font-medium flex items-center gap-1 ${artifact.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                                                }`}>
                                                 {artifact.trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                                                 {artifact.change}
                                             </div>
                                         </div>
-                                        
+
                                         {/* Stats */}
                                         <div className="text-right">
                                             <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -471,7 +470,7 @@ const GeneratedArtifacts = () => {
 
                 <div className="text-center mt-12">
                     <Link href="/discover" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium">
-                    Discover All Analytics
+                        Discover All Analytics
                         <ArrowUpRight className="w-4 h-4" />
                     </Link>
                 </div>

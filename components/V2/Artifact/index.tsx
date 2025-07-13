@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, TrendingDown, ArrowLeft, Heart, Share2, Download, Play, ExternalLink, Copy, Eye, Calendar, User, Code, RefreshCw, ChevronDown, FileText } from 'lucide-react';
 import Link from "next/link";
 import Header from "../Landing/Header"
+import ComingSoonModal from "@/components/modals/ComingSoonModal";
 
 const ArtifactContainer = ({ artifactId }: any) => {
 
@@ -11,6 +12,16 @@ const ArtifactContainer = ({ artifactId }: any) => {
     const [isFavorited, setIsFavorited] = useState(false);
     const [timeRange, setTimeRange] = useState('7d');
     const [artifactData, setArtifactData] = useState<any>(undefined)
+    const [showModal, setShowModal] = useState(false);
+
+    useEffect(() => {
+        // Show modal after 1 second on component mount
+        const timer = setTimeout(() => {
+            setShowModal(true);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     // Mock data - in real app, this would come from API
     const mockArtifacts: any = {
@@ -519,6 +530,12 @@ const ArtifactContainer = ({ artifactId }: any) => {
                     </div>
                 )}
             </div>
+
+            {/* Coming Soon Modal */}
+            <ComingSoonModal 
+                isOpen={showModal} 
+                onClose={() => setShowModal(false)} 
+            />
         </>
     );
 };

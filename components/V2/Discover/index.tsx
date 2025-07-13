@@ -1,16 +1,27 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, TrendingUp, TrendingDown, Eye, Heart, ArrowUpRight } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 import * as d3 from 'd3';
 import Link from "next/link";
 import Header from "../Landing/Header"
+import ComingSoonModal from "@/components/modals/ComingSoonModal";
 
 const DiscoverContainer = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [sortBy, setSortBy] = useState('Popular');
+    const [showModal, setShowModal] = useState(false);
+
+    useEffect(() => {
+        // Show modal after 1 second on component mount
+        const timer = setTimeout(() => {
+            setShowModal(true);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     const artifacts = [
         {
@@ -502,8 +513,8 @@ const DiscoverContainer = () => {
                                     key={category}
                                     onClick={() => setCategoryFilter(category)}
                                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${category === categoryFilter
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
                                         }`}
                                 >
                                     {category}
@@ -534,7 +545,7 @@ const DiscoverContainer = () => {
                     {/* Analytics Grid - 2 columns */}
                     <div className="grid md:grid-cols-2 gap-8">
                         {sortedArtifacts.map((artifact) => (
-                            <Link key={artifact.id} href={`/artifact/${artifact.id}`}>
+                            <div key={artifact.id} onClick={() => setShowModal(true)}>
                                 <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group">
                                     {/* Chart */}
                                     <div className="p-4">
@@ -589,7 +600,7 @@ const DiscoverContainer = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </div>
 
@@ -613,6 +624,12 @@ const DiscoverContainer = () => {
                     )}
                 </div>
             </div>
+
+            {/* Coming Soon Modal */}
+            <ComingSoonModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+            />
         </>
     );
 };

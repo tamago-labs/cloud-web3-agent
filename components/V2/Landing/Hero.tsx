@@ -5,6 +5,15 @@ import { BookOpen, Cpu, Code, Zap, Cloud, Database, Key, Puzzle, Infinity, FileJ
 import Link from "next/link"
 
 const Hero = () => {
+
+    const [heroType, setHeroType] = useState(1);
+
+    useEffect(() => {
+        const currentDomain = window.location.origin
+        setHeroType(currentDomain.includes("tamagolabs.com") ? 1 : 2); // or window.location.hostname
+    }, []);
+
+
     return (
         <>
             <div className="absolute inset-0 z-0">
@@ -22,16 +31,35 @@ const Hero = () => {
                             </span>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Dune Analytics via Chat<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                                No SQL Required
-                            </span>
-                        </h1>
+                        {heroType === 1 && (
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                                Chat with AI for<br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                                    Web3 Insight
+                                </span>
+                            </h1>
+                        )}
+                        {heroType === 2 && (
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                                Dune Analytics via Chat<br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                                    No SQL Required
+                                </span>
+                            </h1>
+                        )}
 
-                        <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
-                            Ask questions like <strong>"Show Aave TVL"</strong> or <strong>"Track Vitalik’s wallet"</strong> and get real-time blockchain charts and analytics instantly. No SQL, no setup — just chat, powered by various MCP servers.
-                        </p>
+                        {heroType === 1 && (
+                            <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
+                                Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
+                            </p>
+                        )}
+
+                        {heroType === 2 && (
+                            <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
+                                Ask questions like <strong>"Show Aave TVL"</strong> or <strong>"Track Vitalik’s wallet"</strong> and get real-time blockchain charts and analytics instantly. No SQL, no setup — just chat, powered by various MCP servers.
+                            </p>
+                        )}
+
 
                         <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">
                             <Link href="/discover" className="px-2 md:px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">

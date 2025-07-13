@@ -10,7 +10,7 @@ const Header = ({ bgColor }: any) => {
 
     const { profile } = useContext(AccountContext)
 
-    const [currentDomain, setCurrentDomain] = useState('bohdi_tree');
+    const [currentDomain, setCurrentDomain] = useState('tamago_labs');
 
     useEffect(() => {
         const currentDomain = window.location.origin
