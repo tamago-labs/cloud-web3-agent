@@ -4,8 +4,7 @@ const schema = a.schema({
   User: a
     .model({
       username: a.string().required(),
-      role: a.enum(["USER", "MANAGER", "ADMIN"]),
-      agents: a.hasMany('Agent', "userId"),
+      role: a.enum(["USER", "MANAGER", "ADMIN"]), 
       displayName: a.string(),
       credits: a.float(),
       creditsUsed: a.float(),
