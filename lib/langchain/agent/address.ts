@@ -1,20 +1,20 @@
-import { Tool } from "@langchain/core/tools"
-import type { CronosAgent } from "../../agent"
+// import { Tool } from "@langchain/core/tools"
+// import type { CronosAgent } from "../../agent"
 
-export class GetAgentAddressTool extends Tool {
+// export class GetAgentAddressTool extends Tool {
 
-    cronosAgent: CronosAgent
+//     cronosAgent: CronosAgent
 
-    name = "cronos_get_wallet_address";
-    description = `Get the wallet address of the agent`;
+//     name = "cronos_get_wallet_address";
+//     description = `Get the wallet address of the agent`;
 
-    constructor(cronosAgent: CronosAgent) {
-        super();
-        this.cronosAgent = cronosAgent
-    }
+//     constructor(cronosAgent: CronosAgent) {
+//         super();
+//         this.cronosAgent = cronosAgent
+//     }
 
-    async _call(_input: string): Promise<string> {
-        return this.cronosAgent.getAgentAddress()
-    }
+//     async _call(_input: string): Promise<string> {
+//         return this.cronosAgent.getAgentAddress()
+//     }
 
-}
+// }
