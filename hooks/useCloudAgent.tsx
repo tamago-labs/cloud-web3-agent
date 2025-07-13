@@ -40,27 +40,29 @@ const Provider = ({ children }: Props) => {
 
         console.log("querying...", agentId, messages)
 
-        const result: any = await client.queries.AgentChat({
-            agentId,
-            messages: JSON.stringify(messages)
-        })
+        // const result: any = await client.queries.AgentChat({
+        //     agentId,
+        //     messages: JSON.stringify(messages)
+        // })
 
-        console.log("result:", result, (new Date().toLocaleString()))
+        // console.log("result:", result, (new Date().toLocaleString()))
 
-        return JSON.parse(result.data)
+        // return JSON.parse(result.data)
+        return {}
     }
 
     const queryCronos = async (agentId: string, messages: any) => {
-        console.log("querying...", agentId, messages)
+        // console.log("querying...", agentId, messages)
 
-        const result: any = await client.queries.AgentCronos({
-            agentId,
-            messages: JSON.stringify(messages)
-        })
+        // const result: any = await client.queries.AgentCronos({
+        //     agentId,
+        //     messages: JSON.stringify(messages)
+        // })
 
-        console.log("result:", result, (new Date().toLocaleString()))
+        // console.log("result:", result, (new Date().toLocaleString()))
 
-        return JSON.parse(result.data)
+        // return JSON.parse(result.data)
+        return {}
     }
 
     const cloudAgentContext: any = useMemo(

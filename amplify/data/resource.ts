@@ -217,8 +217,8 @@ const schema = a.schema({
 }).authorization((allow) => [
   allow.resource(createAgent),
   allow.resource(deployAgent),
-  allow.resource(agentChat),
-  allow.resource(agentCronos),
+  // allow.resource(agentChat),
+  // allow.resource(agentCronos),
   allow.resource(scheduler)
 ]);
 
