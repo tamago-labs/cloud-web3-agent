@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useState, useContext, useMemo } from 'react';
-import { Database, Download, Globe, Star, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
+import { Database, Download, Globe, ArrowUpRight, ArrowRight, Zap, Code, BarChart3, Wallet, DollarSign, Shield, Layers } from 'lucide-react';
 import Link from "next/link";
 import ServerCard, { ServerCardSkeleton } from "../ServerCard"
 import { ServerContext } from '@/contexts/server';
@@ -96,7 +96,7 @@ const OnlineHostedServers = () => {
                 <div className="text-center mt-12">
                     <Link href="/browse" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium">
                         View All MCP Servers
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowUpRight className="w-4 h-4" />
                     </Link>
                 </div>
             </div>

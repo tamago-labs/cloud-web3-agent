@@ -392,7 +392,7 @@ const GeneratedArtifacts = () => {
                         Community Analytics
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Discover real-time Web3 insights with professional visualizations
+                        Discover insights created through conversation made by the community
                     </p>
                 </div>
 
@@ -462,10 +462,17 @@ const GeneratedArtifacts = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="text-center">
+                {/* <div className="text-center">
                     <Link href="/discover" className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium text-lg">
                         Discover All Analytics
                         <ArrowUpRight className="w-5 h-5" />
+                    </Link>
+                </div> */}
+
+                <div className="text-center mt-12">
+                    <Link href="/discover" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium">
+                    Discover All Analytics
+                        <ArrowUpRight className="w-4 h-4" />
                     </Link>
                 </div>
             </div>
