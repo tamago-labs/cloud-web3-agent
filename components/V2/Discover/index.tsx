@@ -1,12 +1,17 @@
 "use client"
 
-import React from 'react';
-import { TrendingUp, TrendingDown, Eye, Heart, ArrowUpRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, TrendingUp, TrendingDown, Eye, Heart, ArrowUpRight } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 import * as d3 from 'd3';
 import Link from "next/link";
+import Header from "../Landing/Header"
 
-const GeneratedArtifacts = () => {
+const DiscoverContainer = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('All');
+    const [sortBy, setSortBy] = useState('Popular');
+
     const artifacts = [
         {
             id: 1,
@@ -14,6 +19,7 @@ const GeneratedArtifacts = () => {
             description: "Distribution of top 10 tokens in Ethereum wallets",
             author: "defi_analyst",
             timeAgo: "2h",
+            category: "Portfolio Analytics",
             currentValue: "$847.2B",
             change: "+12.4%",
             trend: "up",
@@ -35,6 +41,7 @@ const GeneratedArtifacts = () => {
             description: "Total Value Locked across major DeFi protocols",
             author: "tvl_tracker",
             timeAgo: "1h",
+            category: "DeFi Analytics",
             currentValue: "$52.8B",
             change: "+8.7%",
             trend: "up",
@@ -56,6 +63,7 @@ const GeneratedArtifacts = () => {
             description: "Hash rate distribution among mining pools",
             author: "btc_miner",
             timeAgo: "30min",
+            category: "Bitcoin Analytics",
             currentValue: "421 EH/s",
             change: "+3.2%",
             trend: "up",
@@ -77,6 +85,7 @@ const GeneratedArtifacts = () => {
             description: "Ethereum gas price fluctuations over the past week",
             author: "gas_tracker",
             timeAgo: "15min",
+            category: "Gas Analytics",
             currentValue: "23.4 gwei",
             change: "-15.2%",
             trend: "down",
@@ -99,6 +108,7 @@ const GeneratedArtifacts = () => {
             description: "24h volume across major blockchain bridges",
             author: "bridge_monitor",
             timeAgo: "3h",
+            category: "Cross-Chain Analytics",
             currentValue: "$1.2B",
             change: "+24.8%",
             trend: "up",
@@ -120,6 +130,7 @@ const GeneratedArtifacts = () => {
             description: "NFT market capitalization distribution across blockchains",
             author: "nft_analyst",
             timeAgo: "4h",
+            category: "NFT Analytics",
             currentValue: "$12.8B",
             change: "+18.5%",
             trend: "up",
@@ -134,8 +145,74 @@ const GeneratedArtifacts = () => {
             ],
             views: 1789,
             likes: 456
+        },
+        {
+            id: 7,
+            title: "Aptos DeFi Pool Analytics",
+            description: "Liquidity pool performance on Aptos ecosystem",
+            author: "aptos_explorer",
+            timeAgo: "5h",
+            category: "Aptos Analytics",
+            currentValue: "$420M",
+            change: "+22.1%",
+            trend: "up",
+            chartType: "bar",
+            chart: [
+                { name: "PancakeSwap", value: 89.4 },
+                { name: "Liquidswap", value: 156.8 },
+                { name: "Thala", value: 98.2 },
+                { name: "Aries Markets", value: 45.7 },
+                { name: "Hippo", value: 29.9 }
+            ],
+            views: 756,
+            likes: 189
+        },
+        {
+            id: 8,
+            title: "Whale Wallet Activity (24h)",
+            description: "Large transaction movements tracked across networks",
+            author: "whale_watcher",
+            timeAgo: "1h",
+            category: "Whale Analytics",
+            currentValue: "$2.8B",
+            change: "+35.4%",
+            trend: "up",
+            chartType: "area",
+            chart: [
+                { time: "00:00", price: 1.2 },
+                { time: "04:00", price: 1.8 },
+                { time: "08:00", price: 2.1 },
+                { time: "12:00", price: 2.6 },
+                { time: "16:00", price: 2.9 },
+                { time: "20:00", price: 2.5 },
+                { time: "24:00", price: 2.8 }
+            ],
+            views: 3421,
+            likes: 678
         }
     ];
+
+    const categories = ["All", "Portfolio Analytics", "DeFi Analytics", "Gas Analytics", "Bitcoin Analytics", "NFT Analytics", "Cross-Chain Analytics", "Aptos Analytics", "Whale Analytics"];
+
+    const filteredArtifacts = artifacts.filter(artifact => {
+        const matchesSearch = artifact.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            artifact.description.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = categoryFilter === 'All' || artifact.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+    });
+
+    const sortedArtifacts = [...filteredArtifacts].sort((a, b) => {
+        switch (sortBy) {
+            case 'Popular':
+                return b.views - a.views;
+            case 'Recent':
+                return 0;
+            case 'Liked':
+                return b.likes - a.likes;
+            default:
+                return 0;
+        }
+    });
 
     const ProfessionalChart = ({ data, chartType, trend }: { data: any[], chartType: string, trend: string }) => {
         const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
@@ -384,93 +461,162 @@ const GeneratedArtifacts = () => {
     };
 
     return (
-        <div className="py-20 bg-white relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                        Community Analytics
-                    </h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Discover real-time Web3 insights with professional visualizations
-                    </p>
-                </div>
-
-                {/* Artifacts Grid - 2 columns */}
-                <div className="grid md:grid-cols-2 gap-8 mb-16">
-                    {artifacts.map((artifact) => (
-                        <Link key={artifact.id} href={`/artifact/${artifact.id}`}>
-                            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group">
-                                {/* Chart - Prominent Display */}
-                                <div className="p-4">
-                                    <ProfessionalChart 
-                                        data={artifact.chart} 
-                                        chartType={artifact.chartType}
-                                        trend={artifact.trend}
+        <>
+            <Header bgColor="bg-white" />
+            <div className="min-h-screen bg-gray-50">
+                {/* Hero Section */}
+                <div className="bg-white border-b border-gray-200">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                        <div className="text-center">
+                            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                                Discover Community Analytics
+                            </h1>
+                            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+                                Explore real-time Web3 insights with professional visualizations
+                            </p>
+                            
+                            {/* Search Bar */}
+                            <div className="max-w-2xl mx-auto relative">
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search analytics..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                                     />
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                                {/* Content */}
-                                <div className="p-6 pt-2">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex-1">
-                                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
-                                                {artifact.title}
-                                            </h3>
-                                            <p className="text-gray-600 text-sm leading-relaxed">
-                                                {artifact.description}
-                                            </p>
-                                        </div>
-                                        <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors ml-3 flex-shrink-0" />
+                {/* Content */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Filters */}
+                    <div className="flex flex-col md:flex-row gap-4 mb-8">
+                        <div className="flex flex-wrap gap-2">
+                            {categories.map((category) => (
+                                <button
+                                    key={category}
+                                    onClick={() => setCategoryFilter(category)}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                        category === categoryFilter
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                                    }`}
+                                >
+                                    {category}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        <div className="md:ml-auto">
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700"
+                            >
+                                <option value="Popular">Most Popular</option>
+                                <option value="Recent">Most Recent</option>
+                                <option value="Liked">Most Liked</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Results */}
+                    <div className="mb-6">
+                        <p className="text-gray-600">
+                            {sortedArtifacts.length} analytics found
+                        </p>
+                    </div>
+
+                    {/* Analytics Grid - 2 columns */}
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {sortedArtifacts.map((artifact) => (
+                            <Link key={artifact.id} href={`/artifact/${artifact.id}`}>
+                                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group">
+                                    {/* Chart */}
+                                    <div className="p-4">
+                                        <ProfessionalChart 
+                                            data={artifact.chart} 
+                                            chartType={artifact.chartType}
+                                            trend={artifact.trend}
+                                        />
                                     </div>
 
-                                    {/* Value & Change */}
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-900">
-                                                {artifact.currentValue}
+                                    {/* Content */}
+                                    <div className="p-6 pt-2">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                                                    {artifact.title}
+                                                </h3>
+                                                <p className="text-gray-600 text-sm">
+                                                    {artifact.description}
+                                                </p>
                                             </div>
-                                            <div className={`text-sm font-medium flex items-center gap-1 ${
-                                                artifact.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                                            }`}>
-                                                {artifact.trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                                                {artifact.change}
-                                            </div>
+                                            <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors ml-3 flex-shrink-0" />
                                         </div>
-                                        
-                                        {/* Stats */}
-                                        <div className="text-right">
-                                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                                                <span className="flex items-center gap-1">
-                                                    <Heart className="w-4 h-4" />
-                                                    {artifact.likes}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Eye className="w-4 h-4" />
-                                                    {artifact.views}
-                                                </span>
+
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="text-2xl font-bold text-gray-900">
+                                                    {artifact.currentValue}
+                                                </div>
+                                                <div className={`text-sm font-medium flex items-center gap-1 ${
+                                                    artifact.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                                                }`}>
+                                                    {artifact.trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                                                    {artifact.change}
+                                                </div>
                                             </div>
-                                            <div className="text-xs text-gray-400 mt-1">
-                                                by {artifact.author} • {artifact.timeAgo}
+                                            
+                                            <div className="text-right">
+                                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                                    <span className="flex items-center gap-1">
+                                                        <Heart className="w-4 h-4" />
+                                                        {artifact.likes}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Eye className="w-4 h-4" />
+                                                        {artifact.views}
+                                                    </span>
+                                                </div>
+                                                <div className="text-xs text-gray-400 mt-1">
+                                                    by {artifact.author} • {artifact.timeAgo}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
+                            </Link>
+                        ))}
+                    </div>
 
-                {/* CTA */}
-                <div className="text-center">
-                    <Link href="/discover" className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium text-lg">
-                        Discover All Analytics
-                        <ArrowUpRight className="w-5 h-5" />
-                    </Link>
+                    {/* No Results */}
+                    {sortedArtifacts.length === 0 && (
+                        <div className="text-center py-12">
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No analytics found</h3>
+                            <p className="text-gray-600 mb-6">
+                                Try adjusting your search or filters.
+                            </p>
+                            <button
+                                onClick={() => {
+                                    setSearchQuery('');
+                                    setCategoryFilter('All');
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Clear Filters
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
-export default GeneratedArtifacts
+export default DiscoverContainer
