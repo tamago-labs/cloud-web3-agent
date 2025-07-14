@@ -6,12 +6,12 @@ import Link from "next/link"
 
 const Hero = () => {
 
-    const [heroType, setHeroType] = useState(1);
+    const [heroType, setHeroType] = useState(2);
 
-    useEffect(() => {
-        const currentDomain = window.location.origin
-        setHeroType(currentDomain.includes("tamagolabs.com") ? 1 : 2); // or window.location.hostname
-    }, []);
+    // useEffect(() => {
+    //     const currentDomain = window.location.origin
+    //     setHeroType(currentDomain.includes("tamagolabs.com") ? 1 : 2); // or window.location.hostname
+    // }, []);
 
 
     return (

@@ -1,5 +1,4 @@
 import { ChatService } from '@/lib/chat'
-import { getMCPClient } from '@/lib/mcp/railway-client';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -30,6 +29,8 @@ export async function POST(request: NextRequest) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
+                    console.log('Starting chat stream with config:', mcpConfig);
+
                     const chatGenerator = chatService.streamChat(
                         chatHistory,
                         currentMessage,
@@ -42,10 +43,12 @@ export async function POST(request: NextRequest) {
                             // Legacy string chunk support
                             const data = `data: ${JSON.stringify({ chunk })}\n\n`;
                             controller.enqueue(new TextEncoder().encode(data));
-                        } else if (chunk && typeof chunk === 'object') {
+                        } else if (chunk && typeof chunk === 'object' && 'type' in chunk) {
                             // Enhanced chunk with type and tool information
                             const data = `data: ${JSON.stringify({ chunk })}\n\n`;
                             controller.enqueue(new TextEncoder().encode(data));
+                        } else {
+                            console.log('Unknown chunk type:', chunk);
                         }
                     }
 
@@ -65,12 +68,14 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        // Return streaming response
+        // Return streaming response with proper SSE headers
         return new Response(stream, {
             headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
+                'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
             },
         });
 
