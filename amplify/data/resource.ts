@@ -8,9 +8,9 @@ const schema = a.schema({
 Look for numerical data in the conversation (balances, percentages, prices, amounts) and convert it to chart format.
 
 For example:
-- If you see "ETH: 4.78, USDC: 1200, BTC: 0.5" -> pie chart showing token distribution
-- If you see "Week 1: $100M, Week 2: $150M" -> line chart showing growth over time
-- If you see "Aave: $12B, Uniswap: $8B, Compound: $5B" -> bar chart showing protocol comparison
+- If you see ETH: 4.78, USDC: 1200, BTC: 0.5 → pie chart showing token distribution
+- If you see Week 1: $100M, Week 2: $150M → line chart showing growth over time
+- If you see Aave: $12B, Uniswap: $8B, Compound: $5B → bar chart showing protocol comparison
 
 Return the most important chart that represents the key finding from the data.`
   })
