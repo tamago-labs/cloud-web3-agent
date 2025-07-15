@@ -1,10 +1,38 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
 const schema = a.schema({
+  extractChartData: a.generation({
+    aiModel: a.ai.model('Claude 3.5 Sonnet'),
+    systemPrompt: `You are a data analyst that extracts chart data from Web3 conversation results.
+
+Look for numerical data in the conversation (balances, percentages, prices, amounts) and convert it to chart format.
+
+For example:
+- If you see "ETH: 4.78, USDC: 1200, BTC: 0.5" → pie chart showing token distribution
+- If you see "Week 1: $100M, Week 2: $150M" → line chart showing growth over time
+- If you see "Aave: $12B, Uniswap: $8B, Compound: $5B" → bar chart showing protocol comparison
+
+Return the most important chart that represents the key finding from the data.`
+  })
+    .arguments({
+      conversationText: a.string().required(),
+      toolResults: a.string().required()
+    })
+    .returns(
+      a.customType({
+        chartType: a.enum(['pie', 'bar', 'line', 'area']),
+        title: a.string().required(),
+        dataName: a.string().array().required(),
+        dataValue: a.float().array().required(),
+        totalValue: a.string(), // e.g. "$14,213"
+        change: a.string() // e.g. "+12.4%"
+      })
+    )
+    .authorization((allow) => allow.authenticated()),
   User: a
     .model({
       username: a.string().required(),
-      role: a.enum(["USER", "MANAGER", "ADMIN"]), 
+      role: a.enum(["USER", "MANAGER", "ADMIN"]),
       displayName: a.string(),
       credits: a.float(),
       creditsUsed: a.float(),
@@ -100,7 +128,7 @@ const schema = a.schema({
   }).authorization((allow) => [
     allow.owner()
   ])
-}).authorization((allow) => [ 
+}).authorization((allow) => [
   // allow.resource(scheduler)
 ]);
 
