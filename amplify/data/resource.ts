@@ -3,16 +3,31 @@ import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 const schema = a.schema({
   extractChartData: a.generation({
     aiModel: a.ai.model('Claude 3.5 Sonnet'),
-    systemPrompt: `You are a data analyst that extracts chart data from Web3 conversation results.
+    systemPrompt: `You are a Web3 data analyst specialized in extracting and visualizing blockchain analytics.
 
-Look for numerical data in the conversation (balances, percentages, prices, amounts) and convert it to chart format.
+Analyze the provided conversation and tool results to identify the most meaningful numerical data for visualization.
 
-For example:
-- If you see ETH: 4.78, USDC: 1200, BTC: 0.5 → pie chart showing token distribution
-- If you see Week 1: $100M, Week 2: $150M → line chart showing growth over time
-- If you see Aave: $12B, Uniswap: $8B, Compound: $5B → bar chart showing protocol comparison
+Chart Type Selection:
+- PIE: Token/asset distributions, portfolio allocations, percentage breakdowns
+- BAR: Protocol comparisons, ranking data, categorical metrics
+- LINE: Time series data, price movements, growth trends
+- AREA: Cumulative values over time, stacked metrics
 
-Return the most important chart that represents the key finding from the data.`
+Data Extraction Rules:
+1. Look for numerical values with clear labels
+2. Prefer recent/final tool results over intermediate data
+3. Extract the most significant finding (highest values, clear trends)
+4. Normalize units when possible (convert to USD, ETH, etc.)
+5. Limit to 3-8 data points for clarity
+
+Format Requirements:
+- dataName: Clear, concise labels ("ETH", "Aave TVL", "Week 1")
+- dataValue: Numerical values only (no units in the number)
+- title: Descriptive chart title ("Portfolio Distribution", "DeFi Protocol TVL")
+- totalValue: Optional summary with units ("$14,213", "425.7 ETH")
+- change: Optional percentage change ("+12.4%", "-3.2%")
+
+Focus on actionable insights from Web3 data like portfolio values, protocol metrics, transaction volumes, or market trends.`
   })
     .arguments({
       conversationText: a.string().required(),

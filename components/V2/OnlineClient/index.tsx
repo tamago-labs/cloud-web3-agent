@@ -11,6 +11,7 @@ const OnlineClientContainer = () => {
     const [leftPanelView, setLeftPanelView] = useState('conversations');
     const [refreshChatTrigger, setRefreshChatTrigger] = useState(0);
     const [refreshLeftPanelTrigger, setRefreshLeftPanelTrigger] = useState(0);
+    const [generatedCharts, setGeneratedCharts] = useState<any[]>([]);
 
     // Handle loading a conversation
     const handleLoadConversation = (conversationId: string) => {
@@ -50,9 +51,12 @@ const OnlineClientContainer = () => {
                     selectedConversation={selectedConversation}
                     onConversationCreated={handleConversationCreated}
                     refreshTrigger={refreshChatTrigger}
+                    onChartsGenerated={setGeneratedCharts}
                 />
                 
-                <RightPanel /> 
+                <RightPanel 
+                    artifacts={generatedCharts}
+                /> 
             </div> 
         </div>
     );
