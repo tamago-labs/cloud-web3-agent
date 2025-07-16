@@ -112,8 +112,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     userId: a.id().required(),
     user: a.belongsTo('User', "userId"),
     title: a.string(),
-    messages: a.hasMany("Message", "conversationId"),
-    artifacts: a.hasMany("Artifact", "conversationId")
+    messages: a.hasMany("Message", "conversationId")
   }).authorization((allow) => [
     allow.owner()
   ]),
@@ -149,9 +148,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
   Artifact: a.model({
     userId: a.id().required(),
     user: a.belongsTo('User', "userId"),
-    conversationId: a.id(),
-    conversation: a.belongsTo('Conversation', "conversationId"),
-    messageId: a.id(),
+    messageId: a.id().required(),
     message: a.belongsTo('Message', "messageId"),
     title: a.string().required(),
     description: a.string(),
