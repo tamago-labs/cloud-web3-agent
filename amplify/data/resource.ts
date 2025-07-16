@@ -56,6 +56,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
       servers: a.hasMany("Servers", "userId"),
       usageLogs: a.hasMany("UsageLogs", "userId"),
       conversations: a.hasMany("Conversation", "userId"),
+      artifacts: a.hasMany("Artifact", "userId"),
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
@@ -111,7 +112,8 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     userId: a.id().required(),
     user: a.belongsTo('User', "userId"),
     title: a.string(),
-    messages: a.hasMany("Message", "conversationId")
+    messages: a.hasMany("Message", "conversationId"),
+    artifacts: a.hasMany("Artifact", "conversationId")
   }).authorization((allow) => [
     allow.owner()
   ]),
@@ -124,7 +126,8 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     timestamp: a.datetime(),
     stopReason: a.string(),
     position: a.integer(), // If we can reorder
-    toolResults: a.hasMany("ToolResult", "messageId")
+    toolResults: a.hasMany("ToolResult", "messageId"),
+    artifacts: a.hasMany("Artifact", "messageId")
   }).authorization((allow) => [
     allow.owner()
   ]),
@@ -141,6 +144,31 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     duration: a.integer(),
     metadata: a.json()
   }).authorization((allow) => [
+    allow.owner()
+  ]),
+  Artifact: a.model({
+    userId: a.id().required(),
+    user: a.belongsTo('User', "userId"),
+    conversationId: a.id(),
+    conversation: a.belongsTo('Conversation', "conversationId"),
+    messageId: a.id(),
+    message: a.belongsTo('Message', "messageId"),
+    title: a.string().required(),
+    description: a.string(),
+    chartType: a.enum(['pie', 'bar', 'line', 'area', 'donut', 'horizontal_bar']),
+    data: a.json().required(), // Array of chart data points
+    totalValue: a.string(), // e.g. "$14,213", "425.7 ETH"
+    change: a.string(), // e.g. "+12.4%", "-3.2%"
+    category: a.string(), // e.g. "Portfolio Analytics", "DeFi Analytics"
+    tags: a.string().array(), // searchable tags
+    isPublic: a.boolean().default(false), // whether visible in discover page
+    likes: a.integer().default(0),
+    views: a.integer().default(0),
+    sourceData: a.json(), // original conversation data used to create chart
+    metadata: a.json() // additional metadata like colors, formatting, etc
+  }).authorization((allow) => [
+    allow.guest().to(["read"]),
+    allow.authenticated().to(["read"]),
     allow.owner()
   ])
 }).authorization((allow) => [
