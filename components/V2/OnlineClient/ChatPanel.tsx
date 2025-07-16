@@ -1,8 +1,8 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
-import { creditAPI, conversationAPI, messageAPI, toolResultAPI, enhancedMessageAPI, enhancedToolResultAPI } from '@/lib/api';
-import { X, Square, Trash2, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
+import { creditAPI, conversationAPI, messageAPI, toolResultAPI, enhancedMessageAPI, enhancedToolResultAPI, artifactAPI } from '@/lib/api';
+import { X, Square, Trash2, BarChart3 } from 'lucide-react';
 import { createAIHooks } from "@aws-amplify/ui-react-ai";
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 
@@ -17,6 +17,7 @@ import { ChatMessage, MCPStatus } from '../../mcp/types';
 
 import { generateClient } from "aws-amplify/api";
 import { Schema } from "../../../amplify/data/resource";
+import ArtifactSaveModal from './ArtifactSaveModal';
 
 const client = generateClient<Schema>({ authMode: "userPool" });
 const { useAIGeneration } = createAIHooks(client);
@@ -140,8 +141,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     // Analytics conversion state
     const [convertingToChart, setConvertingToChart] = useState<string | null>(null);
     const [generatedCharts, setGeneratedCharts] = useState<any[]>([]);
-    const [showChartModal, setShowChartModal] = useState(false);
-    const [chartResult, setChartResult] = useState<any>(null);
+    const [showArtifactModal, setShowArtifactModal] = useState(false);
+    const [editingArtifact, setEditingArtifact] = useState<any>(null);
+    const [isSavingArtifact, setIsSavingArtifact] = useState(false);
 
     // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -334,8 +336,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     // Convert message to analytics chart
     const handleConvertToAnalytics = async (messageId: string, content: string, toolResults?: any[]) => {
         setConvertingToChart(messageId);
-        setChartResult(null);
-        setShowChartModal(false);
+        setEditingArtifact(null);
+        setShowArtifactModal(false);
 
         try {
             console.log('Converting to analytics:', { messageId, content, toolResults });
@@ -368,10 +370,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
         } catch (error) {
             console.error('Failed to convert to analytics:', error);
-            setChartResult({
-                error: error instanceof Error ? error.message : 'Failed to create chart. Please try again.'
-            });
-            setShowChartModal(true);
+            alert(`Failed to create chart: ${error instanceof Error ? error.message : 'Failed to create chart. Please try again.'}`);
             setConvertingToChart(null);
         }
     };
@@ -436,32 +435,76 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     onChartsGenerated([aiChart, ...generatedCharts]);
                 }
 
-                // Show success in modal
-                setChartResult({
-                    success: true,
-                    chart: aiChart
+                // Prepare artifact data for the save modal
+                setEditingArtifact({
+                    title: aiChart.title,
+                    description: `Generated from AI conversation analysis`,
+                    chartType: aiChart.type,
+                    data: aiChart.data,
+                    totalValue: aiChart.totalValue,
+                    change: aiChart.change,
+                    category: 'Portfolio Analytics',
+                    tags: ['AI Generated', 'Conversation'],
+                    isPublic: false
                 });
-                setShowChartModal(true);
+                setShowArtifactModal(true);
 
             } catch (error) {
                 console.error('Error processing AI chart data:', error);
-                setChartResult({
-                    error: error instanceof Error ? error.message : 'Failed to process chart data'
-                });
-                setShowChartModal(true);
-            } finally {
+                alert(`Failed to create chart: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 setConvertingToChart(null);
             }
 
         } else if (hasError && convertingToChart) {
             console.error('AI Generation Error:', hasError);
-            setChartResult({
-                error: 'AI service error: Failed to extract chart data from the conversation.'
-            });
-            setShowChartModal(true);
+            alert('AI service error: Failed to extract chart data from the conversation.');
             setConvertingToChart(null);
         }
     }, [data, hasError, convertingToChart, onChartsGenerated]);
+
+    // Handle artifact save
+    const handleSaveArtifact = async (artifactData: any) => {
+        if (!profile?.id || !currentConversationId) return;
+
+        setIsSavingArtifact(true);
+        try {
+            // Find the latest assistant message for linking
+            const latestAssistantMessage = [...chatHistory].reverse().find(msg => msg.type === 'assistant');
+            
+            await artifactAPI.createArtifact({
+                userId: profile.id,
+                conversationId: currentConversationId,
+                messageId: latestAssistantMessage?.id,
+                title: artifactData.title,
+                description: artifactData.description,
+                chartType: artifactData.chartType,
+                data: artifactData.data,
+                totalValue: artifactData.totalValue,
+                change: artifactData.change,
+                category: artifactData.category,
+                tags: artifactData.tags,
+                isPublic: artifactData.isPublic,
+                sourceData: {
+                    conversationId: currentConversationId,
+                    messageId: latestAssistantMessage?.id,
+                    generatedAt: new Date().toISOString()
+                }
+            });
+
+            // Reset all conversion states
+            setConvertingToChart(null);
+            setEditingArtifact(null);
+            setShowArtifactModal(false);
+            
+            alert('Artifact saved successfully!');
+        } catch (error) {
+            console.error('Error saving artifact:', error);
+            alert('Failed to save artifact. Please try again.');
+            throw error;
+        } finally {
+            setIsSavingArtifact(false);
+        }
+    };
 
     // Loading Modal Component
     const LoadingModal = ({ isOpen, messageId }: { isOpen: boolean; messageId: string | null }) => {
@@ -488,119 +531,119 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     };
 
     // Chart Result Modal Component
-    const ChartResultModal = ({ result, isOpen, onClose }: { result: any; isOpen: boolean; onClose: () => void }) => {
-        if (!isOpen || !result) return null;
+    // const ChartResultModal = ({ result, isOpen, onClose }: { result: any; isOpen: boolean; onClose: () => void }) => {
+    //     if (!isOpen || !result) return null;
 
-        return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ zIndex: 9999 }}>
-                <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl transform transition-all duration-300 ease-out scale-100 opacity-100">
-                    {result?.success ? (
-                        <>
-                            {/* Success State */}
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle className="w-8 h-8 text-green-600" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    Chart Created Successfully!
-                                </h3>
-                                <p className="text-gray-600 mb-4">
-                                    "{result.chart?.title}" has been generated and added to your analytics.
-                                </p>
+    //     return (
+    //         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ zIndex: 9999 }}>
+    //             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl transform transition-all duration-300 ease-out scale-100 opacity-100">
+    //                 {result?.success ? (
+    //                     <>
+    //                         {/* Success State */}
+    //                         <div className="text-center">
+    //                             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    //                                 <CheckCircle className="w-8 h-8 text-green-600" />
+    //                             </div>
+    //                             <h3 className="text-xl font-bold text-gray-900 mb-2">
+    //                                 Chart Created Successfully!
+    //                             </h3>
+    //                             <p className="text-gray-600 mb-4">
+    //                                 "{result.chart?.title}" has been generated and added to your analytics.
+    //                             </p>
 
-                                {/* Chart Preview */}
-                                {result.chart && (
-                                    <div className="mb-6">
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <h4 className="text-lg font-semibold text-gray-900 mb-3">{result.chart.title}</h4>
-                                            <ProfessionalChart
-                                                data={result.chart.data}
-                                                chartType={result.chart.type}
-                                                trend={result.chart.change?.includes('+') ? 'up' : 'down'}
-                                            />
-                                            <div className="mt-3 flex justify-between items-center">
-                                                <div className="text-left">
-                                                    {result.chart.totalValue && (
-                                                        <div className="text-xl font-bold text-gray-900">{result.chart.totalValue}</div>
-                                                    )}
-                                                    {result.chart.change && (
-                                                        <div className={`text-sm font-medium ${result.chart.change.includes('+') ? 'text-green-600' : 'text-red-600'
-                                                            }`}>
-                                                            {result.chart.change}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="text-right text-sm text-gray-500">
-                                                    <div>Type: <span className="font-medium capitalize">{result.chart.type}</span></div>
-                                                    <div>Points: <span className="font-medium">{result.chart.data?.length || 0}</span></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+    //                             {/* Chart Preview */}
+    //                             {result.chart && (
+    //                                 <div className="mb-6">
+    //                                     <div className="bg-white border border-gray-200 rounded-lg p-4">
+    //                                         <h4 className="text-lg font-semibold text-gray-900 mb-3">{result.chart.title}</h4>
+    //                                         <ProfessionalChart
+    //                                             data={result.chart.data}
+    //                                             chartType={result.chart.type}
+    //                                             trend={result.chart.change?.includes('+') ? 'up' : 'down'}
+    //                                         />
+    //                                         <div className="mt-3 flex justify-between items-center">
+    //                                             <div className="text-left">
+    //                                                 {result.chart.totalValue && (
+    //                                                     <div className="text-xl font-bold text-gray-900">{result.chart.totalValue}</div>
+    //                                                 )}
+    //                                                 {result.chart.change && (
+    //                                                     <div className={`text-sm font-medium ${result.chart.change.includes('+') ? 'text-green-600' : 'text-red-600'
+    //                                                         }`}>
+    //                                                         {result.chart.change}
+    //                                                     </div>
+    //                                                 )}
+    //                                             </div>
+    //                                             <div className="text-right text-sm text-gray-500">
+    //                                                 <div>Type: <span className="font-medium capitalize">{result.chart.type}</span></div>
+    //                                                 <div>Points: <span className="font-medium">{result.chart.data?.length || 0}</span></div>
+    //                                             </div>
+    //                                         </div>
+    //                                     </div>
+    //                                 </div>
+    //                             )}
 
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={onClose}
-                                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            // Could navigate to analytics page
-                                            onClose();
-                                        }}
-                                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <BarChart3 className="w-4 h-4" />
-                                        View Analytics
-                                    </button>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            {/* Error State */}
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <AlertCircle className="w-8 h-8 text-red-600" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    Chart Creation Failed
-                                </h3>
-                                <p className="text-gray-600 mb-4">
-                                    {result?.error || 'Something went wrong while creating the chart.'}
-                                </p>
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                                    <p className="text-sm text-red-700">
-                                        <strong>Tip:</strong> Make sure your message contains numerical data like balances, prices, or percentages that can be visualized.
-                                    </p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={onClose}
-                                        className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            onClose();
-                                            // Could retry the conversion
-                                        }}
-                                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                    >
-                                        Try Again
-                                    </button>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-        );
-    };
+    //                             <div className="flex gap-3">
+    //                                 <button
+    //                                     onClick={onClose}
+    //                                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+    //                                 >
+    //                                     Close
+    //                                 </button>
+    //                                 <button
+    //                                     onClick={() => {
+    //                                         // Could navigate to analytics page
+    //                                         onClose();
+    //                                     }}
+    //                                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+    //                                 >
+    //                                     <BarChart3 className="w-4 h-4" />
+    //                                     View Analytics
+    //                                 </button>
+    //                             </div>
+    //                         </div>
+    //                     </>
+    //                 ) : (
+    //                     <>
+    //                         {/* Error State */}
+    //                         <div className="text-center">
+    //                             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    //                                 <AlertCircle className="w-8 h-8 text-red-600" />
+    //                             </div>
+    //                             <h3 className="text-xl font-bold text-gray-900 mb-2">
+    //                                 Chart Creation Failed
+    //                             </h3>
+    //                             <p className="text-gray-600 mb-4">
+    //                                 {result?.error || 'Something went wrong while creating the chart.'}
+    //                             </p>
+    //                             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+    //                                 <p className="text-sm text-red-700">
+    //                                     <strong>Tip:</strong> Make sure your message contains numerical data like balances, prices, or percentages that can be visualized.
+    //                                 </p>
+    //                             </div>
+    //                             <div className="flex gap-3">
+    //                                 <button
+    //                                     onClick={onClose}
+    //                                     className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+    //                                 >
+    //                                     Close
+    //                                 </button>
+    //                                 <button
+    //                                     onClick={() => {
+    //                                         onClose();
+    //                                         // Could retry the conversion
+    //                                     }}
+    //                                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+    //                                 >
+    //                                     Try Again
+    //                                 </button>
+    //                             </div>
+    //                         </div>
+    //                     </>
+    //                 )}
+    //             </div>
+    //         </div>
+    //     );
+    // };
 
     // Auto-scroll to bottom when new messages arrive
     const scrollToBottom = () => {
@@ -1436,14 +1479,17 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         messageId={convertingToChart}
                     />
 
-                    {/* Chart Result Modal */}
-                    <ChartResultModal
-                        result={chartResult}
-                        isOpen={showChartModal}
+                    {/* Artifact Save Modal */}
+                    <ArtifactSaveModal
+                        isOpen={showArtifactModal}
                         onClose={() => {
-                            setShowChartModal(false);
-                            setChartResult(null);
+                            setShowArtifactModal(false);
+                            setEditingArtifact(null);
+                            setConvertingToChart(null);
                         }}
+                        editingArtifact={editingArtifact}
+                        onSave={handleSaveArtifact}
+                        isSaving={isSavingArtifact}
                     />
                 </>
             )}
