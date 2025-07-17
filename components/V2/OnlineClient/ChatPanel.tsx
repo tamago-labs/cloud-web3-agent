@@ -26,7 +26,7 @@ interface ChatPanelProps {
     selectedConversation: string | null;
     onConversationCreated: (conversationId: string) => void;
     refreshTrigger: number;
-    onChartsGenerated?: (charts: any[]) => void;
+    onArtifactSaved?: () => void; // Only notify when saved, don't pass local state
 }
 
 
@@ -91,7 +91,7 @@ interface CostEstimate {
 // Define default/always-enabled servers
 const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
-const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger, onChartsGenerated }: ChatPanelProps) => {
+const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger, onArtifactSaved }: ChatPanelProps) => {
 
     const { profile } = useContext(AccountContext);
 
@@ -140,7 +140,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
     // Analytics conversion state
     const [convertingToChart, setConvertingToChart] = useState<string | null>(null);
-    const [generatedCharts, setGeneratedCharts] = useState<any[]>([]);
+
     const [showArtifactModal, setShowArtifactModal] = useState(false);
     const [editingArtifact, setEditingArtifact] = useState<any>(null);
     const [isSavingArtifact, setIsSavingArtifact] = useState(false);
@@ -379,21 +379,21 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     useEffect(() => {
         if (data && convertingToChart) {
             console.log('AI Chart Data Generated:', data);
-
+    
             try {
                 // Validate AI response structure
                 if (!data.dataName || !data.dataValue || !Array.isArray(data.dataName) || !Array.isArray(data.dataValue)) {
                     throw new Error('Invalid data structure returned from AI');
                 }
-
+    
                 if (data.dataName.length === 0 || data.dataValue.length === 0) {
                     throw new Error('No chart data found in the conversation');
                 }
-
+    
                 // Transform AI response to match expected chart format
                 const chartData = [];
                 const maxLength = Math.min(data?.dataName.length, data.dataValue.length);
-
+    
                 for (let i = 0; i < maxLength; i++) {
                     if (data.dataValue[i] && data.dataName[i]) {
                         const value = parseFloat(`${data.dataValue[i]}`);
@@ -401,66 +401,45 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                             console.warn(`Invalid value at index ${i}: ${data.dataValue[i]}`);
                             continue;
                         }
-
+    
                         chartData.push({
                             name: String(data.dataName[i]).trim(),
                             value: value,
-                            // color: (data && data.chartType === 'pie') ? generateChartColor(i) : undefined
+                            color: generateChartColor(i)
                         });
                     }
-
                 }
-
+    
                 if (chartData.length === 0) {
                     throw new Error('No valid data points found for charting');
                 }
-
-                // Create chart from AI response
-                const aiChart = {
-                    id: `chart-${Date.now()}`,
+    
+                // Prepare artifact data for the save modal
+                setEditingArtifact({
                     title: data.title?.trim() || 'Web3 Analytics Chart',
-                    type: data.chartType || 'bar',
+                    description: `Generated from AI conversation analysis`,
+                    chartType: data.chartType || 'bar',
                     data: chartData,
                     totalValue: data.totalValue?.trim() || '',
                     change: data.change?.trim() || '',
-                    timestamp: new Date()
-                };
-
-                console.log('Created chart:', aiChart);
-
-                setGeneratedCharts(prev => [aiChart, ...prev]);
-
-                // Update parent component with new charts
-                if (onChartsGenerated) {
-                    onChartsGenerated([aiChart, ...generatedCharts]);
-                }
-
-                // Prepare artifact data for the save modal
-                setEditingArtifact({
-                    title: aiChart.title,
-                    description: `Generated from AI conversation analysis`,
-                    chartType: aiChart.type,
-                    data: aiChart.data,
-                    totalValue: aiChart.totalValue,
-                    change: aiChart.change,
                     category: 'Portfolio Analytics',
                     tags: ['AI Generated', 'Conversation'],
                     isPublic: false
                 });
                 setShowArtifactModal(true);
-
+    
             } catch (error) {
                 console.error('Error processing AI chart data:', error);
                 alert(`Failed to create chart: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 setConvertingToChart(null);
             }
-
+    
         } else if (hasError && convertingToChart) {
             console.error('AI Generation Error:', hasError);
             alert('AI service error: Failed to extract chart data from the conversation.');
             setConvertingToChart(null);
         }
-    }, [data, hasError, convertingToChart, onChartsGenerated]);
+    }, [data, hasError, convertingToChart]); // Remove onChartsGenerated dependency
 
     // Handle artifact save
     const handleSaveArtifact = async (artifactData: any) => {
@@ -470,10 +449,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         try {
             // Find the latest assistant message for linking
             const latestAssistantMessage = [...chatHistory].reverse().find(msg => msg.type === 'assistant');
-            
+
             await artifactAPI.createArtifact({
-                userId: profile.id,
-                conversationId: currentConversationId,
+                userId: profile.id, 
                 messageId: latestAssistantMessage?.id,
                 title: artifactData.title,
                 description: artifactData.description,
@@ -495,7 +473,12 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             setConvertingToChart(null);
             setEditingArtifact(null);
             setShowArtifactModal(false);
-            
+
+            // Notify parent that artifact was saved (triggers RightPanel refresh)
+            if (onArtifactSaved) {
+                onArtifactSaved();
+            }
+
             alert('Artifact saved successfully!');
         } catch (error) {
             console.error('Error saving artifact:', error);
@@ -515,7 +498,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 <div className="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-sm w-full mx-4">
                     <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Creating Analytics Chart
+                        Creating Analytics Artifact
                     </h3>
                     <p className="text-gray-600 text-sm mb-4">
                         AI is analyzing your data and generating insights...
@@ -1500,7 +1483,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 ChatPanel.defaultProps = {
     selectedConversation: null,
     onConversationCreated: () => { },
-    refreshTrigger: 0
+    refreshTrigger: 0,
+    onArtifactSaved: () => { } // Add this
 };
 
 

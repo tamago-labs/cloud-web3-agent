@@ -1,17 +1,22 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Settings, Download } from 'lucide-react';
 import LeftPanel from './LeftPanel';
 import ChatPanel from './ChatPanel';
 import RightPanel from './RightPanel';
+import { AccountContext } from '@/contexts/account';
 
 const OnlineClientContainer = () => {
+
+    const { profile } = useContext(AccountContext)
+
     const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-    const [leftPanelView, setLeftPanelView] = useState('conversations');
     const [refreshChatTrigger, setRefreshChatTrigger] = useState(0);
     const [refreshLeftPanelTrigger, setRefreshLeftPanelTrigger] = useState(0);
-    const [generatedCharts, setGeneratedCharts] = useState<any[]>([]);
+    const [refreshRightPanelTrigger, setRefreshRightPanelTrigger] = useState(0);
+
+
 
     // Handle loading a conversation
     const handleLoadConversation = (conversationId: string) => {
@@ -34,30 +39,37 @@ const OnlineClientContainer = () => {
         setRefreshLeftPanelTrigger(prev => prev + 1);
     };
 
+    // Handle when artifacts are saved/updated/deleted - triggers RightPanel refresh
+    const handleArtifactUpdate = () => {
+        setRefreshRightPanelTrigger(prev => prev + 1);
+    };
+
+
     return (
         <div className="h-screen bg-gray-50 flex flex-col">
- 
+
             {/* Main Content */}
-             <div className="flex-1 flex overflow-hidden">
-                <LeftPanel 
+            <div className="flex-1 flex overflow-hidden">
+                <LeftPanel
                     selectedConversation={selectedConversation}
                     setSelectedConversation={setSelectedConversation}
                     onLoadConversation={handleLoadConversation}
                     onNewConversation={handleNewConversation}
                     refreshTrigger={refreshLeftPanelTrigger}
                 />
-                
-                <ChatPanel 
+
+                <ChatPanel
                     selectedConversation={selectedConversation}
                     onConversationCreated={handleConversationCreated}
                     refreshTrigger={refreshChatTrigger}
-                    onChartsGenerated={setGeneratedCharts}
+                    onArtifactSaved={handleArtifactUpdate}
                 />
-                
-                <RightPanel 
-                    artifacts={generatedCharts}
-                /> 
-            </div> 
+
+                <RightPanel
+                    refreshTrigger={refreshRightPanelTrigger}
+                    onArtifactUpdate={handleArtifactUpdate}
+                />
+            </div>
         </div>
     );
 };

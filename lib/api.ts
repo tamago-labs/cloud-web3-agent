@@ -891,8 +891,7 @@ export const enhancedToolResultAPI = {
 export const artifactAPI = {
     // Create new artifact
     async createArtifact(artifactData: {
-        userId: string;
-        conversationId?: string;
+        userId: string; 
         messageId?: string;
         title: string;
         description?: string;
@@ -910,8 +909,9 @@ export const artifactAPI = {
             const client = generateClient<Schema>({
                 authMode: "userPool"
             });
-
-            const { data: newArtifact } = await client.models.Artifact.create({
+ 
+  
+            const response = await client.models.Artifact.create({
                 ...artifactData,
                 data: JSON.stringify(artifactData.data),
                 sourceData: artifactData.sourceData ? JSON.stringify(artifactData.sourceData) : undefined,
@@ -919,7 +919,8 @@ export const artifactAPI = {
                 likes: 0,
                 views: 0,
                 isPublic: artifactData.isPublic || false
-            } as any);
+            } as any); 
+            const newArtifact = response?.data 
             return newArtifact;
         } catch (error) {
             console.error('Error creating artifact:', error);
