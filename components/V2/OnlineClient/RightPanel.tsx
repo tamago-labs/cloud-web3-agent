@@ -95,7 +95,7 @@ const RightPanel: React.FC<RightPanelProps> = ({
 
             // Update chart modal if it's currently viewing this artifact
             if (selectedChart?.id === artifactId) {
-                setSelectedChart(prev => ({ ...prev, isPublic: !currentStatus }));
+                setSelectedChart((prev: any) => ({ ...prev, isPublic: !currentStatus }));
             }
 
             // Notify parent component
