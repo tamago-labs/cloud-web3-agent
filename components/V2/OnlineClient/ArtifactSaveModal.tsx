@@ -144,7 +144,7 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
     const removeDataPoint = (index: number) => {
         setFormData((prev: any) => ({
             ...prev,
-            data: prev.data.filter((_, i) => i !== index)
+            data: prev.data.filter((_: any, i: number) => i !== index)
         }));
     };
 
