@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Edit3, BarChart3, FileText, Download, Share2, Eye, Trash2, Calendar, TrendingUp, PieChart, Activity, Table, Map, Code, X } from 'lucide-react';
-import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, Area, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, AreaChart } from 'recharts';
+import { Edit3, BarChart3, FileText, Eye, Trash2, TrendingUp, X, EyeOff } from 'lucide-react';
+import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 import { AccountContext } from '@/contexts/account';
 import { artifactAPI } from '@/lib/api';
-// import ArtifactEditModal from './ArtifactEditModal';
 
 interface RightPanelProps {
     refreshTrigger?: number;
@@ -16,11 +15,8 @@ const RightPanel: React.FC<RightPanelProps> = ({
 }) => {
 
     const { profile } = useContext(AccountContext);
-    const [activeTab, setActiveTab] = useState('artifacts');
     const [selectedChart, setSelectedChart] = useState<any>(null);
     const [showChartModal, setShowChartModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [editingArtifact, setEditingArtifact] = useState<any>(null);
 
     // Database artifacts state
     const [artifacts, setArtifacts] = useState<any[]>([]);
@@ -37,7 +33,7 @@ const RightPanel: React.FC<RightPanelProps> = ({
         setLoading(true);
         try {
             const userArtifacts = await artifactAPI.getUserArtifacts(profile.id);
-            console.log("userArtifacts : ", userArtifacts)
+            console.log("Loaded artifacts:", userArtifacts);
             setArtifacts(userArtifacts);
             setError(null);
         } catch (err) {
@@ -50,21 +46,14 @@ const RightPanel: React.FC<RightPanelProps> = ({
 
     // Load artifacts on component mount, profile change, and refresh trigger
     useEffect(() => {
-        console.log("load artifact...")
         loadArtifacts();
     }, [profile?.id, refreshTrigger]);
 
-
     // Handle chart viewing
     const handleViewChart = (chart: any) => {
+        console.log('🔍 Viewing chart:', chart);
         setSelectedChart(chart);
         setShowChartModal(true);
-    };
-
-    // Handle artifact editing
-    const handleEditArtifact = (artifact: any) => {
-        setEditingArtifact(artifact);
-        setShowEditModal(true);
     };
 
     // Handle artifact deletion
@@ -73,49 +62,40 @@ const RightPanel: React.FC<RightPanelProps> = ({
 
         try {
             await artifactAPI.deleteArtifact(artifactId);
-
-            // Update local state immediately
             setArtifacts(prev => prev.filter(artifact => artifact.id !== artifactId));
 
-            // Close modal if currently viewing deleted artifact
             if (selectedChart?.id === artifactId) {
                 setShowChartModal(false);
                 setSelectedChart(null);
             }
 
-            // Notify parent component
             if (onArtifactUpdate) {
                 onArtifactUpdate();
             }
 
-            console.log('Artifact deleted successfully');
+            console.log('✅ Artifact deleted successfully');
         } catch (error) {
-            console.error('Error deleting artifact:', error);
+            console.error('❌ Error deleting artifact:', error);
             alert('Failed to delete artifact. Please try again.');
         }
     };
 
-    // Handle artifact update
-    const handleUpdateArtifact = async (artifactData: any) => {
-        if (!editingArtifact?.id) return;
-
+    const handleToggleVisibility = async (artifactId: string, currentStatus: boolean) => {
         try {
-            await artifactAPI.updateArtifact(editingArtifact.id, artifactData);
+            await artifactAPI.updateArtifact(artifactId, {
+                isPublic: !currentStatus
+            });
 
             // Update local state immediately
             setArtifacts(prev => prev.map(artifact =>
-                artifact.id === editingArtifact.id
-                    ? { ...artifact, ...artifactData }
+                artifact.id === artifactId
+                    ? { ...artifact, isPublic: !currentStatus }
                     : artifact
             ));
 
-            // Close modal
-            setShowEditModal(false);
-            setEditingArtifact(null);
-
             // Update chart modal if it's currently viewing this artifact
-            if (selectedChart?.id === editingArtifact.id) {
-                setSelectedChart({ ...selectedChart, ...artifactData });
+            if (selectedChart?.id === artifactId) {
+                setSelectedChart(prev => ({ ...prev, isPublic: !currentStatus }));
             }
 
             // Notify parent component
@@ -123,75 +103,142 @@ const RightPanel: React.FC<RightPanelProps> = ({
                 onArtifactUpdate();
             }
 
-            console.log('Artifact updated successfully');
+            console.log('✅ Visibility toggled successfully');
         } catch (error) {
-            console.error('Error updating artifact:', error);
-            throw error;
+            console.error('❌ Error toggling visibility:', error);
+            alert('Failed to update visibility. Please try again.');
         }
     };
 
-    // Professional Chart Component
+    // EXACT SAME CHART COMPONENT AS DISCOVER PAGE
     const ProfessionalChart = ({ data, chartType, trend }: { data: any[], chartType: string, trend?: string }) => {
-        const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
-
-        if (!data || data.length === 0) {
+        console.log('📊 Chart render attempt:', { data, chartType, trend });
+        
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.log('❌ No valid data for chart');
             return (
-                <div className="h-32 w-full flex items-center justify-center bg-gray-100 rounded-lg">
-                    <p className="text-gray-500 text-xs">No data</p>
+                <div className="h-64 w-full flex items-center justify-center bg-gray-100 rounded-lg">
+                    <p className="text-gray-500">No chart data available</p>
                 </div>
             );
         }
 
-        if (chartType === 'pie' || chartType === 'donut') {
+        const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
+
+        if (chartType === 'pie') {
+            console.log('🥧 Rendering PIE chart with data:', data);
             return (
-                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+                <div className="h-64 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
                     <ResponsiveContainer width="90%" height="90%">
                         <RechartsPie>
                             <Pie
                                 data={data}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={chartType === 'donut' ? 20 : 0}
-                                outerRadius={40}
-                                paddingAngle={1}
+                                innerRadius={0}
+                                outerRadius={90}
+                                paddingAngle={2}
                                 dataKey="value"
                             >
                                 {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color || `hsl(${index * 45}, 70%, 60%)`} />
+                                    <Cell key={`cell-${index}`} fill={entry.color || '#3B82F6'} />
                                 ))}
                             </Pie>
-                            <Tooltip formatter={(value: any) => [`${value}`, 'Value']} />
+                            <Tooltip
+                                formatter={(value: any) => [`${value}`, 'Value']}
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                            <Legend
+                                verticalAlign="bottom"
+                                height={36}
+                                fontSize={12}
+                                wrapperStyle={{ paddingTop: '10px' }}
+                            />
                         </RechartsPie>
                     </ResponsiveContainer>
                 </div>
             );
         }
 
-        if (chartType === 'bar' || chartType === 'horizontal_bar') {
+        if (chartType === 'donut') {
+            console.log('🍩 Rendering DONUT chart with data:', data);
             return (
-                <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-2">
+                <div className="h-64 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+                    <ResponsiveContainer width="90%" height="90%">
+                        <RechartsPie>
+                            <Pie
+                                data={data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={40}
+                                outerRadius={90}
+                                paddingAngle={2}
+                                dataKey="value"
+                            >
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color || '#3B82F6'} />
+                                ))}
+                            </Pie>
+                            <Tooltip
+                                formatter={(value: any) => [`${value}`, 'Value']}
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                            <Legend
+                                verticalAlign="bottom"
+                                height={36}
+                                fontSize={12}
+                                wrapperStyle={{ paddingTop: '10px' }}
+                            />
+                        </RechartsPie>
+                    </ResponsiveContainer>
+                </div>
+            );
+        }
+
+        if (chartType === 'bar') {
+            console.log('📊 Rendering BAR chart with data:', data);
+            return (
+                <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBar data={data} layout={chartType === 'horizontal_bar' ? 'horizontal' : 'vertical'}>
+                        <RechartsBar data={data}>
                             <XAxis
                                 dataKey="name"
-                                fontSize={10}
+                                fontSize={12}
                                 axisLine={false}
                                 tickLine={false}
-                                type={chartType === 'horizontal_bar' ? 'number' : 'category'}
                             />
                             <YAxis
-                                fontSize={10}
+                                fontSize={12}
                                 axisLine={false}
                                 tickLine={false}
-                                type={chartType === 'horizontal_bar' ? 'category' : 'number'}
-                                dataKey={chartType === 'horizontal_bar' ? 'name' : undefined}
                             />
-                            <Tooltip />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
                             <Bar
                                 dataKey="value"
                                 fill="#3B82F6"
-                                radius={2}
-                            />
+                                radius={[4, 4, 0, 0]}
+                            >
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color || '#3B82F6'} />
+                                ))}
+                            </Bar>
                         </RechartsBar>
                     </ResponsiveContainer>
                 </div>
@@ -199,24 +246,41 @@ const RightPanel: React.FC<RightPanelProps> = ({
         }
 
         if (chartType === 'area') {
+            console.log('📈 Rendering AREA chart with data:', data);
             return (
-                <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-2">
+                <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={data}>
                             <defs>
                                 <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={trendColor || '#3B82F6'} stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor={trendColor || '#3B82F6'} stopOpacity={0.1} />
+                                    <stop offset="5%" stopColor={trendColor} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={trendColor} stopOpacity={0.1} />
                                 </linearGradient>
                             </defs>
-                            <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                            <YAxis fontSize={10} axisLine={false} tickLine={false} />
-                            <Tooltip />
+                            <XAxis
+                                dataKey="name"
+                                fontSize={12}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                fontSize={12}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
                             <Area
                                 type="monotone"
                                 dataKey="value"
-                                stroke={trendColor || '#3B82F6'}
-                                strokeWidth={2}
+                                stroke={trendColor}
+                                strokeWidth={3}
                                 fillOpacity={1}
                                 fill="url(#colorGradient)"
                             />
@@ -226,20 +290,81 @@ const RightPanel: React.FC<RightPanelProps> = ({
             );
         }
 
+        if (chartType === 'horizontal_bar') {
+            console.log('↔️ Rendering HORIZONTAL BAR chart with data:', data);
+            return (
+                <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBar
+                            data={data}
+                            layout="horizontal"
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                        >
+                            <XAxis
+                                type="number"
+                                fontSize={12}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                type="category"
+                                dataKey="name"
+                                fontSize={10}
+                                axisLine={false}
+                                tickLine={false}
+                                width={80}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                            <Bar
+                                dataKey="value"
+                                fill="#8B5CF6"
+                                radius={[0, 4, 4, 0]}
+                            />
+                        </RechartsBar>
+                    </ResponsiveContainer>
+                </div>
+            );
+        }
+
         // Default line chart
+        console.log('📈 Rendering LINE chart with data:', data);
         return (
-            <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-2">
+            <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data}>
-                        <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                        <YAxis fontSize={10} axisLine={false} tickLine={false} />
-                        <Tooltip />
+                        <XAxis
+                            dataKey="name"
+                            fontSize={12}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <YAxis
+                            fontSize={12}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                            }}
+                        />
                         <Line
                             type="monotone"
                             dataKey="value"
-                            stroke={trendColor || '#3B82F6'}
-                            strokeWidth={2}
-                            dot={{ fill: trendColor || '#3B82F6', strokeWidth: 1, r: 2 }}
+                            stroke={trendColor}
+                            strokeWidth={3}
+                            dot={{ fill: trendColor, strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6 }}
                         />
                     </LineChart>
                 </ResponsiveContainer>
@@ -247,13 +372,12 @@ const RightPanel: React.FC<RightPanelProps> = ({
         );
     };
 
-
-    // Chart Modal Component - NO PNG EXPORT
+    // Chart Modal Component
     const ChartModal = ({ chart, isOpen, onClose }: { chart: any; isOpen: boolean; onClose: () => void }) => {
         if (!isOpen || !chart) return null;
-
+ 
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="fixed inset-0 bg-black/30 bg-opacity-50 flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
                     {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -262,16 +386,31 @@ const RightPanel: React.FC<RightPanelProps> = ({
                             <p className="text-gray-600 text-sm mt-1">{chart.description}</p>
                         </div>
                         <div className="flex items-center gap-3">
+                            {/* Toggle Public/Private Button */}
                             <button
-                                onClick={() => {
-                                    onClose();
-                                    handleEditArtifact(chart);
-                                }}
-                                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit artifact"
+                                onClick={() => handleToggleVisibility(chart.id, chart.isPublic)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                                    chart.isPublic
+                                        ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                }`}
+                                title={chart.isPublic ? 'Make Private' : 'Make Public'}
                             >
-                                <Edit3 className="w-5 h-5" />
+                                <div className="flex items-center gap-1">
+                                    {chart.isPublic ? (
+                                        <>
+                                            <Eye className="w-3 h-3" />
+                                            Public
+                                        </>
+                                    ) : (
+                                        <>
+                                            <EyeOff className="w-3 h-3" />
+                                            Private
+                                        </>
+                                    )}
+                                </div>
                             </button>
+
                             <button
                                 onClick={() => {
                                     onClose();
@@ -293,7 +432,7 @@ const RightPanel: React.FC<RightPanelProps> = ({
 
                     {/* Chart Content */}
                     <div className="p-6">
-                        <div className="mb-6 h-64">
+                        <div className="mb-6">
                             <ProfessionalChart
                                 data={chart.data}
                                 chartType={chart.chartType}
@@ -342,12 +481,20 @@ const RightPanel: React.FC<RightPanelProps> = ({
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Data</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Data Points</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
                                     <div className="space-y-2">
                                         {chart.data?.map((point: any, index: number) => (
                                             <div key={index} className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600">{point.name}</span>
+                                                <div className="flex items-center gap-2">
+                                                    {point.color && (
+                                                        <div 
+                                                            className="w-3 h-3 rounded-full border border-gray-300"
+                                                            style={{ backgroundColor: point.color }}
+                                                        />
+                                                    )}
+                                                    <span className="text-sm text-gray-600">{point.name}</span>
+                                                </div>
                                                 <span className="text-sm font-medium">{point.value}</span>
                                             </div>
                                         ))}
@@ -361,38 +508,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
         );
     };
 
-    const getArtifactTypeColor = (type: any) => {
-        switch (type) {
-            case 'chart': return 'from-blue-500 to-cyan-500';
-            case 'report': return 'from-green-500 to-emerald-500';
-            case 'table': return 'from-purple-500 to-indigo-500';
-            case 'map': return 'from-orange-500 to-red-500';
-            default: return 'from-gray-500 to-gray-600';
-        }
-    };
-
-    const ArtifactPreview = ({ artifact }: any) => (
-        <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300">
-            <div className="text-center">
-                <div className={`w-16 h-16 mx-auto mb-3 rounded-lg bg-gradient-to-r ${getArtifactTypeColor(artifact.type)} flex items-center justify-center text-white`}>
-                    {artifact.icon}
-                </div>
-                <h4 className="font-medium text-gray-900 mb-1">{artifact.title}</h4>
-                <p className="text-xs text-gray-600 mb-3">{artifact.preview}</p>
-                <div className="flex gap-2 justify-center">
-                    <button className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        View
-                    </button>
-                    <button className="px-3 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700 transition-colors flex items-center gap-1">
-                        <Download className="w-3 h-3" />
-                        Export
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
     return (
         <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
             <div className="flex-1 overflow-y-auto">
@@ -402,7 +517,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
                             <h3 className="font-semibold text-gray-900">Generated Artifacts</h3>
                             <span className="text-xs text-gray-500">{artifacts.length} items</span>
                         </div>
-
 
                         {loading ? (
                             <div className="flex items-center justify-center py-8">
@@ -431,24 +545,22 @@ const RightPanel: React.FC<RightPanelProps> = ({
                                 {artifacts.map((artifact) => (
                                     <div
                                         key={artifact.id}
-                                        className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer group"
+                                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer group"
                                         onClick={() => handleViewChart(artifact)}
                                     >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <h4 className="font-medium text-gray-900 text-sm line-clamp-2 flex-1">
-                                                {artifact.title}
-                                            </h4>
-                                            <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEditArtifact(artifact);
-                                                    }}
-                                                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <Edit3 className="w-3 h-3" />
-                                                </button>
+                                        {/* Header with title and actions */}
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-medium text-gray-900 text-sm truncate">
+                                                    {artifact.title}
+                                                </h4>
+                                                {artifact.description && (
+                                                    <p className="text-gray-600 text-xs mt-1 line-clamp-2">
+                                                        {artifact.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -462,22 +574,69 @@ const RightPanel: React.FC<RightPanelProps> = ({
                                             </div>
                                         </div>
 
-                                        <div className="mb-2">
-                                            <div className="h-16 bg-gray-50 rounded border">
-                                                <ProfessionalChart
-                                                    data={artifact.data}
-                                                    chartType={artifact.chartType}
-                                                    trend={artifact.change?.includes('+') ? 'up' : 'down'}
-                                                />
+                                        {/* Card content without chart preview */}
+                                        <div className="space-y-3">
+                                            {/* Chart metadata */}
+                                            <div className="flex items-center justify-between text-xs text-gray-600">
+                                                <span className="capitalize font-medium">
+                                                    {artifact.chartType} chart
+                                                </span>
+                                                <span>
+                                                    {artifact.data?.length || 0} data points
+                                                </span>
                                             </div>
-                                        </div>
 
-                                        <div className="flex items-center justify-between text-xs text-gray-500">
-                                            <span className="capitalize">{artifact.chartType}</span>
-                                            <span className="flex items-center gap-1">
-                                                {artifact.isPublic ? <Eye className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
-                                                {artifact.isPublic ? 'Public' : 'Private'}
-                                            </span>
+                                            {/* Values display */}
+                                            {(artifact.totalValue || artifact.change) && (
+                                                <div className="flex items-center justify-between">
+                                                    {artifact.totalValue && (
+                                                        <span className="text-sm font-semibold text-gray-900">
+                                                            {artifact.totalValue}
+                                                        </span>
+                                                    )}
+                                                    {artifact.change && (
+                                                        <span className={`text-xs font-medium flex items-center gap-1 ${
+                                                            artifact.change.includes('+') ? 'text-green-600' : 'text-red-600'
+                                                        }`}>
+                                                            {artifact.change.includes('+') ? (
+                                                                <TrendingUp className="w-3 h-3" />
+                                                            ) : (
+                                                                <TrendingUp className="w-3 h-3 transform rotate-180" />
+                                                            )}
+                                                            {artifact.change}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Status and category row */}
+                                            <div className="flex items-center justify-between">
+                                                {/* Enhanced Public/Private Badge */}
+                                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${
+                                                    artifact.isPublic 
+                                                        ? 'bg-green-50 text-green-700 border-green-200' 
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                                                }`}>
+                                                    {artifact.isPublic ? (
+                                                        <>
+                                                            <Eye className="w-3 h-3" />
+                                                            Public
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <EyeOff className="w-3 h-3" />
+                                                            Private
+                                                        </>
+                                                    )}
+                                                </span>
+
+                                                {/* Category */}
+                                                {artifact.category && (
+                                                    <span className="text-xs text-gray-500 truncate max-w-24">
+                                                        {artifact.category}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -491,7 +650,10 @@ const RightPanel: React.FC<RightPanelProps> = ({
             <ChartModal
                 chart={selectedChart}
                 isOpen={showChartModal}
-                onClose={() => setShowChartModal(false)}
+                onClose={() => {
+                    setShowChartModal(false);
+                    setSelectedChart(null);
+                }}
             />
         </div>
     );
