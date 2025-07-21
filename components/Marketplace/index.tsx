@@ -18,14 +18,14 @@ const Marketplace = () => {
 
     const { profile } = useContext(CloudAgentContext)
 
-    const { listMarketplace } = useDatabase()
+    // const { listMarketplace } = useDatabase()
     const [items, setItems] = useState<any>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [modal, setModal] = useState<boolean>(false)
 
-    useEffect(() => {
-        listMarketplace().then(setItems)
-    }, [])
+    // useEffect(() => {
+    //     listMarketplace().then(setItems)
+    // }, [])
 
     const onDeploy = useCallback(async (item: any) => {
 
@@ -44,32 +44,7 @@ const Marketplace = () => {
             const userId = profile.id
 
             const targetAgent: any = await item.agent()
-
-            // TODO: add subnetwork
-
-            const { data } = await client.queries.DeployAgent({
-                name: agentName,
-                userId,
-                blockchain,
-                sdkType,
-                isTestnet: targetAgent.data.isTestnet,
-                promptInput: targetAgent.data.promptInput,
-                promptDecision: targetAgent.data.promptDecision,
-                promptExecute: targetAgent.data.promptExecute
-            })
-
-            if (data) {
-
-                const currentCount = item.redeployCount || 0
-
-                await client.models.Marketplace.update({
-                    id: item.id,
-                    redeployCount: currentCount + 1
-                })
-
-            } else {
-                throw new Error("Unknow error. Please try again.")
-            }
+ 
 
 
 

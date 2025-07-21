@@ -10,10 +10,10 @@ const components = {
 
         const [currentDomain, setCurrentDomain] = useState('bohdi_tree');
 
-        useEffect(() => {
-            const currentDomain = window.location.origin
-            setCurrentDomain(currentDomain.includes("tamagolabs.com") ? "tamago_labs" : "bohdi_tree"); // or window.location.hostname
-        }, []);
+        // useEffect(() => {
+        //     const currentDomain = window.location.origin
+        //     setCurrentDomain(currentDomain.includes("tamagolabs.com") ? "tamago_labs" : "bohdi_tree"); // or window.location.hostname
+        // }, []);
 
         return (
             <View textAlign="center" padding={tokens.space.large}>

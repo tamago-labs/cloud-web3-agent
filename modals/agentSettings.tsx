@@ -4,7 +4,7 @@ import useDatabase from "@/hooks/useDatabase"
 
 const AgentSettingsModal = ({ visible, close, agent, increaseTick }: any) => {
 
-    const { updateAgent } = useDatabase()
+    // const { updateAgent } = useDatabase()
 
     const [name, setName] = useState<any>()
     const [isTestnet, setIsTestnet] = useState(false)

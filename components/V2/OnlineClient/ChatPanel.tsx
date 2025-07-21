@@ -1,8 +1,10 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
-import { creditAPI, conversationAPI, messageAPI, toolResultAPI, enhancedMessageAPI, enhancedToolResultAPI } from '@/lib/api';
-import { X, Square, Trash2 } from 'lucide-react';
+import { creditAPI, conversationAPI, messageAPI, toolResultAPI, enhancedMessageAPI, enhancedToolResultAPI, artifactAPI } from '@/lib/api';
+import { X, Square, Trash2, BarChart3 } from 'lucide-react';
+import { createAIHooks } from "@aws-amplify/ui-react-ai";
+import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 
 // Import our MCP components
 import { MCPManagementModal } from "../../mcp/MCPManagementModal"
@@ -13,10 +15,18 @@ import { WelcomeMessage } from '../../mcp/WelcomeMessage';
 import { ChatInput } from '../../mcp/ChatInput';
 import { ChatMessage, MCPStatus } from '../../mcp/types';
 
+import { generateClient } from "aws-amplify/api";
+import { Schema } from "../../../amplify/data/resource";
+import ArtifactSaveModal from './ArtifactSaveModal';
+
+const client = generateClient<Schema>({ authMode: "userPool" });
+const { useAIGeneration } = createAIHooks(client);
+
 interface ChatPanelProps {
     selectedConversation: string | null;
     onConversationCreated: (conversationId: string) => void;
     refreshTrigger: number;
+    onArtifactSaved?: () => void; // Only notify when saved, don't pass local state
 }
 
 
@@ -81,8 +91,12 @@ interface CostEstimate {
 // Define default/always-enabled servers
 const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
-const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger }: ChatPanelProps) => {
+const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger, onArtifactSaved }: ChatPanelProps) => {
+
     const { profile } = useContext(AccountContext);
+
+    const [{ data, isLoading: isExtracting, hasError }, extractChartData] = useAIGeneration("extractChartData");
+
 
     // Chat state
     const [message, setMessage] = useState('');
@@ -124,6 +138,13 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const [estimatedCost, setEstimatedCost] = useState<CostEstimate | null>(null);
     const [showCreditWarning, setShowCreditWarning] = useState(false);
 
+    // Analytics conversion state
+    const [convertingToChart, setConvertingToChart] = useState<string | null>(null);
+
+    const [showArtifactModal, setShowArtifactModal] = useState(false);
+    const [editingArtifact, setEditingArtifact] = useState<any>(null);
+    const [isSavingArtifact, setIsSavingArtifact] = useState(false);
+
     // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -132,6 +153,480 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const isDefaultServer = (serverName: string) => {
         return DEFAULT_SERVERS.includes(serverName);
     };
+
+    // Helper function to generate chart colors
+    const generateChartColor = (index: number): string => {
+        const colors = [
+            '#627EEA', // Ethereum Blue
+            '#2775CA', // USDC Blue
+            '#F7931A', // Bitcoin Orange
+            '#6B7280', // Gray
+            '#10B981', // Green
+            '#F59E0B', // Amber
+            '#EF4444', // Red
+            '#8B5CF6', // Purple
+            '#06B6D4', // Cyan
+            '#84CC16'  // Lime
+        ];
+        return colors[index % colors.length];
+    };
+
+    // Professional Chart Component (matching discover page)
+    const ProfessionalChart = ({ data, chartType, trend }: { data: any[], chartType: string, trend?: string }) => {
+        const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
+
+        if (chartType === 'pie') {
+            return (
+                <div className="h-48 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+                    <ResponsiveContainer width="90%" height="90%">
+                        <RechartsPie>
+                            <Pie
+                                data={data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={0}
+                                outerRadius={70}
+                                paddingAngle={2}
+                                dataKey="value"
+                            >
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                            </Pie>
+                            <Tooltip
+                                formatter={(value: any) => [`${value}%`, 'Share']}
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                            <Legend
+                                verticalAlign="bottom"
+                                height={36}
+                                fontSize={12}
+                                wrapperStyle={{ paddingTop: '10px' }}
+                            />
+                        </RechartsPie>
+                    </ResponsiveContainer>
+                </div>
+            );
+        }
+
+        if (chartType === 'bar') {
+            return (
+                <div className="h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBar data={data}>
+                            <XAxis
+                                dataKey="name"
+                                fontSize={12}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                fontSize={12}
+                                axisLine={false}
+                                tickLine={false}
+                                tickFormatter={(value) => `${value}B`}
+                            />
+                            <Tooltip
+                                formatter={(value: any) => [`${value}B`, 'Value']}
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                            <Bar
+                                dataKey="value"
+                                fill="#3B82F6"
+                                radius={[4, 4, 0, 0]}
+                            />
+                        </RechartsBar>
+                    </ResponsiveContainer>
+                </div>
+            );
+        }
+
+        if (chartType === 'area') {
+            return (
+                <div className="h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={data}>
+                            <defs>
+                                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={trendColor || '#3B82F6'} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={trendColor || '#3B82F6'} stopOpacity={0.1} />
+                                </linearGradient>
+                            </defs>
+                            <XAxis
+                                dataKey="name"
+                                fontSize={12}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                fontSize={12}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="value"
+                                stroke={trendColor || '#3B82F6'}
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill="url(#colorGradient)"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        }
+
+        // Default line chart
+        return (
+            <div className="h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data}>
+                        <XAxis
+                            dataKey="name"
+                            fontSize={12}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <YAxis
+                            fontSize={12}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                            }}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke={trendColor || '#3B82F6'}
+                            strokeWidth={3}
+                            dot={{ fill: trendColor || '#3B82F6', strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6 }}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        );
+    };
+
+    // Convert message to analytics chart
+    const handleConvertToAnalytics = async (messageId: string, content: string, toolResults?: any[]) => {
+        setConvertingToChart(messageId);
+        setEditingArtifact(null);
+        setShowArtifactModal(false);
+
+        try {
+            console.log('Converting to analytics:', { messageId, content, toolResults });
+
+            // Prepare comprehensive data for AI analysis
+            let analysisText = content;
+
+            // Include tool results data if available
+            if (toolResults && toolResults.length > 0) {
+                const toolData = toolResults
+                    .filter(tr => tr.status === 'completed' && tr.output)
+                    .map(tr => {
+                        const outputStr = typeof tr.output === 'string' ? tr.output : JSON.stringify(tr.output);
+                        return `Tool: ${tr.name}\nResult: ${outputStr}`;
+                    })
+                    .join('\n\n');
+
+                if (toolData) {
+                    analysisText = `${content}\n\nTool Results:\n${toolData}`;
+                }
+            }
+
+            console.log('Sending to AI:', { analysisText, toolResults: toolResults || [] });
+
+            // Call AI service to extract chart data
+            extractChartData({
+                conversationText: analysisText,
+                toolResults: JSON.stringify(toolResults || [])
+            });
+
+        } catch (error) {
+            console.error('Failed to convert to analytics:', error);
+            alert(`Failed to create chart: ${error instanceof Error ? error.message : 'Failed to create chart. Please try again.'}`);
+            setConvertingToChart(null);
+        }
+    };
+
+    // Handle AI generation result
+    useEffect(() => {
+        if (data && convertingToChart) {
+            console.log('AI Chart Data Generated:', data);
+    
+            try {
+                // Validate AI response structure
+                if (!data.dataName || !data.dataValue || !Array.isArray(data.dataName) || !Array.isArray(data.dataValue)) {
+                    throw new Error('Invalid data structure returned from AI');
+                }
+    
+                if (data.dataName.length === 0 || data.dataValue.length === 0) {
+                    throw new Error('No chart data found in the conversation');
+                }
+    
+                // Transform AI response to match expected chart format
+                const chartData = [];
+                const maxLength = Math.min(data?.dataName.length, data.dataValue.length);
+    
+                for (let i = 0; i < maxLength; i++) {
+                    if (data.dataValue[i] && data.dataName[i]) {
+                        const value = parseFloat(`${data.dataValue[i]}`);
+                        if (isNaN(value)) {
+                            console.warn(`Invalid value at index ${i}: ${data.dataValue[i]}`);
+                            continue;
+                        }
+    
+                        chartData.push({
+                            name: String(data.dataName[i]).trim(),
+                            value: value,
+                            color: generateChartColor(i)
+                        });
+                    }
+                }
+    
+                if (chartData.length === 0) {
+                    throw new Error('No valid data points found for charting');
+                }
+    
+                // Prepare artifact data for the save modal
+                setEditingArtifact({
+                    title: data.title?.trim() || 'Web3 Analytics Chart',
+                    description: `Generated from AI conversation analysis`,
+                    chartType: data.chartType || 'bar',
+                    data: chartData,
+                    totalValue: data.totalValue?.trim() || '',
+                    change: data.change?.trim() || '',
+                    category: 'Portfolio Analytics',
+                    tags: ['AI Generated', 'Conversation'],
+                    isPublic: false
+                });
+                setShowArtifactModal(true);
+    
+            } catch (error) {
+                console.error('Error processing AI chart data:', error);
+                alert(`Failed to create chart: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                setConvertingToChart(null);
+            }
+    
+        } else if (hasError && convertingToChart) {
+            console.error('AI Generation Error:', hasError);
+            alert('AI service error: Failed to extract chart data from the conversation.');
+            setConvertingToChart(null);
+        }
+    }, [data, hasError, convertingToChart]); // Remove onChartsGenerated dependency
+
+    // Handle artifact save
+    const handleSaveArtifact = async (artifactData: any) => {
+        if (!profile?.id || !currentConversationId) return;
+
+        setIsSavingArtifact(true);
+        try {
+            // Find the latest assistant message for linking
+            const latestAssistantMessage = [...chatHistory].reverse().find(msg => msg.type === 'assistant');
+
+            await artifactAPI.createArtifact({
+                userId: profile.id, 
+                messageId: latestAssistantMessage?.id,
+                title: artifactData.title,
+                description: artifactData.description,
+                chartType: artifactData.chartType,
+                data: artifactData.data,
+                totalValue: artifactData.totalValue,
+                change: artifactData.change,
+                category: artifactData.category,
+                tags: artifactData.tags,
+                isPublic: artifactData.isPublic,
+                sourceData: {
+                    conversationId: currentConversationId,
+                    messageId: latestAssistantMessage?.id,
+                    generatedAt: new Date().toISOString()
+                }
+            });
+
+            // Reset all conversion states
+            setConvertingToChart(null);
+            setEditingArtifact(null);
+            setShowArtifactModal(false);
+
+            // Notify parent that artifact was saved (triggers RightPanel refresh)
+            if (onArtifactSaved) {
+                onArtifactSaved();
+            }
+
+            alert('Artifact saved successfully!');
+        } catch (error) {
+            console.error('Error saving artifact:', error);
+            alert('Failed to save artifact. Please try again.');
+            throw error;
+        } finally {
+            setIsSavingArtifact(false);
+        }
+    };
+
+    // Loading Modal Component
+    const LoadingModal = ({ isOpen, messageId }: { isOpen: boolean; messageId: string | null }) => {
+        if (!isOpen || !messageId) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ zIndex: 9998 }}>
+                <div className="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-sm w-full mx-4">
+                    <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Creating Analytics Artifact
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                        AI is analyzing your data and generating insights...
+                    </p>
+                    <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-xs text-blue-700">
+                            This may take a few seconds depending on data complexity
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Chart Result Modal Component
+    // const ChartResultModal = ({ result, isOpen, onClose }: { result: any; isOpen: boolean; onClose: () => void }) => {
+    //     if (!isOpen || !result) return null;
+
+    //     return (
+    //         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ zIndex: 9999 }}>
+    //             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl transform transition-all duration-300 ease-out scale-100 opacity-100">
+    //                 {result?.success ? (
+    //                     <>
+    //                         {/* Success State */}
+    //                         <div className="text-center">
+    //                             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    //                                 <CheckCircle className="w-8 h-8 text-green-600" />
+    //                             </div>
+    //                             <h3 className="text-xl font-bold text-gray-900 mb-2">
+    //                                 Chart Created Successfully!
+    //                             </h3>
+    //                             <p className="text-gray-600 mb-4">
+    //                                 "{result.chart?.title}" has been generated and added to your analytics.
+    //                             </p>
+
+    //                             {/* Chart Preview */}
+    //                             {result.chart && (
+    //                                 <div className="mb-6">
+    //                                     <div className="bg-white border border-gray-200 rounded-lg p-4">
+    //                                         <h4 className="text-lg font-semibold text-gray-900 mb-3">{result.chart.title}</h4>
+    //                                         <ProfessionalChart
+    //                                             data={result.chart.data}
+    //                                             chartType={result.chart.type}
+    //                                             trend={result.chart.change?.includes('+') ? 'up' : 'down'}
+    //                                         />
+    //                                         <div className="mt-3 flex justify-between items-center">
+    //                                             <div className="text-left">
+    //                                                 {result.chart.totalValue && (
+    //                                                     <div className="text-xl font-bold text-gray-900">{result.chart.totalValue}</div>
+    //                                                 )}
+    //                                                 {result.chart.change && (
+    //                                                     <div className={`text-sm font-medium ${result.chart.change.includes('+') ? 'text-green-600' : 'text-red-600'
+    //                                                         }`}>
+    //                                                         {result.chart.change}
+    //                                                     </div>
+    //                                                 )}
+    //                                             </div>
+    //                                             <div className="text-right text-sm text-gray-500">
+    //                                                 <div>Type: <span className="font-medium capitalize">{result.chart.type}</span></div>
+    //                                                 <div>Points: <span className="font-medium">{result.chart.data?.length || 0}</span></div>
+    //                                             </div>
+    //                                         </div>
+    //                                     </div>
+    //                                 </div>
+    //                             )}
+
+    //                             <div className="flex gap-3">
+    //                                 <button
+    //                                     onClick={onClose}
+    //                                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+    //                                 >
+    //                                     Close
+    //                                 </button>
+    //                                 <button
+    //                                     onClick={() => {
+    //                                         // Could navigate to analytics page
+    //                                         onClose();
+    //                                     }}
+    //                                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+    //                                 >
+    //                                     <BarChart3 className="w-4 h-4" />
+    //                                     View Analytics
+    //                                 </button>
+    //                             </div>
+    //                         </div>
+    //                     </>
+    //                 ) : (
+    //                     <>
+    //                         {/* Error State */}
+    //                         <div className="text-center">
+    //                             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    //                                 <AlertCircle className="w-8 h-8 text-red-600" />
+    //                             </div>
+    //                             <h3 className="text-xl font-bold text-gray-900 mb-2">
+    //                                 Chart Creation Failed
+    //                             </h3>
+    //                             <p className="text-gray-600 mb-4">
+    //                                 {result?.error || 'Something went wrong while creating the chart.'}
+    //                             </p>
+    //                             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+    //                                 <p className="text-sm text-red-700">
+    //                                     <strong>Tip:</strong> Make sure your message contains numerical data like balances, prices, or percentages that can be visualized.
+    //                                 </p>
+    //                             </div>
+    //                             <div className="flex gap-3">
+    //                                 <button
+    //                                     onClick={onClose}
+    //                                     className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+    //                                 >
+    //                                     Close
+    //                                 </button>
+    //                                 <button
+    //                                     onClick={() => {
+    //                                         onClose();
+    //                                         // Could retry the conversion
+    //                                     }}
+    //                                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+    //                                 >
+    //                                     Try Again
+    //                                 </button>
+    //                             </div>
+    //                         </div>
+    //                     </>
+    //                 )}
+    //             </div>
+    //         </div>
+    //     );
+    // };
 
     // Auto-scroll to bottom when new messages arrive
     const scrollToBottom = () => {
@@ -921,6 +1416,9 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                                         message={msg}
                                         isLoading={isLoading && index === chatHistory.length - 1}
                                         isLast={index === chatHistory.length - 1}
+                                        onConvertToAnalytics={handleConvertToAnalytics}
+                                        isConverting={convertingToChart === msg.id}
+                                        isExtracting={isExtracting}
                                     />
 
                                     {/* Delete Message Button */}
@@ -957,6 +1455,25 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         onStopStreaming={handleStopStreaming}
                         onModelChange={setSelectedModel}
                     />
+
+                    {/* Loading Modal */}
+                    <LoadingModal
+                        isOpen={convertingToChart !== null || isExtracting}
+                        messageId={convertingToChart}
+                    />
+
+                    {/* Artifact Save Modal */}
+                    <ArtifactSaveModal
+                        isOpen={showArtifactModal}
+                        onClose={() => {
+                            setShowArtifactModal(false);
+                            setEditingArtifact(null);
+                            setConvertingToChart(null);
+                        }}
+                        editingArtifact={editingArtifact}
+                        onSave={handleSaveArtifact}
+                        isSaving={isSavingArtifact}
+                    />
                 </>
             )}
         </div>
@@ -966,7 +1483,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 ChatPanel.defaultProps = {
     selectedConversation: null,
     onConversationCreated: () => { },
-    refreshTrigger: 0
+    refreshTrigger: 0,
+    onArtifactSaved: () => { } // Add this
 };
 
 

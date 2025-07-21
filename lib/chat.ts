@@ -46,10 +46,15 @@ export class ChatService {
     private client: Anthropic;
 
     constructor() {
+        const apiKey = process.env.NEXT_PUBLIC_CLAUDE_API || "";
+        console.log('Claude API Key configured:', apiKey ? 'Yes' : 'No');
+        
         this.client = new Anthropic({
-            apiKey: process.env.NEXT_PUBLIC_CLAUDE_API || "",
+            apiKey: apiKey,
             dangerouslyAllowBrowser: true
         });
+        
+        console.log('Claude client initialized');
     }
 
     async *streamChat(
@@ -58,13 +63,16 @@ export class ChatService {
         mcpConfig: any
     ): AsyncGenerator<StreamChunk, { stopReason?: string }, unknown> {
 
-        if (mcpConfig && mcpConfig.enabledServers.length > 0) {
-            return yield* this.streamChatWithMCP(chatHistory, currentMessage, mcpConfig.enabledServers);
+        if (mcpConfig && mcpConfig.enabledServers && mcpConfig.enabledServers.length > 0) {
+            yield* this.streamChatWithMCP(chatHistory, currentMessage, mcpConfig.enabledServers);
+            return { stopReason: 'end_turn' };
         }
 
         // Original implementation without MCP using Claude SDK
         let messages = this.buildConversationMessages(chatHistory, currentMessage);
         let finalStopReason: string | undefined;
+
+        console.log('Starting Claude SDK stream with messages:', messages.length);
 
         try {
             const stream = await this.client.messages.create({
@@ -74,11 +82,17 @@ export class ChatService {
                 stream: true
             });
 
+            console.log('Claude stream created, starting to read chunks...');
+
             for await (const chunk of stream) {
+                console.log('Received chunk:', chunk.type);
+                
                 if (chunk.type === 'message_delta' && chunk.delta.stop_reason) {
                     finalStopReason = chunk.delta.stop_reason;
+                    console.log('Stream ended with stop_reason:', finalStopReason);
                 } else if (chunk.type === 'content_block_delta') {
-                    if (chunk.delta.type === 'text_delta') {
+                    if (chunk.delta.type === 'text_delta' && chunk.delta.text) {
+                        console.log('Yielding text chunk:', chunk.delta.text.substring(0, 50) + '...');
                         yield {
                             type: 'text',
                             content: chunk.delta.text
@@ -86,6 +100,8 @@ export class ChatService {
                     }
                 }
             }
+
+            console.log('Finished streaming, final stop reason:', finalStopReason);
 
         } catch (error: any) {
             console.error('Claude Service: API error:', error);
