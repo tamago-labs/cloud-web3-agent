@@ -25,9 +25,9 @@ export const userProfileAPI = {
                 const data = this.createProfile({
                     username,
                     displayName: "New User",
-                    credits: 25,
+                    credits: 10,
                     creditsUsed: 0,
-                    totalCredits: 25
+                    totalCredits: 10
                 })
 
                 entry = data

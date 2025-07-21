@@ -48,7 +48,7 @@ const Hero = () => {
                             </h1>
                         )}
 
-                        {heroType === 1 && (
+                        {/* {heroType === 1 && (
                             <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
                                 Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
                             </p>
@@ -58,7 +58,11 @@ const Hero = () => {
                             <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
                                 Ask questions like <strong>"Show Aave TVL"</strong> or <strong>"Track Vitalik’s wallet"</strong> and get real-time blockchain charts and analytics instantly. No SQL, no setup — just chat, powered by various MCP servers.
                             </p>
-                        )}
+                        )} */}
+
+                        <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
+                            Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
+                        </p>
 
 
                         <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">
@@ -76,7 +80,7 @@ const Hero = () => {
                         <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span>70+ MCP Tools</span>
+                                <span>50+ MCP Tools</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>

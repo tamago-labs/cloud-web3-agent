@@ -10,12 +10,12 @@ const Header = ({ bgColor }: any) => {
 
     const { profile } = useContext(AccountContext)
 
-    const [currentDomain, setCurrentDomain] = useState('bohdi_tree');
+    const [currentDomain, setCurrentDomain] = useState('tamago_labs');
 
-    // useEffect(() => {
-    //     const currentDomain = window.location.origin
-    //     setCurrentDomain(currentDomain.includes("tamagolabs.com") ? "tamago_labs" : "bohdi_tree"); // or window.location.hostname
-    // }, []);
+    useEffect(() => {
+        const currentDomain = window.location.origin
+        setCurrentDomain(currentDomain.includes("tamagolabs.com") ? "tamago_labs" : "bohdi_tree"); // or window.location.hostname
+    }, []);
 
     return (
         <header className={`relative z-30 ${bgColor}`}>
