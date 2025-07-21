@@ -9,7 +9,7 @@ import useTest from '@/hooks/useTest';
 
 const Automation = () => {
 
-    const { listAgents, getAgent } = useDatabase()
+    // const { listAgents, getAgent } = useDatabase()
     const { profile } = useContext(CloudAgentContext)
     const [agents, setAgents] = useState<any[]>([])
 
@@ -27,17 +27,17 @@ const Automation = () => {
         dispatch({ selected: entry })
     }
 
-    const increaseTick = useCallback(async () => {
-        dispatch({ tick: tick + 1 })
-        if (selected) {
-            const agent = await getAgent(selected.id)
-            dispatch({ selected: agent })
-        }
-    }, [tick, selected])
+    // const increaseTick = useCallback(async () => {
+    //     dispatch({ tick: tick + 1 })
+    //     if (selected) {
+    //         const agent = await getAgent(selected.id)
+    //         dispatch({ selected: agent })
+    //     }
+    // }, [tick, selected])
 
-    useEffect(() => {
-        profile && listAgents(profile.id).then(setAgents)
-    }, [profile, tick])
+    // useEffect(() => {
+    //     profile && listAgents(profile.id).then(setAgents)
+    // }, [profile, tick])
 
     return (
         <div className="flex h-screen relative">
@@ -74,12 +74,12 @@ const Automation = () => {
                     </div>
                 }
 
-                {selected && (
+                {/* {selected && (
                     <AgentPanel
                         agent={selected}
                         increaseTick={increaseTick}
                     />
-                )}
+                )} */}
 
             </div>
         </div>

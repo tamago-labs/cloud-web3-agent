@@ -3,227 +3,41 @@
 import React, { useState, useEffect } from 'react';
 import { Search, TrendingUp, TrendingDown, Eye, Heart, ArrowUpRight } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
-import * as d3 from 'd3';
 import Link from "next/link";
-import Header from "../Landing/Header"
-import ComingSoonModal from "@/components/modals/ComingSoonModal";
+import Header from "../Landing/Header";
+import { usePublicArtifacts } from '@/hooks/usePublicArtifacts';
+import { useDebounce } from '@/hooks/useDebounce';
+import ArtifactCardSkeleton from '@/components/UI/ArtifactCardSkeleton';
+import EmptyState from '@/components/UI/EmptyState';
 
 const DiscoverContainer = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [sortBy, setSortBy] = useState('Popular');
-    const [showModal, setShowModal] = useState(false);
+
+    // Debounce search query to avoid excessive API calls
+    const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+    const { artifacts, loading, error, refetch } = usePublicArtifacts({
+        searchQuery: debouncedSearchQuery,
+        category: categoryFilter === 'All' ? undefined : categoryFilter,
+        sortBy: sortBy.toLowerCase() as 'popular' | 'recent' | 'liked',
+        limit: 50
+    });
+
+    // Extract unique categories from artifacts for dynamic filtering
+    const [categories, setCategories] = useState<string[]>(['All']);
 
     useEffect(() => {
-        // Show modal after 1 second on component mount
-        const timer = setTimeout(() => {
-            setShowModal(true);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, []);
-
-    const artifacts = [
-        {
-            id: 1,
-            title: "Ethereum Top Token Holdings",
-            description: "Distribution of top 10 tokens in Ethereum wallets",
-            author: "defi_analyst",
-            timeAgo: "2h",
-            category: "Portfolio Analytics",
-            currentValue: "$847.2B",
-            change: "+12.4%",
-            trend: "up",
-            chartType: "pie",
-            chart: [
-                { name: "ETH", value: 65.2, color: "#627EEA" },
-                { name: "USDC", value: 12.8, color: "#2775CA" },
-                { name: "USDT", value: 8.9, color: "#26A17B" },
-                { name: "WBTC", value: 5.1, color: "#F7931A" },
-                { name: "DAI", value: 3.2, color: "#F5AC37" },
-                { name: "Others", value: 4.8, color: "#6B7280" }
-            ],
-            views: 3247,
-            likes: 567
-        },
-        {
-            id: 2,
-            title: "DeFi Protocol TVL Rankings",
-            description: "Total Value Locked across major DeFi protocols",
-            author: "tvl_tracker",
-            timeAgo: "1h",
-            category: "DeFi Analytics",
-            currentValue: "$52.8B",
-            change: "+8.7%",
-            trend: "up",
-            chartType: "bar",
-            chart: [
-                { name: "Aave", value: 12.4 },
-                { name: "Uniswap", value: 9.8 },
-                { name: "MakerDAO", value: 8.2 },
-                { name: "Compound", value: 6.1 },
-                { name: "Curve", value: 5.9 },
-                { name: "Lido", value: 10.4 }
-            ],
-            views: 2847,
-            likes: 423
-        },
-        {
-            id: 3,
-            title: "Bitcoin Mining Pool Distribution",
-            description: "Hash rate distribution among mining pools",
-            author: "btc_miner",
-            timeAgo: "30min",
-            category: "Bitcoin Analytics",
-            currentValue: "421 EH/s",
-            change: "+3.2%",
-            trend: "up",
-            chartType: "donut",
-            chart: [
-                { name: "Foundry USA", value: 28.5, color: "#F97316" },
-                { name: "AntPool", value: 22.1, color: "#EF4444" },
-                { name: "F2Pool", value: 15.8, color: "#3B82F6" },
-                { name: "Binance Pool", value: 12.4, color: "#FBBF24" },
-                { name: "ViaBTC", value: 9.2, color: "#10B981" },
-                { name: "Others", value: 12.0, color: "#6B7280" }
-            ],
-            views: 1923,
-            likes: 234
-        },
-        {
-            id: 4,
-            title: "Gas Price Trends (7 Days)",
-            description: "Ethereum gas price fluctuations over the past week",
-            author: "gas_tracker",
-            timeAgo: "15min",
-            category: "Gas Analytics",
-            currentValue: "23.4 gwei",
-            change: "-15.2%",
-            trend: "down",
-            chartType: "area",
-            chart: [
-                { time: "Mon", price: 45.2 },
-                { time: "Tue", price: 38.7 },
-                { time: "Wed", price: 42.1 },
-                { time: "Thu", price: 35.6 },
-                { time: "Fri", price: 28.9 },
-                { time: "Sat", price: 31.2 },
-                { time: "Sun", price: 23.4 }
-            ],
-            views: 4156,
-            likes: 312
-        },
-        {
-            id: 5,
-            title: "Cross-Chain Bridge Volume",
-            description: "24h volume across major blockchain bridges",
-            author: "bridge_monitor",
-            timeAgo: "3h",
-            category: "Cross-Chain Analytics",
-            currentValue: "$1.2B",
-            change: "+24.8%",
-            trend: "up",
-            chartType: "horizontal_bar",
-            chart: [
-                { name: "Arbitrum Bridge", value: 285.4 },
-                { name: "Polygon Bridge", value: 234.7 },
-                { name: "Optimism Bridge", value: 189.2 },
-                { name: "Base Bridge", value: 156.8 },
-                { name: "Avalanche Bridge", value: 142.3 },
-                { name: "Polygon zkEVM", value: 98.6 }
-            ],
-            views: 2134,
-            likes: 289
-        },
-        {
-            id: 6,
-            title: "NFT Market Cap by Chain",
-            description: "NFT market capitalization distribution across blockchains",
-            author: "nft_analyst",
-            timeAgo: "4h",
-            category: "NFT Analytics",
-            currentValue: "$12.8B",
-            change: "+18.5%",
-            trend: "up",
-            chartType: "pie",
-            chart: [
-                { name: "Ethereum", value: 78.2, color: "#627EEA" },
-                { name: "Solana", value: 12.4, color: "#00D18C" },
-                { name: "Polygon", value: 4.8, color: "#8247E5" },
-                { name: "Arbitrum", value: 2.1, color: "#28A0F0" },
-                { name: "Base", value: 1.7, color: "#0052FF" },
-                { name: "Others", value: 0.8, color: "#6B7280" }
-            ],
-            views: 1789,
-            likes: 456
-        },
-        {
-            id: 7,
-            title: "Aptos DeFi Pool Analytics",
-            description: "Liquidity pool performance on Aptos ecosystem",
-            author: "aptos_explorer",
-            timeAgo: "5h",
-            category: "Aptos Analytics",
-            currentValue: "$420M",
-            change: "+22.1%",
-            trend: "up",
-            chartType: "bar",
-            chart: [
-                { name: "PancakeSwap", value: 89.4 },
-                { name: "Liquidswap", value: 156.8 },
-                { name: "Thala", value: 98.2 },
-                { name: "Aries Markets", value: 45.7 },
-                { name: "Hippo", value: 29.9 }
-            ],
-            views: 756,
-            likes: 189
-        },
-        {
-            id: 8,
-            title: "Whale Wallet Activity (24h)",
-            description: "Large transaction movements tracked across networks",
-            author: "whale_watcher",
-            timeAgo: "1h",
-            category: "Whale Analytics",
-            currentValue: "$2.8B",
-            change: "+35.4%",
-            trend: "up",
-            chartType: "area",
-            chart: [
-                { time: "00:00", price: 1.2 },
-                { time: "04:00", price: 1.8 },
-                { time: "08:00", price: 2.1 },
-                { time: "12:00", price: 2.6 },
-                { time: "16:00", price: 2.9 },
-                { time: "20:00", price: 2.5 },
-                { time: "24:00", price: 2.8 }
-            ],
-            views: 3421,
-            likes: 678
+        if (artifacts.length > 0) {
+            const uniqueCategories = Array.from(new Set(
+                artifacts
+                    .map(artifact => artifact.category)
+                    .filter(category => category && category.trim())
+            )).sort();
+            setCategories(['All', ...uniqueCategories]);
         }
-    ];
-
-    const categories = ["All", "Portfolio Analytics", "DeFi Analytics", "Gas Analytics", "Bitcoin Analytics", "NFT Analytics", "Cross-Chain Analytics", "Aptos Analytics", "Whale Analytics"];
-
-    const filteredArtifacts = artifacts.filter(artifact => {
-        const matchesSearch = artifact.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            artifact.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = categoryFilter === 'All' || artifact.category === categoryFilter;
-        return matchesSearch && matchesCategory;
-    });
-
-    const sortedArtifacts = [...filteredArtifacts].sort((a, b) => {
-        switch (sortBy) {
-            case 'Popular':
-                return b.views - a.views;
-            case 'Recent':
-                return 0;
-            case 'Liked':
-                return b.likes - a.likes;
-            default:
-                return 0;
-        }
-    });
+    }, [artifacts]);
 
     const ProfessionalChart = ({ data, chartType, trend }: { data: any[], chartType: string, trend: string }) => {
         const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
@@ -471,6 +285,38 @@ const DiscoverContainer = () => {
         );
     };
 
+    // Error state
+    if (error) {
+        return (
+            <>
+                <Header bgColor="bg-white" />
+                <div className="min-h-screen bg-gray-50">
+                    <div className="bg-white border-b border-gray-200">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                            <div className="text-center">
+                                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                                    Discover Community Analytics
+                                </h1>
+                                <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+                                    Discover insights created through conversation made by the community
+                                </p>
+                                <div className="text-center py-12">
+                                    <p className="text-red-600 mb-4">Failed to load analytics</p>
+                                    <button
+                                        onClick={refetch}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        Try Again
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
             <Header bgColor="bg-white" />
@@ -537,101 +383,108 @@ const DiscoverContainer = () => {
 
                     {/* Results */}
                     <div className="mb-6">
-                        <p className="text-gray-600">
-                            {sortedArtifacts.length} analytics found
-                        </p>
-                    </div>
-
-                    {/* Analytics Grid - 2 columns */}
-                    <div className="grid md:grid-cols-2 gap-8">
-                        {sortedArtifacts.map((artifact) => (
-                            <div key={artifact.id} onClick={() => setShowModal(true)}>
-                                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group">
-                                    {/* Chart */}
-                                    <div className="p-4">
-                                        <ProfessionalChart
-                                            data={artifact.chart}
-                                            chartType={artifact.chartType}
-                                            trend={artifact.trend}
-                                        />
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="p-6 pt-2">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex-1">
-                                                <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
-                                                    {artifact.title}
-                                                </h3>
-                                                <p className="text-gray-600 text-sm">
-                                                    {artifact.description}
-                                                </p>
-                                            </div>
-                                            <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors ml-3 flex-shrink-0" />
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <div className="text-2xl font-bold text-gray-900">
-                                                    {artifact.currentValue}
-                                                </div>
-                                                <div className={`text-sm font-medium flex items-center gap-1 ${artifact.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                                                    }`}>
-                                                    {artifact.trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                                                    {artifact.change}
-                                                </div>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <div className="flex items-center gap-4 text-sm text-gray-500">
-                                                    <span className="flex items-center gap-1">
-                                                        <Heart className="w-4 h-4" />
-                                                        {artifact.likes}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <Eye className="w-4 h-4" />
-                                                        {artifact.views}
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs text-gray-400 mt-1">
-                                                    by {artifact.author} • {artifact.timeAgo}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* No Results */}
-                    {sortedArtifacts.length === 0 && (
-                        <div className="text-center py-12">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No analytics found</h3>
-                            <p className="text-gray-600 mb-6">
-                                Try adjusting your search or filters.
+                        {loading ? (
+                            <div className="h-5 bg-gray-200 rounded w-32 animate-pulse"></div>
+                        ) : (
+                            <p className="text-gray-600">
+                                {artifacts.length} analytics found
                             </p>
-                            <button
-                                onClick={() => {
-                                    setSearchQuery('');
-                                    setCategoryFilter('All');
-                                }}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                Clear Filters
-                            </button>
+                        )}
+                    </div>
+
+                    {/* Loading State */}
+                    {loading && (
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {Array.from({ length: 6 }).map((_, index) => (
+                                <ArtifactCardSkeleton key={index} />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!loading && artifacts.length === 0 && (
+                        <EmptyState
+                            title={searchQuery || categoryFilter !== 'All' ? "No analytics found" : "No analytics yet"}
+                            description={searchQuery || categoryFilter !== 'All' 
+                                ? "Try adjusting your search or filters to find what you're looking for."
+                                : "Be the first to create and share an analytics chart with the community."
+                            }
+                            showCreateButton={true}
+                        />
+                    )}
+
+                    {/* Analytics Grid */}
+                    {!loading && artifacts.length > 0 && (
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {artifacts.map((artifact) => {
+                                const trend = artifact.change?.startsWith('+') ? 'up' : 'down';
+                                
+                                return (
+                                    <Link key={artifact.id} href={`/artifact/${artifact.id}`}>
+                                        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group">
+                                            {/* Chart */}
+                                            <div className="p-4">
+                                                <ProfessionalChart
+                                                    data={artifact.data}
+                                                    chartType={artifact.chartType}
+                                                    trend={trend}
+                                                />
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="p-6 pt-2">
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                                                            {artifact.title}
+                                                        </h3>
+                                                        <p className="text-gray-600 text-sm">
+                                                            {artifact.description}
+                                                        </p>
+                                                    </div>
+                                                    <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors ml-3 flex-shrink-0" />
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <div className="text-2xl font-bold text-gray-900">
+                                                            {artifact.totalValue || 'N/A'}
+                                                        </div>
+                                                        {artifact.change && (
+                                                            <div className={`text-sm font-medium flex items-center gap-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                                                                {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                                                                {artifact.change}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="text-right">
+                                                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                                                            <span className="flex items-center gap-1">
+                                                                <Heart className="w-4 h-4" />
+                                                                {artifact.likes || 0}
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                <Eye className="w-4 h-4" />
+                                                                {artifact.views || 0}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-xs text-gray-400 mt-1">
+                                                            {artifact.category} • {new Date(artifact.createdAt).toLocaleDateString()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
             </div>
-
-            {/* Coming Soon Modal */}
-            <ComingSoonModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-            />
         </>
     );
 };
 
-export default DiscoverContainer
+export default DiscoverContainer;

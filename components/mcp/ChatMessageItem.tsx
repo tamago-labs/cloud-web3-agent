@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, ChevronDown, ChevronRight, Copy, Check, Eye, EyeOff, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Copy, Check, Eye, EyeOff, Clock, CheckCircle, XCircle, AlertCircle, BarChart3, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import { ChatMessage } from './types';
@@ -8,6 +8,9 @@ interface ChatMessageItemProps {
     message: ChatMessage;
     isLoading: boolean;
     isLast: boolean;
+    onConvertToAnalytics?: (messageId: string, content: string, toolResults?: any[]) => void;
+    isConverting?: boolean;
+    isExtracting?: boolean;
 }
 
 interface ToolResult {
@@ -258,13 +261,35 @@ const ToolResultModal: React.FC<{
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
     message,
     isLoading,
-    isLast
+    isLast,
+    onConvertToAnalytics,
+    isConverting = false,
+    isExtracting = false
 }) => {
     const [showToolResults, setShowToolResults] = useState(false);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const [selectedTool, setSelectedTool] = useState<ToolResult | null>(null);
     
     const enhancedMessage = message as EnhancedChatMessage;
+
+    // Check if message contains analytics data
+    const hasAnalyticsData = () => {
+        if (message.type !== 'assistant') return false;
+        
+        const content = message.message.toLowerCase();
+        const analyticsIndicators = [
+            'portfolio', 'balance', 'holdings', 'tvl', 'volume', 'price',
+            'token', 'eth', 'usdc', 'btc', '$', '%', 'analysis', 'breakdown',
+            'summary', 'total value', 'distribution', 'composition', 'percentage',
+            'protocol', 'defi', 'yield', 'apy', 'liquidity', 'staking', 'rewards'
+        ];
+        
+        const hasIndicators = analyticsIndicators.some(indicator => content.includes(indicator));
+        const hasToolResults = toolResults.length > 0 && toolResults.some(tr => tr.status === 'completed');
+        const hasNumericData = /\$[0-9,.]+(m|b|k)?|[0-9,]+\s*(eth|btc|usdc|bnb|matic)|[0-9.]+%|[0-9,.]+\s*(usd|dollars?)/.test(content);
+        
+        return hasIndicators && (hasToolResults || hasNumericData);
+    };
 
     // Parse tool calls and results from message content
     const parseToolInformation = (content: string) => {
@@ -560,11 +585,37 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                     </div>
                 )}
 
-                {/* Timestamp */}
-                <div className={`text-xs mt-3 ${
-                    message.type === 'user' ? 'text-blue-200' : 'text-gray-500'
-                }`}>
-                    {message.timestamp}
+                {/* Timestamp and Analytics Button */}
+                <div className={`flex items-center justify-between mt-3 ${message.type === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+                    <div className="text-xs">
+                        {message.timestamp}
+                    </div>
+                    
+                    {/* Analytics Conversion Button - only for assistant messages with analytics data */}
+                    {message.type === 'assistant' && hasAnalyticsData() && onConvertToAnalytics && !isLoading && (
+                        <button
+                            onClick={() => onConvertToAnalytics(message.id, message.message, toolResults)}
+                            disabled={isConverting || isExtracting}
+                            className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors border ${
+                                isConverting || isExtracting 
+                                    ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'
+                                    : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 hover:border-blue-300'
+                            }`}
+                            title={isConverting || isExtracting ? 'Creating chart...' : 'Convert to analytics chart'}
+                        >
+                            {isConverting || isExtracting ? (
+                                <>
+                                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                    {isExtracting ? 'Analyzing...' : 'Creating...'}
+                                </>
+                            ) : (
+                                <>
+                                    <BarChart3 className="w-3 h-3" />
+                                    Create Artifact
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
 

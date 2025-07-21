@@ -14,7 +14,7 @@ const AgentPanelOLD = ({ agent }: any) => {
 
     const { query } = useContext(CloudAgentContext)
 
-    const { saveMessages, getMessages } = useDatabase()
+    // const { saveMessages, getMessages } = useDatabase()
 
     // const { query } = useTest()
 
@@ -85,7 +85,7 @@ const AgentPanelOLD = ({ agent }: any) => {
                 return msg
             })
 
-            await saveMessages(agent.id, updated)
+            // await saveMessages(agent.id, updated)
             dispatch({ messages: updated })
 
             // if (result.content) {
@@ -146,15 +146,15 @@ const AgentPanelOLD = ({ agent }: any) => {
 
         // TODO: Add resource
 
-        const messages = await getMessages(agent.id)
+        // const messages = await getMessages(agent.id)
 
-        console.log("messages: ", messages)
+        // console.log("messages: ", messages)
 
-        // TODO: Add system prompts
+        // // TODO: Add system prompts
 
-        dispatch({
-            messages
-        })
+        // dispatch({
+        //     messages
+        // })
 
     }, [])
 

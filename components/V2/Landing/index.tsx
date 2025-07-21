@@ -21,7 +21,7 @@ const LandingContainer = () => {
             <QuickFeatures />
 
              <GeneratedArtifacts />
-             <TechnologiesSection />
+             {/* <TechnologiesSection /> */}
             <OnlineHostedServers  />
            
             {/* <RecentlyAdded   /> */}

@@ -329,7 +329,7 @@ const EnhancedServerStatusPage = () => {
                                 <div className="flex items-center">
                                     <Wrench className="w-8 h-8 text-green-600" />
                                     <div className="ml-4">
-                                        <div className="text-2xl font-bold text-gray-900">70+</div>
+                                        <div className="text-2xl font-bold text-gray-900">50+</div>
                                         <div className="text-sm text-gray-600">Available Tools</div>
                                     </div>
                                 </div>

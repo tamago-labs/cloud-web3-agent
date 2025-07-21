@@ -15,9 +15,9 @@ import BaseModal from "@/modals/base"
 
 const ChatPanel = ({ agent, increaseTick }: any) => {
 
-    const { query, queryCronos } = useContext(CloudAgentContext)
+    // const { query, queryCronos } = useContext(CloudAgentContext)
 
-    const { getMessages, clearMessages } = useDatabase()
+    // const { getMessages, clearMessages } = useDatabase()
 
     const chatContainerRef: any = useRef(null)
 
@@ -59,13 +59,13 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
     const prepareMessages = useCallback(async (agent: any) => {
 
         // TODO: Add resource
-        const messages = await getMessages(agent.id)
-        console.log("messages: ", messages)
-        // TODO: Add system prompts
+        // const messages = await getMessages(agent.id)
+        // console.log("messages: ", messages)
+        // // TODO: Add system prompts
 
-        dispatch({
-            messages
-        })
+        // dispatch({
+        //     messages
+        // })
 
     }, [])
 
@@ -104,37 +104,37 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
         try {
 
 
-            if (agent.blockchain === "aptos") {
-                const result: any = await query(agent.id, [...messages, userPrompt])
-                console.log("result:", result)
-                if (result) {
-                    dispatch({ messages: result })
-                } else {
-                    alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
-                    // wait for 10 sec and load message again
-                    setTimeout(() => {
-                        dispatch({
-                            tick: tick + 1
-                        })
-                    }, 10000)
-                }
-            } else if (agent.blockchain === "cronos") {
+            // if (agent.blockchain === "aptos") {
+            //     const result: any = await query(agent.id, [...messages, userPrompt])
+            //     console.log("result:", result)
+            //     if (result) {
+            //         dispatch({ messages: result })
+            //     } else {
+            //         alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
+            //         // wait for 10 sec and load message again
+            //         setTimeout(() => {
+            //             dispatch({
+            //                 tick: tick + 1
+            //             })
+            //         }, 10000)
+            //     }
+            // } else if (agent.blockchain === "cronos") {
 
-                const result = await queryCronos(agent.id, [...messages, userPrompt])
-                console.log("result:", result)
-                if (result) {
-                    dispatch({ messages: result })
-                } else {
-                    alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
-                    // wait for 10 sec and load message again
-                    setTimeout(() => {
-                        dispatch({
-                            tick: tick + 1
-                        })
-                    }, 10000)
-                }
+            //     const result = await queryCronos(agent.id, [...messages, userPrompt])
+            //     console.log("result:", result)
+            //     if (result) {
+            //         dispatch({ messages: result })
+            //     } else {
+            //         alert("Connection timeout: Reload the page if you do not see new messages within 15 seconds")
+            //         // wait for 10 sec and load message again
+            //         setTimeout(() => {
+            //             dispatch({
+            //                 tick: tick + 1
+            //             })
+            //         }, 10000)
+            //     }
 
-            }
+            // }
 
 
         } catch (e) {
@@ -148,9 +148,9 @@ const ChatPanel = ({ agent, increaseTick }: any) => {
     }, [message, messages, agent, tick])
 
     const onClear = useCallback(async () => {
-        await clearMessages(agent.id)
-        increaseTick()
-        dispatch({ modal: "Deleted successfully" })
+        // await clearMessages(agent.id)
+        // increaseTick()
+        // dispatch({ modal: "Deleted successfully" })
     }, [agent, increaseTick])
 
     return (

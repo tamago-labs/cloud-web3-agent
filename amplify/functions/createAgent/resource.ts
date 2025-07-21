@@ -1,10 +1,10 @@
 
 
-import { defineFunction } from '@aws-amplify/backend';
+// import { defineFunction } from '@aws-amplify/backend';
 
 
-export const createAgent = defineFunction({ 
-  name: 'createAgent', 
-  entry: './handler.ts', 
-  timeoutSeconds: 10
-});
+// export const createAgent = defineFunction({ 
+//   name: 'createAgent', 
+//   entry: './handler.ts', 
+//   timeoutSeconds: 10
+// });

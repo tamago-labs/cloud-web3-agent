@@ -29,8 +29,8 @@ const TechnologiesSection = () => {
             website: "https://modelcontextprotocol.org"
         },
         {
-            name: "Pyth Network",
-            description: "High-fidelity, high-frequency market data oracle providing real-time price feeds for 400+ assets across traditional and digital markets.",
+            name: "Pyth MCP",
+            description: "Access high-frequency market data oracles providing real-time price feeds for 400+ assets across traditional and digital markets.",
             icon: <BarChart3 className="w-8 h-8" />,
             color: "from-purple-500 to-pink-600",
             benefits: [
@@ -41,8 +41,8 @@ const TechnologiesSection = () => {
             website: "https://pyth.network"
         },
         {
-            name: "Nodit Infrastructure",
-            description: "Enterprise-grade Web3 infrastructure providing reliable node access, indexing, and analytics APIs across 15+ blockchains with 99.9% uptime.",
+            name: "Nodit MCP",
+            description: "Official MCP server from Nodit, providing reliable node access, indexing, and analytics APIs across 15+ blockchains with 99.9% uptime.",
             icon: <Database className="w-8 h-8" />,
             color: "from-emerald-500 to-teal-600",
             benefits: [
@@ -52,30 +52,30 @@ const TechnologiesSection = () => {
             ],
             website: "https://nodit.io"
         },
-        {
-            name: "AWS Bedrock",
-            description: "Fully managed service for building generative AI applications with foundation models, providing security, privacy, and responsible AI governance.",
-            icon: <Cloud className="w-8 h-8" />,
-            color: "from-orange-500 to-red-600",
-            benefits: [
-                "Enterprise security",
-                "Managed AI models",
-                "Global scalability"
-            ],
-            website: "https://aws.amazon.com/bedrock"
-        },
-        {
-            name: "Claude 4 (Anthropic)",
-            description: "Advanced constitutional AI model designed for helpful, harmless, and honest interactions with superior reasoning and analysis capabilities.",
-            icon: <Cpu className="w-8 h-8" />,
-            color: "from-indigo-500 to-purple-600",
-            benefits: [
-                "Advanced reasoning",
-                "Context understanding",
-                "Safe AI interactions"
-            ],
-            website: "https://anthropic.com"
-        }
+        // {
+        //     name: "AWS Bedrock",
+        //     description: "Fully managed service for building generative AI applications with foundation models, providing security, privacy, and responsible AI governance.",
+        //     icon: <Cloud className="w-8 h-8" />,
+        //     color: "from-orange-500 to-red-600",
+        //     benefits: [
+        //         "Enterprise security",
+        //         "Managed AI models",
+        //         "Global scalability"
+        //     ],
+        //     website: "https://aws.amazon.com/bedrock"
+        // },
+        // {
+        //     name: "Claude 4 (Anthropic)",
+        //     description: "Advanced constitutional AI model designed for helpful, harmless, and honest interactions with superior reasoning and analysis capabilities.",
+        //     icon: <Cpu className="w-8 h-8" />,
+        //     color: "from-indigo-500 to-purple-600",
+        //     benefits: [
+        //         "Advanced reasoning",
+        //         "Context understanding",
+        //         "Safe AI interactions"
+        //     ],
+        //     website: "https://anthropic.com"
+        // }
     ];
 
     return (
@@ -94,8 +94,7 @@ const TechnologiesSection = () => {
                         Technologies
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Built on cutting-edge technologies that enable seamless Web3 analytics,
-                        real-time data access and intelligent AI interactions
+                        Built on cutting-edge technologies that enable seamless Web3 analytics, leveraging community MCP on top of foundational MCPs.
                     </p>
                 </div>
 
@@ -198,7 +197,7 @@ const TechnologiesSection = () => {
                     </div>
                 </div>
 
-                
+
             </div>
         </div>
     );

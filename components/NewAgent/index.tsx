@@ -21,7 +21,7 @@ const NewAgent = () => {
 
     const [checkMarketplaceModal, setMarketplaceModal] = useState<boolean>(true)
 
-    const { listAgents } = useDatabase()
+    // const { listAgents } = useDatabase()
 
     const router = useRouter()
 
@@ -42,16 +42,16 @@ const NewAgent = () => {
         }
     )
 
-    useEffect(() => {
-        if (profile && profile.id) {
-            listAgents(profile.id).then(
-                (agents) => {
-                    const total = agents.length
-                    dispatch({ agentName: `My Agent #${total + 1}` })
-                }
-            )
-        }
-    }, [profile])
+    // useEffect(() => {
+    //     if (profile && profile.id) {
+    //         listAgents(profile.id).then(
+    //             (agents) => {
+    //                 const total = agents.length
+    //                 dispatch({ agentName: `My Agent #${total + 1}` })
+    //             }
+    //         )
+    //     }
+    // }, [profile])
 
     const { agentName, selectedBlockchain, selectedSDK, errorMessage, loading, modal } = values
 
@@ -84,32 +84,32 @@ const NewAgent = () => {
 
         dispatch({ loading: true })
 
-        try {
+        // try {
 
-            const { data } = await client.queries.CreateAgent({
-                name: agentName,
-                userId: profile.id,
-                blockchain: selectedBlockchain,
-                sdkType: selectedSDK
-            })
+        //     const { data } = await client.queries.CreateAgent({
+        //         name: agentName,
+        //         userId: profile.id,
+        //         blockchain: selectedBlockchain,
+        //         sdkType: selectedSDK
+        //     })
 
-            if (data) {
-                dispatch({
-                    selectedBlockchain: undefined,
-                    selectedSDK: undefined,
-                    agentName: "My Aptos Agent",
-                    errorMessage: undefined,
-                    loading: false,
-                    modal: true
-                })
-            } else {
-                throw new Error("Unknow error. Please try again.")
-            }
+        //     if (data) {
+        //         dispatch({
+        //             selectedBlockchain: undefined,
+        //             selectedSDK: undefined,
+        //             agentName: "My Aptos Agent",
+        //             errorMessage: undefined,
+        //             loading: false,
+        //             modal: true
+        //         })
+        //     } else {
+        //         throw new Error("Unknow error. Please try again.")
+        //     }
 
-        } catch (error: any) {
-            console.log(error)
-            dispatch({ loading: false, errorMessage: error.message })
-        }
+        // } catch (error: any) {
+        //     console.log(error)
+        //     dispatch({ loading: false, errorMessage: error.message })
+        // }
 
     }, [selectedBlockchain, selectedSDK, agentName, profile])
 

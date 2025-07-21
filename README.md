@@ -1,68 +1,89 @@
-## Cloud Web3 Agent
+# Bodhi Tree Analytics
 
-Today, many blockchain foundations and major projects in the ecosystem provide SDKs for building AI agents that enable interaction with DeFi protocols and other blockchain applications through natural language. Some well-known SDKs include **MetaMove’s Move Agent Kit**, **Crypto.com’s AI Agent Kit** and **SendAI’s Solana Agent Kit**.
+> **Web3 Analytics via Chat - No SQL Required**
 
-**Cloud Web3 Agent** provides a solution for deploying and managing these Web3 AI agents with ease. It provides a managed infrastructure built on AWS serverless architecture, packaged in an open-source AWS Amplify stack. This ensures low operational costs, high flexibility and seamless AI agent deployment.
+![MCP](https://img.shields.io/badge/MCP-Protocol-purple)
+[![Claude](https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=fff)](#)
+[![AWS](https://custom-icon-badges.demolab.com/badge/AWS-%23FF9900.svg?logo=aws&logoColor=white)](#)
+[![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js&logoColor=white)](#)
+
+Bodhi Tree is a platform that lets you ask questions like "Show Aave TVL" or "Track Vitalik's wallet" and get real-time blockchain charts instantly. It's similar to Dune Analytics, but with natural language queries instead of SQL, and no setup required.
+
+The platform leverages the extensive MCP (Model Context Protocol) server ecosystem to access real-time data — from on-chain sources via Nodit MCP to off-chain data like token prices. With 10,000+ MCPs available in the market, the system can perform a wide range of analytics tasks across various Web3 domains.
+
+<img width="1277" height="489" alt="bodhi-tree drawio" src="https://github.com/user-attachments/assets/4e5c24f9-421b-4eaf-85ac-20d3b15f3d71" />
+
+The platform comprises several components that enable real-time, AI-powered Web3 analytics via chat. Each part plays a critical role in making **Bodhi Tree** seamless, scalable, and extensible:
+
+- **Serverless Backend + Frontend**
+  - (https://github.com/tamago-labs/bodhi-tree-analytics) - This repo
+  - Built on AWS Amplify Serverless stack
+  - Uses Next.js for frontend
+  - Backend includes GraphQL API, database, and Bedrock AI integration
+  - Handles chat queries and artifact generation with no backend maintenance
+
+- **Online MCP Server Service**
+  - (https://github.com/tamago-labs/decentral-mcp-server)
+  - Node.js Express service for managing MCP servers deployable on platforms like Railway.app
+  - Allows users to interact with MCP servers online — no local setup needed
+  - Acts as the middleware between the frontend and blockchain data sources
+  - Handles server discovery, connection management, and tool execution
+
+- **Web3 MCP Servers**
+  - (https://github.com/tamago-labs/web3-mcp)
+  - A set of Web3-specific MCP servers, including:
+    - Portfolio Snapshot
+    - DeFi Analytics
+    - Whale Tracker
+    - Bitcoin Wallet Analyzer
+  - Built on top of Nodit MCP for real-time on-chain data analytics
+  - Integrates with Pyth Network for off-chain token prices
+  - Saves up to 90% in token query costs compared to direct calls on Nodit MCP
+
+## Screenshots
+
+ <img width="1191" height="737" alt="Screenshot from 2025-07-14 11-01-13" src="https://github.com/user-attachments/assets/3a424640-118a-43e4-a865-5a7f52c19926" />
 
 ## Features
 
-- **Instant Deployment:** Deploy a new agent by selecting the blockchain and SDK to use and have a ready-to-use AI agent within seconds.
-- **Chat Interface:** Start chatting to swap, stake, lend or perform any actions supported by the SDK. Tasks can also be scheduled to run periodically, such as monitoring healthy collateral ratios.
-- **Marketplace System:** Enables fine-tuned AI agents to be monetized on the marketplace.
-- **Multiple SDK Support:** Currently supports MetaMove Move Agent Kit, with Solana and Cronos support coming soon.
+- **Natural Language Queries:** Ask questions and get professional charts instantly. No SQL or technical expertise needed
+- **Real-time Data:** Live blockchain data across 10+ chains (Ethereum, Polygon, Arbitrum, Base, Optimism, Avalanche, Bitcoin, Aptos, and more)
+- **AI-Powered:** Claude Sonnet 4 processes queries and generates visualizations
+- **Zero Setup:** Browser-based interface with instant access
+- **Private Processing:** Your data stays secure with AWS infrastructure
+- **Cost Efficient:** Up to 90% savings on data queries through optimized MCP servers
 
-The project is under heavy development, with analytics data currently mocked and payments not yet functional.
 
-## Overview
+## Usage Examples
 
-The system uses the AWS Amplify Stack to efficiently manage and run AI agents without the need for dedicated API services for the client. Agent-related data is stored in a database, while on-chain transactions rely on the SDK. This approach helps us stay lean and focus on improvements for the AI agent's core logic.
+### **Simple Queries**
+- *"What's the current price of Bitcoin?"*
+- *"Show me Ethereum gas prices today"*
+- *"How much TVL does Aave have?"*
 
-![Untitled Diagram drawio (16)](https://github.com/user-attachments/assets/8c904cec-5c41-4eb4-929d-5c52cfba7b3f)
+### **Advanced Analytics**  
+- *"Compare the performance of top DeFi protocols this month"*
+- *"Analyze whale movements for ETH in the last 24 hours"*
+- *"Show me the distribution of Bitcoin mining pools"*
+- *"Track yield farming opportunities across different chains"*
 
-During creation, a unique wallet key is generated on the backend and securely stored in the cloud, along with the selected blockchain and SDK data. The AI agent can then be invoked as follows:
+### **Portfolio Analysis**
+- *"Analyze Vitalik's wallet portfolio breakdown"*
+- *"Show me the largest token holders for USDC"*
+- *"Track transactions for wallet 0x..."*
 
-- **Chat Interface:** Enables interaction to explore the agent's capabilities based on the selected SDK, deposit funds, trial operations, or perform initial interactions like borrowing assets from a lending protocol.
+## Available MCP Servers
 
-- **Automation Schedule:** – Allows programming automation by providing a set of prompts to run periodically, such as monitoring borrow positions or executing swaps at a predefined rate.
+| Server | Description | Chains Supported |
+|--------|-------------|------------------|
+| **Portfolio Snapshot** | Multi-chain wallet analysis | Ethereum, Polygon, Arbitrum, Base, Optimism, Avalanche, Kaia |
+| **Gas Optimization Helper** | Real-time gas price optimization | Ethereum, Polygon, Arbitrum, Base, Optimism, Avalanche, Kaia |
+| **DeFi Analytics** | Protocol TVL, yield tracking, DEX analytics | Multi-chain DeFi protocols |
+| **Bitcoin Wallet Analyzer** | UTXO analysis, fee optimization | Bitcoin, Dogecoin |
+| **Bitcoin Network Insights** | Mining analytics, network health | Bitcoin, Dogecoin |
+| **NFT Collection Insights** | Collection stats, holder analysis | Ethereum, Polygon, Arbitrum, Base, Optimism, Avalanche, Kaia |
+| **Aptos DeFi Analytics** | Native Aptos ecosystem analytics | Aptos |
 
-Hence, the agent can be listed on the marketplace, the admin can manually approve it through the AWS Amplify database console. After approval, others can redeploy the agent and make payments as needed.
 
-## Use Cases
 
-Imagine being able to deploy the following agents with ease and minimal setup costs:
 
-- **Collateral Monitor Agent** - Automatically monitors borrow positions and prevents liquidations by maintaining healthy collateral ratios, adding more collateral when needed.
-- **DeFi Yield Optimizer Agent** - Automatically monitors and moves funds between protocols for the highest APY.
-- **DEX Arbitrage Agent** - Identifies and executes arbitrage opportunities across multiple DEXes.
-
-## Automation
-
-Automation allows users to define prompts that trigger actions at specific times. It operates through three key prompts:
-
-- **Input Processing Prompt** – Gathers necessary information such as current exchange rates and active positions to monitor.
-
-- **Decision-Making Prompt** – Assesses collected data against a specified condition. For example, “Check if the APT/USDT rate is above 4.5.”
-
-- **Execution Prompt** – If the condition is met, the agent executes the on-chain action via the SDK.
-
-All interactions between programmed prompts and the AI agent are stored in the database and can be reviewed later through the chat interface.
-
-## Deploying to AWS
-
-The entire project is packaged within the AWS Amplify stack, which automates the setup of essential AWS services, including:
-
-- **Amplify Database** – A real-time database for storing AI agents and account information.
-
-- **AWS AI Kit** – Enhances automation prompts using managed Claude on AWS.
-
-- **AWS Lambda** – Serverless backend functions handling all SDK interactions.
-
-- **AWS Cognito** – Managed authentication supporting Google and other providers.
-
-- **Next.js Frontend** – The main frontend and dashboard interface.
-
-For detailed instructions on deploying, refer to the [deployment section](https://docs.amplify.aws/nextjs/start/quickstart/nextjs-app-router-client-components/#deploy-a-fullstack-app-to-aws)
-
-## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.

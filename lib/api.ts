@@ -855,7 +855,7 @@ export const enhancedToolResultAPI = {
         status: 'pending' | 'running' | 'completed' | 'error';
         input?: any;
         output?: any;
-        error?: string;  
+        error?: string;
         duration?: number;
         metadata?: any;
         userId: string;
@@ -885,4 +885,445 @@ export const enhancedToolResultAPI = {
             throw error;
         }
     }
+};
+
+// Artifact API functions
+export const artifactAPI = {
+    // Create new artifact
+    async createArtifact(artifactData: {
+        userId: string; 
+        messageId?: string;
+        title: string;
+        description?: string;
+        chartType: 'pie' | 'bar' | 'line' | 'area' | 'donut' | 'horizontal_bar';
+        data: any; // Chart data points
+        totalValue?: string;
+        change?: string;
+        category?: string;
+        tags?: string[];
+        isPublic?: boolean;
+        sourceData?: any;
+        metadata?: any;
+    }) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+ 
+  
+            const response = await client.models.Artifact.create({
+                ...artifactData,
+                data: JSON.stringify(artifactData.data),
+                sourceData: artifactData.sourceData ? JSON.stringify(artifactData.sourceData) : undefined,
+                metadata: artifactData.metadata ? JSON.stringify(artifactData.metadata) : undefined,
+                likes: 0,
+                views: 0,
+                isPublic: artifactData.isPublic || false
+            } as any); 
+            const newArtifact = response?.data 
+            return newArtifact;
+        } catch (error) {
+            console.error('Error creating artifact:', error);
+            throw error;
+        }
+    },
+
+    // Get user's artifacts
+    async getUserArtifacts(userId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: artifacts }: any = await client.models.Artifact.list({
+                filter: {
+                    userId: {
+                        eq: userId
+                    }
+                }
+            });
+
+            // Sort by creation date (newest first)
+            return artifacts.sort((a: any, b: any) =>
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            ).map((artifact: any) => ({
+                ...artifact,
+                data: artifact.data ? JSON.parse(artifact.data) : [],
+                sourceData: artifact.sourceData ? JSON.parse(artifact.sourceData) : null,
+                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null
+            }));
+        } catch (error) {
+            console.error('Error fetching user artifacts:', error);
+            throw error;
+        }
+    },
+
+    // Get public artifacts for discover page
+    async getPublicArtifacts(isLoggedIn: boolean, filters?: {
+        category?: string;
+        searchQuery?: string;
+        sortBy?: 'popular' | 'recent' | 'liked';
+        limit?: number;
+    }) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: isLoggedIn ? "userPool" : "iam"
+            });
+
+            let filterCondition: any = {
+                isPublic: {
+                    eq: true
+                }
+            };
+
+            // Add category filter
+            if (filters?.category && filters.category !== 'All') {
+                filterCondition.category = {
+                    eq: filters.category
+                };
+            }
+
+            const { data: artifacts } = await client.models.Artifact.list({
+                filter: filterCondition
+            });
+
+            let filteredArtifacts = artifacts.map((artifact: any) => ({
+                ...artifact,
+                data: artifact.data ? JSON.parse(artifact.data) : [],
+                sourceData: artifact.sourceData ? JSON.parse(artifact.sourceData) : null,
+                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null
+            }));
+
+            // Apply search filter
+            if (filters?.searchQuery) {
+                const query = filters.searchQuery.toLowerCase();
+                filteredArtifacts = filteredArtifacts.filter(artifact =>
+                    artifact.title?.toLowerCase().includes(query) ||
+                    artifact.description?.toLowerCase().includes(query) ||
+                    artifact.tags?.some((tag: string) => tag.toLowerCase().includes(query))
+                );
+            }
+
+            // Apply sorting
+            switch (filters?.sortBy) {
+                case 'popular':
+                    filteredArtifacts.sort((a, b) => (b.views || 0) - (a.views || 0));
+                    break;
+                case 'liked':
+                    filteredArtifacts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                    break;
+                case 'recent':
+                default:
+                    filteredArtifacts.sort((a, b) =>
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    );
+                    break;
+            }
+
+            // Apply limit
+            if (filters?.limit) {
+                filteredArtifacts = filteredArtifacts.slice(0, filters.limit);
+            }
+
+            return filteredArtifacts;
+        } catch (error) {
+            console.error('Error fetching public artifacts:', error);
+            throw error;
+        }
+    },
+
+    // Get specific artifact by ID
+    async getArtifact(artifactId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: artifact }: any = await client.models.Artifact.get({
+                id: artifactId
+            });
+
+            if (!artifact) {
+                throw new Error('Artifact not found');
+            }
+
+            return {
+                ...artifact,
+                data: artifact.data ? JSON.parse(artifact.data) : [],
+                sourceData: artifact.sourceData ? JSON.parse(artifact.sourceData) : null,
+                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null
+            };
+        } catch (error) {
+            console.error('Error fetching artifact:', error);
+            throw error;
+        }
+    },
+
+    // Update artifact
+    async updateArtifact(artifactId: string, updateData: {
+        title?: string;
+        description?: string;
+        chartType?: 'pie' | 'bar' | 'line' | 'area' | 'donut' | 'horizontal_bar';
+        data?: any;
+        totalValue?: string;
+        change?: string;
+        category?: string;
+        tags?: string[];
+        isPublic?: boolean;
+        metadata?: any;
+    }) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const processedData: any = { ...updateData };
+
+            // Stringify JSON fields
+            if (updateData.data) {
+                processedData.data = JSON.stringify(updateData.data);
+            }
+            if (updateData.metadata) {
+                processedData.metadata = JSON.stringify(updateData.metadata);
+            }
+
+            const { data: updatedArtifact } = await client.models.Artifact.update({
+                id: artifactId,
+                ...processedData
+            });
+            return updatedArtifact;
+        } catch (error) {
+            console.error('Error updating artifact:', error);
+            throw error;
+        }
+    },
+
+    // Delete artifact
+    async deleteArtifact(artifactId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: "userPool"
+            });
+
+            const { data: deletedArtifact } = await client.models.Artifact.delete({
+                id: artifactId
+            });
+            return deletedArtifact;
+        } catch (error) {
+            console.error('Error deleting artifact:', error);
+            throw error;
+        }
+    },
+
+    // Increment artifact views
+    // async incrementViews(artifactId: string) {
+    //     try {
+    //         const client = generateClient<Schema>({
+    //             authMode: "userPool"
+    //         });
+
+    //         // Get current artifact
+    //         const { data: artifact } = await client.models.Artifact.get({
+    //             id: artifactId
+    //         });
+
+    //         if (!artifact) {
+    //             throw new Error('Artifact not found');
+    //         }
+
+    //         // Increment views
+    //         const { data: updatedArtifact } = await client.models.Artifact.update({
+    //             id: artifactId,
+    //             views: (artifact.views || 0) + 1
+    //         });
+
+    //         return updatedArtifact;
+    //     } catch (error) {
+    //         console.error('Error incrementing artifact views:', error);
+    //         throw error;
+    //     }
+    // },
+
+    // Toggle artifact like
+    // async toggleLike(artifactId: string, increment: boolean = true) {
+    //     try {
+    //         const client = generateClient<Schema>({
+    //             authMode: "userPool"
+    //         });
+
+    //         // Get current artifact
+    //         const { data: artifact } = await client.models.Artifact.get({
+    //             id: artifactId
+    //         });
+
+    //         if (!artifact) {
+    //             throw new Error('Artifact not found');
+    //         }
+
+    //         // Update likes
+    //         const currentLikes = artifact.likes || 0;
+    //         const newLikes = increment ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+
+    //         const { data: updatedArtifact } = await client.models.Artifact.update({
+    //             id: artifactId,
+    //             likes: newLikes
+    //         });
+
+    //         return updatedArtifact;
+    //     } catch (error) {
+    //         console.error('Error toggling artifact like:', error);
+    //         throw error;
+    //     }
+    // },
+
+    // Get artifacts for a specific message
+    async getMessageArtifacts(isLoggedIn: boolean, messageId: string) {
+        try {
+            const client = generateClient<Schema>({
+                authMode: isLoggedIn ? "userPool" : "iam"
+            });
+
+            const { data: artifacts } = await client.models.Artifact.list({
+                filter: {
+                    messageId: {
+                        eq: messageId
+                    }
+                }
+            });
+
+            return artifacts.map((artifact: any) => ({
+                ...artifact,
+                data: artifact.data ? JSON.parse(artifact.data) : [],
+                sourceData: artifact.sourceData ? JSON.parse(artifact.sourceData) : null,
+                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null
+            }));
+        } catch (error) {
+            console.error('Error fetching message artifacts:', error);
+            throw error;
+        }
+    },
+
+    // Get artifact categories for filtering
+    // async getArtifactCategories() {
+    //     try {
+    //         const client = generateClient<Schema>({
+    //             authMode: "userPool"
+    //         });
+
+    //         const { data: artifacts } = await client.models.Artifact.list({
+    //             filter: {
+    //                 isPublic: {
+    //                     eq: true
+    //                 }
+    //             }
+    //         });
+
+    //         // Extract unique categories
+    //         const categories = Array.from(new Set(
+    //             artifacts
+    //                 .map(artifact => artifact.category)
+    //                 .filter(category => category && category.trim())
+    //         )).sort();
+
+    //         return ['All', ...categories];
+    //     } catch (error) {
+    //         console.error('Error fetching artifact categories:', error);
+    //         return ['All'];
+    //     }
+    // },
+
+    // // Search artifacts with advanced filters
+    // async searchArtifacts(searchParams: {
+    //     query?: string;
+    //     category?: string;
+    //     chartType?: string;
+    //     tags?: string[];
+    //     userId?: string;
+    //     isPublic?: boolean;
+    //     sortBy?: 'popular' | 'recent' | 'liked';
+    //     limit?: number;
+    //     offset?: number;
+    // }) {
+    //     try {
+    //         const client = generateClient<Schema>({
+    //             authMode: "userPool"
+    //         });
+
+    //         let filterCondition: any = {};
+
+    //         // Add filters
+    //         if (searchParams.userId) {
+    //             filterCondition.userId = { eq: searchParams.userId };
+    //         }
+    //         if (searchParams.isPublic !== undefined) {
+    //             filterCondition.isPublic = { eq: searchParams.isPublic };
+    //         }
+    //         if (searchParams.category && searchParams.category !== 'All') {
+    //             filterCondition.category = { eq: searchParams.category };
+    //         }
+    //         if (searchParams.chartType) {
+    //             filterCondition.chartType = { eq: searchParams.chartType };
+    //         }
+
+    //         const { data: artifacts } = await client.models.Artifact.list({
+    //             filter: Object.keys(filterCondition).length > 0 ? filterCondition : undefined
+    //         });
+
+    //         let results = artifacts.map((artifact: any) => ({
+    //             ...artifact,
+    //             data: artifact.data ? JSON.parse(artifact.data) : [],
+    //             sourceData: artifact.sourceData ? JSON.parse(artifact.sourceData) : null,
+    //             metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null
+    //         }));
+
+    //         // Apply text search
+    //         if (searchParams.query) {
+    //             const query = searchParams.query.toLowerCase();
+    //             results = results.filter(artifact =>
+    //                 artifact.title?.toLowerCase().includes(query) ||
+    //                 artifact.description?.toLowerCase().includes(query) ||
+    //                 artifact.tags?.some((tag: string) => tag.toLowerCase().includes(query))
+    //             );
+    //         }
+
+    //         // Apply tag filter
+    //         if (searchParams.tags && searchParams.tags.length > 0) {
+    //             results = results.filter(artifact =>
+    //                 searchParams.tags!.some(tag =>
+    //                     artifact.tags?.includes(tag)
+    //                 )
+    //             );
+    //         }
+
+    //         // Apply sorting
+    //         switch (searchParams.sortBy) {
+    //             case 'popular':
+    //                 results.sort((a, b) => (b.views || 0) - (a.views || 0));
+    //                 break;
+    //             case 'liked':
+    //                 results.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    //                 break;
+    //             case 'recent':
+    //             default:
+    //                 results.sort((a, b) =>
+    //                     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    //                 );
+    //                 break;
+    //         }
+
+    //         // Apply pagination
+    //         const offset = searchParams.offset || 0;
+    //         const limit = searchParams.limit || 50;
+    //         const paginatedResults = results.slice(offset, offset + limit);
+
+    //         return {
+    //             artifacts: paginatedResults,
+    //             total: results.length,
+    //             hasMore: offset + limit < results.length
+    //         };
+    //     } catch (error) {
+    //         console.error('Error searching artifacts:', error);
+    //         throw error;
+    //     }
+    // }
 };
