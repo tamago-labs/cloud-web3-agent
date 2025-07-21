@@ -27,7 +27,7 @@ const Hero = () => {
                                 The MCP Hub for Web3
                             </span>
                             <span className="px-3 py-1  bg-green-100 text-green-800 text-sm font-medium rounded-full flex ml-2">
-                                🎉 New users get $25 free credits
+                                🎉 New users get $10 free credits
                             </span>
                         </div>
 
@@ -41,7 +41,7 @@ const Hero = () => {
                         )}
                         {heroType === 2 && (
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                                Dune Analytics via Chat<br />
+                                Web3 Analytics via Chat<br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                                     No SQL Required
                                 </span>
