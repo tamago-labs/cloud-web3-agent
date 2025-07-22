@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Loader2, Square, ChevronDown, Bot } from 'lucide-react';
+import { Send, Loader2, Square, ChevronDown, Bot, Server, Settings } from 'lucide-react';
 import { MCPStatus } from './types';
 
 // Define available AI models
@@ -36,12 +36,24 @@ export const availableModels: AIModel[] = [
     // }
 ];
 
+interface MCPServer {
+    name: string;
+    description: string;
+    status: 'connected' | 'disconnected' | 'error';
+    tools: number;
+    enabled: boolean;
+    registered: boolean;
+    lastSeen?: string;
+    error?: string;
+}
+
 interface ChatInputProps {
     message: string;
     isLoading: boolean;
     isStreaming?: boolean;
     mcpEnabled: boolean;
     mcpStatus: MCPStatus | null;
+    mcpServers?: MCPServer[];
     selectedModel?: string;
     textareaRef: React.RefObject<HTMLTextAreaElement>;
     onMessageChange: (message: string) => void;
@@ -49,6 +61,8 @@ interface ChatInputProps {
     onKeyPress: (e: React.KeyboardEvent) => void;
     onStopStreaming?: () => void;
     onModelChange?: (modelId: string) => void;
+    onServerToggle?: (serverName: string, enabled: boolean) => void;
+    onOpenServerModal?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -57,17 +71,24 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     isStreaming = false,
     mcpEnabled,
     mcpStatus,
+    mcpServers = [],
     selectedModel = 'claude-sonnet-4',
     textareaRef,
     onMessageChange,
     onSendMessage,
     onKeyPress,
     onStopStreaming,
-    onModelChange
+    onModelChange,
+    onServerToggle,
+    onOpenServerModal
 }) => {
     const [showModelSelector, setShowModelSelector] = useState(false);
+    const [showServerSelector, setShowServerSelector] = useState(false);
     
     const currentModel = availableModels.find(model => model.id === selectedModel) || availableModels[0];
+    const enabledServers = mcpServers.filter(s => s.enabled && s.status === 'connected');
+    const connectedServers = mcpServers.filter(s => s.status === 'connected');
+    const isDefaultServer = (serverName: string) => ['nodit', 'agent-base'].includes(serverName);
     
     const placeholder = mcpEnabled && mcpStatus?.healthy ? 
         "Ask me to create files, check balances, analyze data..." : 
@@ -81,10 +102,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             return;
         }
         
-        // Close model selector with Escape
-        if (e.key === 'Escape' && showModelSelector) {
+        // Close selectors with Escape
+        if (e.key === 'Escape' && (showModelSelector || showServerSelector)) {
             e.preventDefault();
             setShowModelSelector(false);
+            setShowServerSelector(false);
             return;
         }
         
@@ -104,9 +126,35 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         setShowModelSelector(false);
     };
 
+    const handleServerToggle = (serverName: string, enabled: boolean) => {
+        if (onServerToggle) {
+            onServerToggle(serverName, enabled);
+        }
+    };
+
+    const getServerStatusColor = (status: string) => {
+        switch (status) {
+            case 'connected': return 'text-green-600';
+            case 'error': return 'text-red-600';
+            default: return 'text-gray-500';
+        }
+    };
+
+    const getServerStatusIcon = (status: string) => {
+        switch (status) {
+            case 'connected': return 'bg-green-500';
+            case 'error': return 'bg-red-500';
+            default: return 'bg-gray-400';
+        }
+    };
+
     return (
         <div className="bg-white border-t border-gray-200 p-6">
             <div className="flex gap-3 items-end">
+
+
+
+
                 {/* AI Model Selector */}
                 <div className="relative">
                     <button
@@ -161,6 +209,112 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                         </div>
                     )}
                 </div>
+
+
+                {/* MCP Server Selector */}
+                {mcpEnabled && mcpServers.length > 0 && (
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowServerSelector(!showServerSelector)}
+                            disabled={isLoading || isStreaming}
+                            className="flex items-center gap-2 px-3 py-3 bg-gray-50 border border-gray-300 rounded-xl hover:bg-gray-100 disabled:bg-gray-50 disabled:cursor-not-allowed transition-colors min-w-[160px]"
+                            title={`${enabledServers.length} servers enabled`}
+                        >
+                            <Server className="w-4 h-4 text-gray-600" />
+                            <div className="flex flex-col items-start">
+                                <span className="text-sm font-medium text-gray-900">
+                                    {enabledServers.length > 2 ? `${enabledServers.length-2} Active` : '0 Active'}
+                                </span>
+                                {/* <span className="text-xs text-gray-500">
+                                    {enabledServers.length > 2 ? 'Active' : connectedServers.length > 0 ? 'Available' : 'None'}
+                                </span> */}
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showServerSelector ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {/* Server Dropdown */}
+                        {showServerSelector && (
+                            <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[320px] max-h-[400px] overflow-y-auto">
+                                <div className="p-2">
+                                    <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 mb-2">
+                                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                            MCP Servers
+                                        </span>
+                                        {/* {onOpenServerModal && (
+                                            <button
+                                                onClick={() => {
+                                                    onOpenServerModal();
+                                                    setShowServerSelector(false);
+                                                }}
+                                                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                                            >
+                                                <Settings className="w-3 h-3" />
+                                                Manage
+                                            </button>
+                                        )} */}
+                                    </div>
+                                    
+                                    {mcpServers.map((server) => (
+                                        <div
+                                            key={server.name}
+                                            className="flex items-center justify-between px-3 py-3 rounded-md hover:bg-gray-50 transition-colors"
+                                        >
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full ${getServerStatusIcon(server.status)}`}></div>
+                                                    <span className="font-medium text-gray-900 text-sm">{server.name}</span>
+                                                    {isDefaultServer(server.name) && (
+                                                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Default</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-600 mt-1">{server.description}</p>
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <span className={`text-xs capitalize ${getServerStatusColor(server.status)}`}>
+                                                        {server.status}
+                                                    </span>
+                                                    {server.tools > 0 && (
+                                                        <>
+                                                            <span className="text-xs text-gray-400">•</span>
+                                                            <span className="text-xs text-gray-500">{server.tools} tools</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {server.error && (
+                                                    <p className="text-xs text-red-600 mt-1">{server.error}</p>
+                                                )}
+                                            </div>
+                                            
+                                            <div className="ml-3">
+                                                {!isDefaultServer(server.name) && server.status === 'connected' ? (
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={server.enabled}
+                                                            onChange={(e) => handleServerToggle(server.name, e.target.checked)}
+                                                            className="sr-only peer"
+                                                        />
+                                                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                                    </label>
+                                                ) : isDefaultServer(server.name) && server.status === 'connected' ? (
+                                                    <span className="text-xs text-green-600 font-medium">Always On</span>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">Unavailable</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    {mcpServers.length === 0 && (
+                                        <div className="px-3 py-6 text-center text-gray-500">
+                                            <Server className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                                            <p className="text-sm">No MCP servers available</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Message Input */}
                 <textarea
@@ -236,11 +390,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 </div>
             </div> 
 
-            {/* Click outside to close model selector */}
-            {showModelSelector && (
+            {/* Click outside to close selectors */}
+            {(showModelSelector || showServerSelector) && (
                 <div
                     className="fixed inset-0 z-40"
-                    onClick={() => setShowModelSelector(false)}
+                    onClick={() => {
+                        setShowModelSelector(false);
+                        setShowServerSelector(false);
+                    }}
                 />
             )}
         </div>

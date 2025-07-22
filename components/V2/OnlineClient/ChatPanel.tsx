@@ -1257,13 +1257,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             <ChatHeader
                 isStreaming={isStreaming}
                 hasMessages={chatHistory.length > 0}
-                toolsEnabled={mcpEnabled}
-                mcpServers={mcpServers}
-                onToolsToggle={setMcpEnabled}
-                onServerToggle={handleServerToggle}
                 onStopStreaming={handleStopStreaming}
                 onClearMessages={handleClearAllMessages}
-                onOpenServerModal={() => setShowMcpServerModal(true)}
             />
 
             {!profile && (
@@ -1333,6 +1328,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         isStreaming={isStreaming}
                         mcpEnabled={mcpEnabled}
                         mcpStatus={mcpStatus}
+                        mcpServers={mcpServers}
                         selectedModel={selectedModel}
                         textareaRef={textareaRef}
                         onMessageChange={handleMessageChange}
@@ -1340,6 +1336,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         onKeyPress={handleKeyPress}
                         onStopStreaming={handleStopStreaming}
                         onModelChange={setSelectedModel}
+                        onServerToggle={handleServerToggle}
+                        onOpenServerModal={() => setShowMcpServerModal(true)}
                     />
 
                     {/* Loading Modal */}
