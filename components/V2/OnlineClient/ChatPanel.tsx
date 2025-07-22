@@ -379,21 +379,21 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     useEffect(() => {
         if (data && convertingToChart) {
             console.log('AI Chart Data Generated:', data);
-    
+
             try {
                 // Validate AI response structure
                 if (!data.dataName || !data.dataValue || !Array.isArray(data.dataName) || !Array.isArray(data.dataValue)) {
                     throw new Error('Invalid data structure returned from AI');
                 }
-    
+
                 if (data.dataName.length === 0 || data.dataValue.length === 0) {
                     throw new Error('No chart data found in the conversation');
                 }
-    
+
                 // Transform AI response to match expected chart format
                 const chartData = [];
                 const maxLength = Math.min(data?.dataName.length, data.dataValue.length);
-    
+
                 for (let i = 0; i < maxLength; i++) {
                     if (data.dataValue[i] && data.dataName[i]) {
                         const value = parseFloat(`${data.dataValue[i]}`);
@@ -401,7 +401,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                             console.warn(`Invalid value at index ${i}: ${data.dataValue[i]}`);
                             continue;
                         }
-    
+
                         chartData.push({
                             name: String(data.dataName[i]).trim(),
                             value: value,
@@ -409,11 +409,11 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                         });
                     }
                 }
-    
+
                 if (chartData.length === 0) {
                     throw new Error('No valid data points found for charting');
                 }
-    
+
                 // Prepare artifact data for the save modal
                 setEditingArtifact({
                     title: data.title?.trim() || 'Web3 Analytics Chart',
@@ -427,13 +427,13 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     isPublic: false
                 });
                 setShowArtifactModal(true);
-    
+
             } catch (error) {
                 console.error('Error processing AI chart data:', error);
                 alert(`Failed to create chart: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 setConvertingToChart(null);
             }
-    
+
         } else if (hasError && convertingToChart) {
             console.error('AI Generation Error:', hasError);
             alert('AI service error: Failed to extract chart data from the conversation.');
@@ -451,7 +451,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             const latestAssistantMessage = [...chatHistory].reverse().find(msg => msg.type === 'assistant');
 
             await artifactAPI.createArtifact({
-                userId: profile.id, 
+                userId: profile.id,
                 messageId: latestAssistantMessage?.id,
                 title: artifactData.title,
                 description: artifactData.description,
@@ -512,121 +512,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             </div>
         );
     };
-
-    // Chart Result Modal Component
-    // const ChartResultModal = ({ result, isOpen, onClose }: { result: any; isOpen: boolean; onClose: () => void }) => {
-    //     if (!isOpen || !result) return null;
-
-    //     return (
-    //         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ zIndex: 9999 }}>
-    //             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl transform transition-all duration-300 ease-out scale-100 opacity-100">
-    //                 {result?.success ? (
-    //                     <>
-    //                         {/* Success State */}
-    //                         <div className="text-center">
-    //                             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-    //                                 <CheckCircle className="w-8 h-8 text-green-600" />
-    //                             </div>
-    //                             <h3 className="text-xl font-bold text-gray-900 mb-2">
-    //                                 Chart Created Successfully!
-    //                             </h3>
-    //                             <p className="text-gray-600 mb-4">
-    //                                 "{result.chart?.title}" has been generated and added to your analytics.
-    //                             </p>
-
-    //                             {/* Chart Preview */}
-    //                             {result.chart && (
-    //                                 <div className="mb-6">
-    //                                     <div className="bg-white border border-gray-200 rounded-lg p-4">
-    //                                         <h4 className="text-lg font-semibold text-gray-900 mb-3">{result.chart.title}</h4>
-    //                                         <ProfessionalChart
-    //                                             data={result.chart.data}
-    //                                             chartType={result.chart.type}
-    //                                             trend={result.chart.change?.includes('+') ? 'up' : 'down'}
-    //                                         />
-    //                                         <div className="mt-3 flex justify-between items-center">
-    //                                             <div className="text-left">
-    //                                                 {result.chart.totalValue && (
-    //                                                     <div className="text-xl font-bold text-gray-900">{result.chart.totalValue}</div>
-    //                                                 )}
-    //                                                 {result.chart.change && (
-    //                                                     <div className={`text-sm font-medium ${result.chart.change.includes('+') ? 'text-green-600' : 'text-red-600'
-    //                                                         }`}>
-    //                                                         {result.chart.change}
-    //                                                     </div>
-    //                                                 )}
-    //                                             </div>
-    //                                             <div className="text-right text-sm text-gray-500">
-    //                                                 <div>Type: <span className="font-medium capitalize">{result.chart.type}</span></div>
-    //                                                 <div>Points: <span className="font-medium">{result.chart.data?.length || 0}</span></div>
-    //                                             </div>
-    //                                         </div>
-    //                                     </div>
-    //                                 </div>
-    //                             )}
-
-    //                             <div className="flex gap-3">
-    //                                 <button
-    //                                     onClick={onClose}
-    //                                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-    //                                 >
-    //                                     Close
-    //                                 </button>
-    //                                 <button
-    //                                     onClick={() => {
-    //                                         // Could navigate to analytics page
-    //                                         onClose();
-    //                                     }}
-    //                                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-    //                                 >
-    //                                     <BarChart3 className="w-4 h-4" />
-    //                                     View Analytics
-    //                                 </button>
-    //                             </div>
-    //                         </div>
-    //                     </>
-    //                 ) : (
-    //                     <>
-    //                         {/* Error State */}
-    //                         <div className="text-center">
-    //                             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-    //                                 <AlertCircle className="w-8 h-8 text-red-600" />
-    //                             </div>
-    //                             <h3 className="text-xl font-bold text-gray-900 mb-2">
-    //                                 Chart Creation Failed
-    //                             </h3>
-    //                             <p className="text-gray-600 mb-4">
-    //                                 {result?.error || 'Something went wrong while creating the chart.'}
-    //                             </p>
-    //                             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-    //                                 <p className="text-sm text-red-700">
-    //                                     <strong>Tip:</strong> Make sure your message contains numerical data like balances, prices, or percentages that can be visualized.
-    //                                 </p>
-    //                             </div>
-    //                             <div className="flex gap-3">
-    //                                 <button
-    //                                     onClick={onClose}
-    //                                     className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-    //                                 >
-    //                                     Close
-    //                                 </button>
-    //                                 <button
-    //                                     onClick={() => {
-    //                                         onClose();
-    //                                         // Could retry the conversion
-    //                                     }}
-    //                                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-    //                                 >
-    //                                     Try Again
-    //                                 </button>
-    //                             </div>
-    //                         </div>
-    //                     </>
-    //                 )}
-    //             </div>
-    //         </div>
-    //     );
-    // };
+ 
 
     // Auto-scroll to bottom when new messages arrive
     const scrollToBottom = () => {
@@ -667,7 +553,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     // Function to estimate cost before sending message
     const estimateMessageCost = (message: string, enabledServers: string[]): CostEstimate => {
         const inputTokens = creditAPI.estimateTokens(message);
-        const outputTokens = inputTokens * 2; // Rough estimate: output is usually 2x input
+        const outputTokens = Math.max(inputTokens * 2, 1000); // Rough estimate: output is usually 2x input
 
         // AI cost
         const aiCost = creditAPI.calculateAICost(selectedModel, inputTokens, outputTokens);
@@ -1507,14 +1393,14 @@ const CreditDisplay: React.FC<{ credits: CreditInfo | null; estimatedCost: CostE
                     </span>
                 </div>
 
-                {estimatedCost && (
+                {/* {estimatedCost && (
                     <div className="flex items-center space-x-2">
                         <span className="text-gray-600">Est. cost:</span>
                         <span className="font-medium text-blue-600">
                             ${estimatedCost.totalCost.toFixed(4)}
                         </span>
                     </div>
-                )}
+                )} */}
             </div>
 
             <Link
