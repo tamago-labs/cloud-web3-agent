@@ -41,7 +41,7 @@ const Hero = () => {
                         )}
                         {heroType === 2 && (
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                                Web3 Analytics via Chat<br />
+                                Web3 Analytics via Chat with AI<br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                                     No SQL Required
                                 </span>
