@@ -4,6 +4,7 @@ import { AccountContext } from '@/contexts/account';
 import { conversationAPI } from '@/lib/api';
 import Link from "next/link";
 import RenameConversationModal from '../../modals/RenameConversationModal';
+import DeleteConversationModal from '../../modals/DeleteConversationModal';
 
 interface Conversation {
     id: string;
@@ -29,6 +30,9 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
     const [showRenameModal, setShowRenameModal] = useState(false);
     const [renamingConversation, setRenamingConversation] = useState<Conversation | null>(null);
     const [isRenaming, setIsRenaming] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deletingConversation, setDeletingConversation] = useState<Conversation | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Load conversations on component mount and when refreshTrigger changes
     useEffect(() => {
@@ -51,17 +55,29 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
         }
     };
 
-    const deleteConversation = async (conversationId: string, e: React.MouseEvent) => {
+    const deleteConversation = async (conversation: Conversation, e: React.MouseEvent) => {
         e.stopPropagation();
+        setDeletingConversation(conversation);
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deletingConversation) return;
+        
+        setIsDeleting(true);
         try {
-            await conversationAPI.deleteConversation(conversationId);
-            setConversations(prev => prev.filter(conv => conv.id !== conversationId));
-            if (selectedConversation === conversationId) {
+            await conversationAPI.deleteConversation(deletingConversation.id);
+            setConversations(prev => prev.filter(conv => conv.id !== deletingConversation.id));
+            if (selectedConversation === deletingConversation.id) {
                 setSelectedConversation(null);
                 onNewConversation();
             }
+            setShowDeleteModal(false);
+            setDeletingConversation(null);
         } catch (error) {
             console.error('Error deleting conversation:', error);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -213,7 +229,7 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
                                                 <Edit2 className="w-3 h-3" />
                                             </button>
                                             <button
-                                                onClick={(e) => deleteConversation(conv.id, e)}
+                                                onClick={(e) => deleteConversation(conv, e)}
                                                 className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 transition-all duration-200 p-1 hover:bg-red-50 rounded"
                                                 title="Delete conversation"
                                             >
@@ -257,6 +273,17 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
                 currentTitle={renamingConversation?.title || ''}
                 onSave={handleRenameSubmit}
                 isSaving={isRenaming}
+            />
+            {/* Delete Confirmation Modal */}
+            <DeleteConversationModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setDeletingConversation(null);
+                }}
+                onConfirm={handleDeleteConfirm}
+                conversationTitle={deletingConversation?.title || 'Untitled Conversation'}
+                isDeleting={isDeleting}
             />
         </div>
     );
