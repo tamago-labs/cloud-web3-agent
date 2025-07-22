@@ -1,19 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
-import { Home, User, Square, Trash2, Settings, Server } from 'lucide-react';
+import { Home, User, Square, Trash2, Settings, Server, HelpCircle } from 'lucide-react';
 
 interface ChatHeaderProps {
     isStreaming?: boolean;
     hasMessages?: boolean;
     onStopStreaming?: () => void;
     onClearMessages?: () => void;
+    onOpenHowToUse?: () => void;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
     isStreaming = false,
     hasMessages = false,
     onStopStreaming,
-    onClearMessages
+    onClearMessages,
+    onOpenHowToUse
 }) => {
     return (
         <div className="border-b border-gray-200 p-4 bg-white">
@@ -38,6 +40,16 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
                 {/* Right Section - Controls */}
                 <div className="flex items-center space-x-3">
+                    {/* How to Use Button */}
+                    <button
+                        onClick={onOpenHowToUse}
+                        className="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                        title="Learn how to use the Web3 AI Agent"
+                    >
+                        <HelpCircle size={16} />
+                        <span>How to Use</span>
+                    </button>
+
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-2">
                         {/* Stop Streaming Button */}

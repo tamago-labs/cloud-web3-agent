@@ -165,7 +165,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     >
                         <Bot className="w-4 h-4 text-gray-600" />
                         <div className="flex flex-col items-start">
-                            <span className="text-sm font-medium text-gray-900 truncate max-w-[100px]">
+                            <span className="text-sm font-medium text-gray-900 truncate max-w-[80px]">
                                 {currentModel.name}
                             </span>
                         </div>

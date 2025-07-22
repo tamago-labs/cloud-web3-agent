@@ -18,6 +18,7 @@ import { ChatMessage, MCPStatus } from '../../mcp/types';
 import { generateClient } from "aws-amplify/api";
 import { Schema } from "../../../amplify/data/resource";
 import ArtifactSaveModal from './ArtifactSaveModal';
+import HowToUseModal from '../../modals/HowToUseModal';
 
 const client = generateClient<Schema>({ authMode: "userPool" });
 const { useAIGeneration } = createAIHooks(client);
@@ -144,6 +145,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const [showArtifactModal, setShowArtifactModal] = useState(false);
     const [editingArtifact, setEditingArtifact] = useState<any>(null);
     const [isSavingArtifact, setIsSavingArtifact] = useState(false);
+    const [showHowToUseModal, setShowHowToUseModal] = useState(false);
 
     // Refs
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -1259,6 +1261,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 hasMessages={chatHistory.length > 0}
                 onStopStreaming={handleStopStreaming}
                 onClearMessages={handleClearAllMessages}
+                onOpenHowToUse={() => setShowHowToUseModal(true)}
             />
 
             {!profile && (
@@ -1275,6 +1278,12 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     </div>
                 </>
             )}
+
+            {/* How to Use Modal - Global */}
+            <HowToUseModal
+                isOpen={showHowToUseModal}
+                onClose={() => setShowHowToUseModal(false)}
+            />
 
             {profile && (
                 <CreditDisplay credits={userCredits} estimatedCost={estimatedCost} />
@@ -1344,6 +1353,12 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                     <LoadingModal
                         isOpen={convertingToChart !== null || isExtracting}
                         messageId={convertingToChart}
+                    />
+
+                    {/* How to Use Modal */}
+                    <HowToUseModal
+                        isOpen={showHowToUseModal}
+                        onClose={() => setShowHowToUseModal(false)}
                     />
 
                     {/* Artifact Save Modal */}
