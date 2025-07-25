@@ -54,6 +54,7 @@ interface ChatInputProps {
     mcpEnabled: boolean;
     mcpStatus: MCPStatus | null;
     mcpServers?: MCPServer[];
+    servers: any[];
     selectedModel?: string;
     textareaRef: React.RefObject<HTMLTextAreaElement>;
     onMessageChange: (message: string) => void;
@@ -72,6 +73,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     mcpEnabled,
     mcpStatus,
     mcpServers = [],
+    servers,
     selectedModel = 'claude-sonnet-4',
     textareaRef,
     onMessageChange,
@@ -84,14 +86,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
     const [showModelSelector, setShowModelSelector] = useState(false);
     const [showServerSelector, setShowServerSelector] = useState(false);
-    
+
     const currentModel = availableModels.find(model => model.id === selectedModel) || availableModels[0];
     const enabledServers = mcpServers.filter(s => s.enabled && s.status === 'connected');
     const connectedServers = mcpServers.filter(s => s.status === 'connected');
     const isDefaultServer = (serverName: string) => ['nodit', 'agent-base'].includes(serverName);
-    
-    const placeholder = mcpEnabled && mcpStatus?.healthy ? 
-        "Ask me to create files, check balances, analyze data..." : 
+
+    const placeholder = mcpEnabled && mcpStatus?.healthy ?
+        "Ask me to create files, check balances, analyze data..." :
         "Ask about DeFi protocols, yield opportunities, portfolio analysis...";
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -101,7 +103,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onStopStreaming();
             return;
         }
-        
+
         // Close selectors with Escape
         if (e.key === 'Escape' && (showModelSelector || showServerSelector)) {
             e.preventDefault();
@@ -109,13 +111,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             setShowServerSelector(false);
             return;
         }
-        
+
         // Prevent sending new messages while streaming
         if (isStreaming && e.key === 'Enter') {
             e.preventDefault();
             return;
         }
-        
+
         onKeyPress(e);
     };
 
@@ -183,9 +185,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                     <button
                                         key={model.id}
                                         onClick={() => handleModelSelect(model.id)}
-                                        className={`w-full text-left px-3 py-3 rounded-md hover:bg-gray-50 transition-colors ${
-                                            selectedModel === model.id ? 'bg-blue-50 border border-blue-200' : ''
-                                        }`}
+                                        className={`w-full text-left px-3 py-3 rounded-md hover:bg-gray-50 transition-colors ${selectedModel === model.id ? 'bg-blue-50 border border-blue-200' : ''
+                                            }`}
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
@@ -223,7 +224,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             <Server className="w-4 h-4 text-gray-600" />
                             <div className="flex flex-col items-start">
                                 <span className="text-sm font-medium text-gray-900">
-                                    {enabledServers.length > 2 ? `${enabledServers.length-2} Active` : '0 Active'}
+                                    {enabledServers.length > 2 ? `${enabledServers.length - 2} Active` : '0 Active'}
                                 </span>
                                 {/* <span className="text-xs text-gray-500">
                                     {enabledServers.length > 2 ? 'Active' : connectedServers.length > 0 ? 'Available' : 'None'}
@@ -253,57 +254,78 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                             </button>
                                         )} */}
                                     </div>
-                                    
-                                    {mcpServers.map((server) => (
-                                        <div
-                                            key={server.name}
-                                            className="flex items-center justify-between px-3 py-3 rounded-md hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${getServerStatusIcon(server.status)}`}></div>
-                                                    <span className="font-medium text-gray-900 text-sm">{server.name}</span>
-                                                    {isDefaultServer(server.name) && (
-                                                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Default</span>
+
+                                    {mcpServers.filter((s: any) => (s.status === 'connected') && (!isDefaultServer(s.name))).map((server: any) => {
+
+                                        const serverData = servers.find(item => item.externalId === server.name)
+
+                                        return (
+                                            <div
+                                                key={server.name}
+                                                className="flex items-center justify-between px-3 py-3 rounded-md hover:bg-gray-50 transition-colors"
+                                            >
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-2 rounded-full ${getServerStatusIcon(server.status)}`}></div>
+                                                        <span className="font-medium text-gray-900 text-sm">
+                                                            {serverData ? serverData.name : server.name}
+                                                        </span>
+                                                        {isDefaultServer(server.name) && (
+                                                            <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Default</span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 mt-1">{serverData ? serverData.description : server.description}</p>
+                                                    <div className="flex items-center gap-3 mt-1">
+                                                        {serverData && serverData.supportedChains && serverData.supportedChains.length > 0 && (
+                                                            <div className="mb-4">
+                                                                <div className="flex items-center gap-1 mb-2">
+                                                                    <div className="flex flex-wrap gap-1">
+                                                                        {serverData.supportedChains.slice(0, 2).map((chain: string, idx: number) => (
+                                                                            <span key={idx} className={`px-2 py-1 text-xs rounded `}>
+                                                                                {/*{getChainDisplay(chain)}*/} {chain}
+                                                                            </span>
+                                                                        ))}
+                                                                        {serverData.supportedChains.length > 3 && (
+                                                                            <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded">
+                                                                                +{serverData.supportedChains.length - 2}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {/* {server.tools > 0 && (
+    <>
+      <span className="text-xs text-gray-400">•</span>
+      <span className="text-xs text-gray-500">{server.tools} tools</span>
+    </>
+  )}*/}
+                                                    </div>
+                                                    {server.error && (
+                                                        <p className="text-xs text-red-600 mt-1">{server.error}</p>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-600 mt-1">{server.description}</p>
-                                                <div className="flex items-center gap-3 mt-1">
-                                                    <span className={`text-xs capitalize ${getServerStatusColor(server.status)}`}>
-                                                        {server.status}
-                                                    </span>
-                                                    {server.tools > 0 && (
-                                                        <>
-                                                            <span className="text-xs text-gray-400">•</span>
-                                                            <span className="text-xs text-gray-500">{server.tools} tools</span>
-                                                        </>
+
+                                                <div className="ml-3">
+                                                    {!isDefaultServer(server.name) && server.status === 'connected' ? (
+                                                        <label className="relative inline-flex items-center cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={server.enabled}
+                                                                onChange={(e) => handleServerToggle(server.name, e.target.checked)}
+                                                                className="sr-only peer"
+                                                            />
+                                                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                                        </label>
+                                                    ) : isDefaultServer(server.name) && server.status === 'connected' ? (
+                                                        <span className="text-xs text-green-600 font-medium">Always On</span>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">Unavailable</span>
                                                     )}
                                                 </div>
-                                                {server.error && (
-                                                    <p className="text-xs text-red-600 mt-1">{server.error}</p>
-                                                )}
-                                            </div>
-                                            
-                                            <div className="ml-3">
-                                                {!isDefaultServer(server.name) && server.status === 'connected' ? (
-                                                    <label className="relative inline-flex items-center cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={server.enabled}
-                                                            onChange={(e) => handleServerToggle(server.name, e.target.checked)}
-                                                            className="sr-only peer"
-                                                        />
-                                                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                                                    </label>
-                                                ) : isDefaultServer(server.name) && server.status === 'connected' ? (
-                                                    <span className="text-xs text-green-600 font-medium">Always On</span>
-                                                ) : (
-                                                    <span className="text-xs text-gray-400">Unavailable</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    
+                                            </div>)
+                                    })}
+
                                     {mcpServers.length === 0 && (
                                         <div className="px-3 py-6 text-center text-gray-500">
                                             <Server className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -327,7 +349,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     rows={1}
                     disabled={isLoading || isStreaming}
                 />
-                
+
                 {/* Send/Stop Button */}
                 {isStreaming ? (
                     <button
@@ -353,12 +375,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     </button>
                 )}
             </div>
-            
+
             {/* Status and Help Text */}
             <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
                 <div className="flex items-center space-x-4">
                     {isStreaming ? (
-                        <span className="text-blue-600 flex items-center gap-1">  
+                        <span className="text-blue-600 flex items-center gap-1">
                             <div className="animate-spin rounded-full h-2.5 w-2.5 border-2 border-blue-600 border-t-transparent"></div>
                             Generating response... (Press Escape or click Stop to cancel)
                         </span>
@@ -366,13 +388,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                         <span>Press Enter to send, Shift + Enter for new line</span>
                     )}
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                     {/* Model Info */}
                     <span className="text-gray-400">
                         {currentModel.name} • {currentModel.maxTokens.toLocaleString()} tokens
                     </span>
-                    
+
                     {/* MCP Status */}
                     {mcpEnabled && mcpStatus?.healthy && (
                         <span className="text-green-600 flex items-center gap-1">
@@ -380,7 +402,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             MCP Tools Ready
                         </span>
                     )}
-                    
+
                     {mcpEnabled && mcpStatus && !mcpStatus.healthy && (
                         <span className="text-red-600 flex items-center gap-1">
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -388,7 +410,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                         </span>
                     )}
                 </div>
-            </div> 
+            </div>
 
             {/* Click outside to close selectors */}
             {(showModelSelector || showServerSelector) && (

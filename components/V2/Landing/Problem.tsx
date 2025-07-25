@@ -4,11 +4,11 @@ const Problem = () => {
             <div className="max-w-6xl mx-auto px-4">
                 <div className="grid md:grid-cols-2 gap-16 items-center">
                     <div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
                             The Challenge
                         </h2>
 
-                        <ul className="space-y-3 text-gray-600">
+                        <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
                             <li className="flex items-start">
                                 <span className="text-red-500 mr-3 mt-1">✕</span>
                                 <span>Decentralized data makes analysis difficult</span>
@@ -29,10 +29,10 @@ const Problem = () => {
                     </div>
 
                     <div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
                             Our Solution
                         </h2>
-                        <ul className="space-y-3 text-gray-600">
+                        <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
                             <li className="flex items-start">
                                 <span className="text-green-500 mr-3 mt-1">✓</span>
                                 <span>Online MCP servers ready to access any kind of data instantly</span>

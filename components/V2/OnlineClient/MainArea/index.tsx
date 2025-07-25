@@ -1,6 +1,7 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { AccountContext } from '@/contexts/account';
+import { ServerContext } from '@/contexts/server';
 import { creditAPI, conversationAPI, messageAPI, toolResultAPI, enhancedMessageAPI, enhancedToolResultAPI, artifactAPI } from '@/lib/api';
 import { X, Square, Trash2, BarChart3 } from 'lucide-react';
 import { createAIHooks } from "@aws-amplify/ui-react-ai";
@@ -94,9 +95,12 @@ const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
 const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger, onArtifactSaved }: ChatPanelProps) => {
 
+    const { loadServers } = useContext(ServerContext)
     const { profile } = useContext(AccountContext);
 
     const [{ data, isLoading: isExtracting, hasError }, extractChartData] = useAIGeneration("extractChartData");
+
+    const [allServers, setServers] = useState<any>([])
 
     // Chat state
     const [message, setMessage] = useState('');
@@ -271,6 +275,10 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
             setConvertingToChart(null);
         }
     }, [data, hasError, convertingToChart]); // Remove onChartsGenerated dependency
+
+    useEffect(() => { 
+        loadServers().then(setServers)
+    }, []);
 
     // Handle artifact save
     const handleSaveArtifact = async (artifactData: any) => {
@@ -1186,6 +1194,7 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
                         mcpEnabled={mcpEnabled}
                         mcpStatus={mcpStatus}
                         mcpServers={mcpServers}
+                        servers={allServers}
                         selectedModel={selectedModel}
                         textareaRef={textareaRef}
                         onMessageChange={handleMessageChange}
