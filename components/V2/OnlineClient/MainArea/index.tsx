@@ -1227,7 +1227,7 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
     );
 };
 
-ChatPanel.defaultProps = {
+MainArea.defaultProps = {
     selectedConversation: null,
     onConversationCreated: () => { },
     refreshTrigger: 0,
