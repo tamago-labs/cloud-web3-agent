@@ -8,7 +8,7 @@ import { usePublicArtifacts } from '@/hooks/usePublicArtifacts';
 import ArtifactCardSkeleton from '@/components/UI/ArtifactCardSkeleton';
 import EmptyState from '@/components/UI/EmptyState';
 
-const GeneratedArtifacts = () => {
+const Artifacts = () => {
     const [showMore, setShowMore] = useState(false);
     const limit = showMore ? 12 : 6;
     
@@ -414,4 +414,4 @@ const GeneratedArtifacts = () => {
     );
 };
 
-export default GeneratedArtifacts;
+export default Artifacts;

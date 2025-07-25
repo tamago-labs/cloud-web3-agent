@@ -1,31 +1,28 @@
- 
 
- 
+
+
 import Header from "./Header"
 import Hero from "./Hero"
 import QuickFeatures from "./QuickFeatures"
 import OnlineHostedServers from "./OnlineHostedServers"
-import GeneratedArtifacts from "./GeneratedArtifacts"
-import TechnologiesSection from "./TechnologiesSection"
-import RecentlyAdded from "./RecentlyAdded"
+import Artifacts from "./Artifacts"
+// import TechnologiesSection from "./TechnologiesSection"
+// import RecentlyAdded from "./RecentlyAdded"
 import Tags from "./Tags"
+import Problem from "./Problem"
 
 const LandingContainer = () => {
 
     return (
         <div>
-
             <Header />
-
             <Hero />
+            <Problem />
+            <Artifacts />
             <QuickFeatures />
-
-             <GeneratedArtifacts />
-             {/* <TechnologiesSection /> */}
-            <OnlineHostedServers  />
-           
+            {/* <TechnologiesSection /> */}
+            <OnlineHostedServers />
             {/* <RecentlyAdded   /> */}
-
             <Tags />
         </div>
     )

@@ -15,8 +15,9 @@ export const auth = defineAuth({
       callbackUrls: [
         'http://localhost:3000/dashboard',
         'https://www.tamagolabs.com/dashboard',
+        'https://www.bodhitree.pro/dashboard'
       ],
-      logoutUrls: ['http://localhost:3000/', 'https://www.tamagolabs.com'],
+      logoutUrls: ['http://localhost:3000/', 'https://www.tamagolabs.com', 'https://www.bodhitree.pro'],
     }
   },
 });
