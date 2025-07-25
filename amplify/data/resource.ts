@@ -65,6 +65,8 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
   Servers: a.model({
     userId: a.id().required(),
     user: a.belongsTo('User', "userId"),
+    externalId: a.string(), // ID on Railway
+    serverUrl: a.string(), 
     image: a.string(),
     name: a.string(),
     description: a.string(),
