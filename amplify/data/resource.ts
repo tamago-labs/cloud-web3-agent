@@ -66,7 +66,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     userId: a.id().required(),
     user: a.belongsTo('User', "userId"),
     externalId: a.string(), // ID on Railway
-    serverUrl: a.string(), 
+    serverUrl: a.string(),
     image: a.string(),
     name: a.string(),
     description: a.string(),
@@ -164,7 +164,11 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     likes: a.integer().default(0),
     views: a.integer().default(0),
     sourceData: a.json(), // original conversation data used to create chart
-    metadata: a.json() // additional metadata like colors, formatting, etc
+    blockchainNetwork: a.string().array(),
+    dataFreshness: a.datetime(), // when data was last updated
+    queryParameters: a.json(), // original query params for reproducibility
+    dataValidation: a.json(), // data quality metrics
+    metadata: a.json(), // additional metadata like colors, formatting, contracts analyzed, specific txs analyzed
   }).authorization((allow) => [
     allow.guest().to(["read"]),
     allow.authenticated().to(["read"]),
