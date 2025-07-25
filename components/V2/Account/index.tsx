@@ -65,16 +65,15 @@ const AccountContainer = () => {
             })
         }
     }, [profile])
-
-    // Load real data when profile is available
+ 
     useEffect(() => {
         if (profile?.id) {
-            loadRealUserData();
+            loadUserData();
         }
     }, [profile]);
 
-    // Function to load all real user data
-    const loadRealUserData = async () => {
+    // Function to load all user data
+    const loadUserData = async () => {
         if (!profile?.id) return;
         
         setIsLoadingData(true);
@@ -129,8 +128,6 @@ const AccountContainer = () => {
         creditsPercentage: userCredits ? (userCredits.current / userCredits.total) * 100 : 0
     };
 
-
-
     // Generate real credit history from usage stats
     const generateCreditHistory = () => {
         if (!usageStats?.byDay || !userCredits) return [];
@@ -165,13 +162,11 @@ const AccountContainer = () => {
         { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> }
     ];
 
-
     return (
         <>
             <Header bgColor="bg-gray-50" />
             <div className="min-h-screen bg-gray-50">
-
-
+ 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Profile Sidebar */}

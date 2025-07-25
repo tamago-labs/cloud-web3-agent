@@ -70,7 +70,7 @@ const DeleteConversationModal: React.FC<DeleteConversationModalProps> = ({
                             </div>
                         </div>
 
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        {/* <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                             <div className="flex items-start gap-3">
                                 <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                                 <div>
@@ -82,7 +82,7 @@ const DeleteConversationModal: React.FC<DeleteConversationModalProps> = ({
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 
