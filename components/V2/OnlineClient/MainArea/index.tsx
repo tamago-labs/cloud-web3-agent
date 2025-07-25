@@ -7,18 +7,18 @@ import { createAIHooks } from "@aws-amplify/ui-react-ai";
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 
 // Import our MCP components
-import { MCPManagementModal } from "../../mcp/MCPManagementModal"
-import { MCPServerModal } from "../../mcp/MCPServerModal"
-import { ChatHeader } from '../../mcp/ChatHeader';
-import { ChatMessageItem } from '../../mcp/ChatMessageItem';
-import { WelcomeMessage } from '../../mcp/WelcomeMessage';
-import { ChatInput } from '../../mcp/ChatInput';
-import { ChatMessage, MCPStatus } from '../../mcp/types';
+import { MCPManagementModal } from "../../../mcp/MCPManagementModal"
+import { MCPServerModal } from "../../../mcp/MCPServerModal"
+import { ChatHeader } from '../../../mcp/ChatHeader';
+import { ChatMessageItem } from '../../../mcp/ChatMessageItem';
+import { WelcomeMessage } from '../../../mcp/WelcomeMessage';
+import { ChatInput } from '../../../mcp/ChatInput';
+import { ChatMessage, MCPStatus } from '../../../mcp/types';
 
 import { generateClient } from "aws-amplify/api";
-import { Schema } from "../../../amplify/data/resource";
-import ArtifactSaveModal from './ArtifactSaveModal';
-import HowToUseModal from '../../modals/HowToUseModal';
+import { Schema } from "../../../../amplify/data/resource";
+import ArtifactSaveModal from '../ArtifactSaveModal';
+import HowToUseModal from '../../../modals/HowToUseModal';
 
 const client = generateClient<Schema>({ authMode: "userPool" });
 const { useAIGeneration } = createAIHooks(client);
@@ -92,7 +92,7 @@ interface CostEstimate {
 // Define default/always-enabled servers
 const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
-const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger, onArtifactSaved }: ChatPanelProps) => {
+const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger, onArtifactSaved }: ChatPanelProps) => {
 
     const { profile } = useContext(AccountContext);
 
@@ -117,14 +117,14 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
     // MCP state
     const [mcpEnabled, setMcpEnabled] = useState(true);
-    const [mcpStatus, setMcpStatus] = useState<MCPStatus | null>(null); 
+    const [mcpStatus, setMcpStatus] = useState<MCPStatus | null>(null);
     const [showMcpModal, setShowMcpModal] = useState(false);
 
     // MCP Server selection state 
-    const [mcpServers, setMcpServers] = useState<MCPServer[]>([]); 
-    const [showMcpServerModal, setShowMcpServerModal] = useState(false); 
+    const [mcpServers, setMcpServers] = useState<MCPServer[]>([]);
+    const [showMcpServerModal, setShowMcpServerModal] = useState(false);
     const [activeToolResults, setActiveToolResults] = useState<Map<string, ToolResultData>>(new Map());
-    
+
     const [userCredits, setUserCredits] = useState<CreditInfo | null>(null);
     const [estimatedCost, setEstimatedCost] = useState<CostEstimate | null>(null);
     const [showCreditWarning, setShowCreditWarning] = useState(false);
@@ -162,7 +162,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         ];
         return colors[index % colors.length];
     };
- 
+
 
     // Convert message to analytics chart
     const handleConvertToAnalytics = async (messageId: string, content: string, toolResults?: any[]) => {
@@ -343,7 +343,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             </div>
         );
     };
- 
+
 
     // Auto-scroll to bottom when new messages arrive
     const scrollToBottom = () => {
@@ -423,7 +423,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
 
     const loadMCPStatus = async () => {
         if (!mcpEnabled) return;
- 
+
         try {
             const response = await fetch('/api/mcp');
             const data = await response.json();
@@ -449,11 +449,11 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
         } finally {
-             
+
         }
     };
 
-    const loadMCPServers = async () => { 
+    const loadMCPServers = async () => {
         try {
             const response = await fetch('/api/mcp/servers');
             const data = await response.json();
@@ -484,7 +484,7 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
         } catch (error) {
             console.error('Error loading MCP servers:', error);
         } finally {
-             
+
         }
     };
 
@@ -626,14 +626,37 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
     const handleStreamingWithDatabaseSave = async (
         reader: ReadableStreamDefaultReader<Uint8Array>,
         conversationId: string,
-        userId: string
+        userId: string,
+        fullConversationHistory: any,
+        currentUserMessage: any
     ) => {
         const decoder = new TextDecoder();
         let accumulatedMessage = '';
         let currentToolResults: ToolResultData[] = [];
         const activeTools = new Map<string, ToolResultData>();
-        let totalInputTokens = creditAPI.estimateTokens(message); // Estimate from user input
-        let totalOutputTokens = 0; 
+
+        // Calculate input tokens from FULL conversation context
+        let totalInputTokens = 0;
+
+        // Calculate tokens for entire conversation history that will be sent to AI
+        const fullConversation = [...fullConversationHistory, currentUserMessage];
+        for (const msg of fullConversation) {
+            if (msg.message) {
+                totalInputTokens += creditAPI.estimateTokens(msg.message);
+            }
+            // Also include tool results in token calculation if they're part of context
+            if (msg.toolResults && msg.toolResults.length > 0) {
+                for (const toolResult of msg.toolResults) {
+                    if (toolResult.output) {
+                        const outputText = typeof toolResult.output === 'string' ?
+                            toolResult.output : JSON.stringify(toolResult.output);
+                        totalInputTokens += creditAPI.estimateTokens(outputText);
+                    }
+                }
+            }
+        }
+
+        let totalOutputTokens = 0;
 
         try {
             while (true) {
@@ -893,8 +916,6 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
                 });
             }
 
-            // DO NOT create assistant message yet - wait for streaming to complete
-
             const enabledServers = getEnabledServers();
             console.log("enabledServers (including defaults):", enabledServers);
 
@@ -933,7 +954,8 @@ const ChatPanel = ({ selectedConversation, onConversationCreated, refreshTrigger
             // Read streaming response and save to database at the end
             const reader = response.body?.getReader();
             if (reader && activeConversationId) {
-                await handleStreamingWithDatabaseSave(reader, activeConversationId, profile.id);
+                // Pass the full conversation history for proper token calculation
+                await handleStreamingWithDatabaseSave(reader, activeConversationId, profile.id, chatHistory, userMessage);
             }
 
             // Reload user credits after completion
@@ -1230,7 +1252,7 @@ const CreditDisplay: React.FC<{ credits: CreditInfo | null; estimatedCost: CostE
                         }`}>
                         ${credits.current.toFixed(4)}
                     </span>
-                </div> 
+                </div>
             </div>
 
             <Link
@@ -1244,4 +1266,4 @@ const CreditDisplay: React.FC<{ credits: CreditInfo | null; estimatedCost: CostE
 };
 
 
-export default ChatPanel;
+export default MainArea;

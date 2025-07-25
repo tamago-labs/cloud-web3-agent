@@ -1,22 +1,16 @@
 "use client"
 
-import React, { useState, useContext } from 'react';
-import { Settings, Download } from 'lucide-react';
-import LeftPanel from './LeftPanel';
-import ChatPanel from './ChatPanel';
-import RightPanel from './RightPanel';
-import { AccountContext } from '@/contexts/account';
+import React, { useState } from 'react';
+import Sidebar from "./Sidebar"
+import MainArea from "./MainArea"
+import SideOutput from "./SideOutput"
 
 const OnlineClientContainer = () => {
-
-    const { profile } = useContext(AccountContext)
 
     const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
     const [refreshChatTrigger, setRefreshChatTrigger] = useState(0);
     const [refreshLeftPanelTrigger, setRefreshLeftPanelTrigger] = useState(0);
     const [refreshRightPanelTrigger, setRefreshRightPanelTrigger] = useState(0);
-
-
 
     // Handle loading a conversation
     const handleLoadConversation = (conversationId: string) => {
@@ -50,7 +44,7 @@ const OnlineClientContainer = () => {
 
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
-                <LeftPanel
+                <Sidebar
                     selectedConversation={selectedConversation}
                     setSelectedConversation={setSelectedConversation}
                     onLoadConversation={handleLoadConversation}
@@ -58,14 +52,14 @@ const OnlineClientContainer = () => {
                     refreshTrigger={refreshLeftPanelTrigger}
                 />
 
-                <ChatPanel
+                <MainArea
                     selectedConversation={selectedConversation}
                     onConversationCreated={handleConversationCreated}
                     refreshTrigger={refreshChatTrigger}
                     onArtifactSaved={handleArtifactUpdate}
                 />
 
-                <RightPanel
+                <SideOutput
                     refreshTrigger={refreshRightPanelTrigger}
                     onArtifactUpdate={handleArtifactUpdate}
                 />

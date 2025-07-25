@@ -1,10 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Plus, MessageSquare, ArrowLeft, Trash2, Edit2, TrendingUp, PieChart, Search, MessageCircle, Bot } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Edit2, TrendingUp, PieChart, Search, MessageCircle, Bot } from 'lucide-react';
 import { AccountContext } from '@/contexts/account';
-import { conversationAPI } from '@/lib/api';
-import Link from "next/link";
-import RenameConversationModal from '../../modals/RenameConversationModal';
-import DeleteConversationModal from '../../modals/DeleteConversationModal';
+import { conversationAPI } from '@/lib/api'; 
+import RenameConversationModal from '../../../modals/RenameConversationModal';
+import DeleteConversationModal from '../../../modals/DeleteConversationModal';
 
 interface Conversation {
     id: string;
@@ -23,7 +22,7 @@ interface LeftPanelProps {
     refreshTrigger?: number;
 }
 
-const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConversation, onNewConversation, refreshTrigger }: LeftPanelProps) => {
+const Sidebar = ({ selectedConversation, setSelectedConversation, onLoadConversation, onNewConversation, refreshTrigger }: LeftPanelProps) => {
     const { profile } = useContext(AccountContext);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -289,4 +288,4 @@ const LeftPanel = ({ selectedConversation, setSelectedConversation, onLoadConver
     );
 };
 
-export default LeftPanel;
+export default Sidebar;
