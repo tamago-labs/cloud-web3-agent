@@ -4,7 +4,7 @@ import { Function as LambdaFunction, FunctionUrl, InvokeMode, FunctionUrlAuthTyp
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Duration } from "aws-cdk-lib"
 import { auth } from './auth/resource';
-import { data } from './data/resource'; 
+import { data } from './data/resource';
 import { storage } from "./storage/resource";
 import { chatApiFunction } from "./functions/chat-api/resource";
 
@@ -34,15 +34,16 @@ const functionUrl = new FunctionUrl(chatStack, "ChatFunctionUrl", {
     maxAge: Duration.minutes(5),
   },
 });
+ 
 
 // Add permissions for authenticated users to invoke the function URL
-const invokePolicy = new PolicyStatement({
-  actions: ["lambda:InvokeFunctionUrl"],
-  resources: [lambdaFunction.functionArn],
-});
+// const invokePolicy = new PolicyStatement({
+//   actions: ["lambda:InvokeFunctionUrl"],
+//   resources: [lambdaFunction.functionArn],
+// });
 
-// backend.auth.resources.authenticatedUserIamRole.addToPolicy(invokePolicy);
-backend.auth.resources.authenticatedUserIamRole.addToPrincipalPolicy(invokePolicy)
+// // backend.auth.resources.authenticatedUserIamRole.addToPolicy(invokePolicy);
+// backend.auth.resources.authenticatedUserIamRole.addToPrincipalPolicy(invokePolicy)
 
 // Add outputs to the configuration file
 backend.addOutput({
