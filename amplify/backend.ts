@@ -37,8 +37,16 @@ const lambdaFunction = backend.chatApiFunction.resources.lambda as LambdaFunctio
 
 const functionUrl = lambdaFunction.addFunctionUrl({
   authType: FunctionUrlAuthType.NONE,
+  invokeMode: InvokeMode.RESPONSE_STREAM, // Enable streaming
+  cors: {
+    allowCredentials: true,
+    allowedOrigins: ["*"], // Restrict this in production
+    allowedMethods: [HttpMethod.POST, HttpMethod.OPTIONS],
+    allowedHeaders: ["*"],
+    maxAge: Duration.minutes(5),
+  },
 });
- 
+
 // Add permissions for authenticated users to invoke the function URL
 // const invokePolicy = new PolicyStatement({
 //   actions: ["lambda:InvokeFunctionUrl"],
