@@ -41,7 +41,7 @@ const functionUrl = lambdaFunction.addFunctionUrl({
   cors: {
     allowCredentials: true,
     allowedOrigins: ["*"], // Restrict this in production
-    allowedMethods: [HttpMethod.POST, HttpMethod.OPTIONS],
+    allowedMethods: [HttpMethod.ALL],
     allowedHeaders: ["*"],
     maxAge: Duration.minutes(5),
   },
