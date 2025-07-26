@@ -8,33 +8,7 @@ interface HowToUseModalProps {
 
 const HowToUseModal: React.FC<HowToUseModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
-
-    const features = [
-        {
-            icon: <MessageSquare className="w-6 h-6" />,
-            title: "Smart Conversations",
-            description: "Chat with AI about DeFi, portfolios, and Web3 data with context-aware responses",
-            examples: ["Analyze my portfolio performance", "What are the best yield opportunities?", "Explain this DeFi protocol"]
-        },
-        {
-            icon: <Server className="w-6 h-6" />,
-            title: "MCP Tools Integration", 
-            description: "Access blockchain data, APIs, and external services through MCP servers",
-            examples: ["Check wallet balances", "Get token prices", "Analyze transaction history", "Create reports"]
-        },
-        {
-            icon: <Bot className="w-6 h-6" />,
-            title: "AI Model Selection",
-            description: "Choose from different AI models optimized for various tasks",
-            examples: ["Claude 4 Sonnet for complex analysis", "Switch models based on your needs"]
-        },
-        {
-            icon: <Zap className="w-6 h-6" />,
-            title: "Real-time Analysis",
-            description: "Get live data and instant insights with streaming responses",
-            examples: ["Live market data", "Real-time calculations", "Dynamic charts"]
-        }
-    ];
+ 
 
     const steps = [
         {
@@ -135,7 +109,7 @@ const HowToUseModal: React.FC<HowToUseModalProps> = ({ isOpen, onClose }) => {
  
 
                     {/* Example Queries */}
-                    <div className="p-6">
+                    {/* <div className="p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Example Queries</h3>
                         <div className="space-y-6">
                             {exampleQueries.map((category, index) => (
@@ -161,7 +135,7 @@ const HowToUseModal: React.FC<HowToUseModalProps> = ({ isOpen, onClose }) => {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Tips */}
                     <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50">

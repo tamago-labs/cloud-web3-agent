@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Plus, Minus, Eye, EyeOff } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
- 
+
 
 interface ArtifactSaveModalProps {
     isOpen: boolean;
@@ -28,8 +28,19 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
         totalValue: '',
         change: '',
         tags: [],
-        isPublic: false
+        isPublic: false,
+        blockchainNetwork: [],
+        dataFreshness: new Date().toISOString(),
+        queryParameters: {},
+        dataValidation: {
+            accuracy: 'high',
+            completeness: 100,
+            timeliness: 'real-time'
+        },
+        metadata: {}
     });
+
+    const [currentBlockchain, setCurrentBlockchain] = useState('');
 
     // Form validation and UI state
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -48,7 +59,16 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
                 totalValue: editingArtifact.totalValue || '',
                 change: editingArtifact.change || '',
                 tags: editingArtifact.tags || [],
-                isPublic: editingArtifact.isPublic || false
+                isPublic: editingArtifact.isPublic || false,
+                blockchainNetwork: editingArtifact.blockchainNetwork || [],
+                dataFreshness: editingArtifact.dataFreshness || new Date().toISOString(),
+                queryParameters: editingArtifact.queryParameters || {},
+                dataValidation: editingArtifact.dataValidation || {
+                    accuracy: 'high',
+                    completeness: 100,
+                    timeliness: 'real-time'
+                },
+                metadata: editingArtifact.metadata || {}
             });
         }
     }, [editingArtifact]);
@@ -99,6 +119,23 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
         }
     };
 
+    const addBlockchain = () => {
+        if (currentBlockchain.trim() && !formData.blockchainNetwork.includes(currentBlockchain.trim())) {
+            setFormData((prev: any) => ({
+                ...prev,
+                blockchainNetwork: [...prev.blockchainNetwork, currentBlockchain.trim()]
+            }));
+            setCurrentBlockchain('');
+        }
+    };
+
+    const removeBlockchain = (blockchainToRemove: string) => {
+        setFormData((prev: any) => ({
+            ...prev,
+            blockchainNetwork: prev.blockchainNetwork.filter((network: string) => network !== blockchainToRemove)
+        }));
+    };
+
     // Tag management
     const addTag = () => {
         if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
@@ -122,8 +159,8 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
         if (tempDataPoint.name.trim() && tempDataPoint.value > 0) {
             setFormData((prev: any) => ({
                 ...prev,
-                data: [...prev.data, { 
-                    name: tempDataPoint.name.trim(), 
+                data: [...prev.data, {
+                    name: tempDataPoint.name.trim(),
                     value: tempDataPoint.value,
                     color: generateChartColor(prev.data.length)
                 }]
@@ -135,7 +172,7 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
     const updateDataPoint = (index: number, field: 'name' | 'value', value: string | number) => {
         setFormData((prev: any) => ({
             ...prev,
-            data: prev.data.map((item: any, i: number) => 
+            data: prev.data.map((item: any, i: number) =>
                 i === index ? { ...item, [field]: value } : item
             )
         }));
@@ -248,7 +285,7 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
                     <div className="w-1/2 p-6 border-r border-gray-200">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Chart Preview</h3>
                         <ChartPreview data={formData.data} chartType={formData.chartType} />
-                        
+
                         {/* Chart Info */}
                         <div className="mt-4 space-y-2">
                             <div className="text-lg font-bold text-gray-900">
@@ -258,9 +295,8 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
                                 <div className="text-xl font-bold text-gray-900">{formData.totalValue}</div>
                             )}
                             {formData.change && (
-                                <div className={`text-sm font-medium ${
-                                    formData.change.includes('+') ? 'text-green-600' : 'text-red-600'
-                                }`}>
+                                <div className={`text-sm font-medium ${formData.change.includes('+') ? 'text-green-600' : 'text-red-600'
+                                    }`}>
                                     {formData.change}
                                 </div>
                             )}
@@ -350,7 +386,7 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
                                     <input
                                         type="text"
                                         value={formData.totalValue}
-                                        onChange={(e) => setFormData((prev : any) => ({ ...prev, totalValue: e.target.value }))}
+                                        onChange={(e) => setFormData((prev: any) => ({ ...prev, totalValue: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="e.g., $14,213"
                                     />
@@ -362,7 +398,7 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
                                     <input
                                         type="text"
                                         value={formData.change}
-                                        onChange={(e) => setFormData((prev : any) => ({ ...prev, change: e.target.value }))}
+                                        onChange={(e) => setFormData((prev: any) => ({ ...prev, change: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="e.g., +12.4%"
                                     />
@@ -410,12 +446,80 @@ const ArtifactSaveModal: React.FC<ArtifactSaveModalProps> = ({
                                 </div>
                             </div>
 
+                            {/* Blockchain Networks */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Blockchain Networks
+                                </label>
+                                <div className="flex gap-2 mb-2">
+                                    <select
+                                        value={currentBlockchain}
+                                        onChange={(e) => setCurrentBlockchain(e.target.value)}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option value="">Select blockchain...</option>
+                                        <option value="ethereum">Ethereum</option>
+                                        <option value="polygon">Polygon</option>
+                                        <option value="arbitrum">Arbitrum</option>
+                                        <option value="optimism">Optimism</option>
+                                        <option value="base">Base</option>
+                                        <option value="avalanche">Avalanche</option>
+                                        <option value="bitcoin">Bitcoin</option>
+                                        <option value="aptos">Aptos</option>
+                                        <option value="cronos">Cronos</option>
+                                        <option value="kaia">Kaia</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={addBlockchain}
+                                        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.blockchainNetwork.map((network: string, index: number) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-sm rounded-md"
+                                        >
+                                            {network}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeBlockchain(network)}
+                                                className="text-green-600 hover:text-green-800"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Query Notes */}
+                            {/* <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Query Notes
+                                </label>
+                                <textarea
+                                    value={formData.queryParameters.notes || ''}
+                                    onChange={(e) => setFormData((prev: any) => ({
+                                        ...prev,
+                                        queryParameters: { ...prev.queryParameters, notes: e.target.value }
+                                    }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows={2}
+                                    placeholder="Original prompt or query that generated this chart..."
+                                />
+                            </div> */}
+
+                             
                             {/* Data Points */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Data Points <span className="text-red-500">*</span>
                                 </label>
-                                
+
                                 {/* Add new data point */}
                                 <div className="flex gap-2 mb-3">
                                     <input

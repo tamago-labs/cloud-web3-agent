@@ -100,12 +100,12 @@ const ServerCard = ({
                 return 'DOGE';
             case 'aptos':
                 return 'APT';
+            case 'cronos':
+                return 'CRO';
             default:
                 return chain.toUpperCase();
         }
     };
-
- 
 
     return (
         <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow relative">
@@ -191,7 +191,7 @@ const ServerCard = ({
                     <span>Try Online</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link href={`/servers/${ server.id }`} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                <Link href={`/servers/${server.id}`} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
                     <span className="text-sm text-gray-600">Details</span>
                 </Link>
             </div>

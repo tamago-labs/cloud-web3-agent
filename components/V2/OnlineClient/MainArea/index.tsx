@@ -95,6 +95,9 @@ const DEFAULT_SERVERS = ['nodit', 'agent-base'];
 
 const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger, onArtifactSaved }: ChatPanelProps) => {
 
+    const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
+    const [analysisText, setAnalysisText] = useState<any>(undefined)
+
     const { loadServers } = useContext(ServerContext)
     const { profile } = useContext(AccountContext);
 
@@ -167,6 +170,15 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
         return colors[index % colors.length];
     };
 
+    useEffect(() => {
+        if (profile?.id && chatHistory.length === 0 && !currentConversationId) {
+            // Check if user has seen the dialog before (you can use localStorage or user preferences)
+            const hasSeenWelcome = localStorage.getItem(`welcome-dialog-${profile.id}`);
+            if (!hasSeenWelcome) {
+                setShowWelcomeDialog(true);
+            }
+        }
+    }, [profile, chatHistory, currentConversationId]);
 
     // Convert message to analytics chart
     const handleConvertToAnalytics = async (messageId: string, content: string, toolResults?: any[]) => {
@@ -202,6 +214,10 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
                 conversationText: analysisText,
                 toolResults: JSON.stringify(toolResults || [])
             });
+            setAnalysisText({
+                conversationText: analysisText,
+                toolResults: JSON.stringify(toolResults || [])
+            })
 
         } catch (error) {
             console.error('Failed to convert to analytics:', error);
@@ -259,7 +275,13 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
                     change: data.change?.trim() || '',
                     category: 'Portfolio Analytics',
                     tags: ['AI Generated', 'Conversation'],
-                    isPublic: false
+                    isPublic: false,
+                    blockchainNetwork: [], // Will be auto-detected in save
+                    dataFreshness: new Date().toISOString(),
+                    metadata: {
+                        source: 'ai-conversation-analysis',
+                        dataPoints: chartData.length
+                    }
                 });
                 setShowArtifactModal(true);
 
@@ -276,9 +298,16 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
         }
     }, [data, hasError, convertingToChart]); // Remove onChartsGenerated dependency
 
-    useEffect(() => { 
+    useEffect(() => {
         loadServers().then(setServers)
     }, []);
+
+    const handleWelcomeDialogClose = () => {
+        setShowWelcomeDialog(false);
+        if (profile?.id) {
+            localStorage.setItem(`welcome-dialog-${profile.id}`, 'true');
+        }
+    };
 
     // Handle artifact save
     const handleSaveArtifact = async (artifactData: any) => {
@@ -288,6 +317,48 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
         try {
             // Find the latest assistant message for linking
             const latestAssistantMessage = [...chatHistory].reverse().find(msg => msg.type === 'assistant');
+
+            // Extract blockchain networks from tool results
+            const extractBlockchainNetworks = () => {
+                const networks = new Set<string>();
+                const evmNetworks = [
+                    'ethereum',
+                    'polygon',
+                    'arbitrum',
+                    'base',
+                    'optimism',
+                    'avalanche',
+                    'kaia',
+                ];
+
+                if (latestAssistantMessage?.toolResults) {
+                    latestAssistantMessage.toolResults.forEach(tr => {
+                        const server = tr.serverName?.toLowerCase() || '';
+                        const output = tr.output?.toString().toLowerCase() || '';
+
+                        // Direct detection
+                        if (server.includes('aptos') || output.includes('aptos')) networks.add('aptos');
+                        if (server.includes('cronos') || output.includes('cronos')) networks.add('cronos');
+                        if (server.includes('bitcoin') || output.includes('bitcoin')) networks.add('bitcoin');
+
+                        // EVM group detection
+                        if (
+                            server === 'evm' ||
+                            server.includes('ethereum') || output.includes('ethereum') ||
+                            server.includes('polygon') || output.includes('polygon') ||
+                            server.includes('arbitrum') || output.includes('arbitrum') ||
+                            server.includes('base') || output.includes('base') ||
+                            server.includes('optimism') || output.includes('optimism') ||
+                            server.includes('avalanche') || output.includes('avalanche') ||
+                            server.includes('kaia') || output.includes('kaia')
+                        ) {
+                            evmNetworks.forEach(n => networks.add(n));
+                        }
+                    });
+                }
+
+                return Array.from(networks);
+            };
 
             await artifactAPI.createArtifact({
                 userId: profile.id,
@@ -301,6 +372,22 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
                 category: artifactData.category,
                 tags: artifactData.tags,
                 isPublic: artifactData.isPublic,
+                blockchainNetwork: artifactData.blockchainNetwork.length > 0 ? artifactData.blockchainNetwork : extractBlockchainNetworks(),
+                dataFreshness: new Date().toISOString(),
+                queryParameters: {
+                    ...analysisText,
+                    model: selectedModel,
+                    enabledServers: getEnabledServers(),
+                    conversationContext: chatHistory.slice(-3).map(msg => ({ role: msg.type, content: msg.message?.substring(0, 200) }))
+                },
+                metadata: {
+                    toolsUsed: latestAssistantMessage?.toolResults?.map(tr => tr.name) || [],
+                    serverNames: latestAssistantMessage?.toolResults?.map(tr => tr.serverName) || [],
+                    chartColors: artifactData.data.map((d: any) => d.color),
+                    aiGenerated: true,
+                    version: '2.0',
+                    ...artifactData.metadata
+                },
                 sourceData: {
                     conversationId: currentConversationId,
                     messageId: latestAssistantMessage?.id,
@@ -456,8 +543,6 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
                 serviceUrl: '',
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
-        } finally {
-
         }
     };
 
@@ -1230,6 +1315,40 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
                         onSave={handleSaveArtifact}
                         isSaving={isSavingArtifact}
                     />
+
+                    {showWelcomeDialog && (
+                        <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Welcome</h3>
+                                <div className="text-gray-600 mb-4 space-y-2">
+                                    <p className="text-sm">
+                                        • <strong>AI Model:</strong> Claude Sonnet 4 is pre-selected for optimal Web3 analysis
+                                    </p>
+                                    <p className="text-sm">
+                                        • <strong>MCP Servers:</strong> Nodit MCP (blockchain data) and Agent-base (oracle data) are enabled by default
+                                    </p>
+                                    <p className="text-sm">
+                                        • You can customize servers anytime using the settings in the chat input
+                                    </p>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <button
+                                        onClick={() => setShowHowToUseModal(true)}
+                                        className="text-blue-600 hover:text-blue-800 text-sm"
+                                    >
+                                        Learn More
+                                    </button>
+                                    <button
+                                        onClick={handleWelcomeDialogClose}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                    >
+                                        Got it
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 </>
             )}
         </div>
