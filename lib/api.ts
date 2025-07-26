@@ -1091,10 +1091,10 @@ export const artifactAPI = {
     },
 
     // Get specific artifact by ID and increment views
-    async getArtifact(artifactId: string) {
+    async getArtifact(isLoggedIn: boolean, artifactId: string) {
         try {
             const client = generateClient<Schema>({
-                authMode: "userPool"
+                authMode: isLoggedIn ? "userPool" : "iam"
             });
 
             const { data: artifact }: any = await client.models.Artifact.get({

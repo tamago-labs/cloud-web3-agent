@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { artifactAPI } from '@/lib/api';
+import { artifactAPI } from '@/lib/api'; 
+import { getCurrentUser } from 'aws-amplify/auth';
 
 interface UseArtifactReturn {
   artifact: any;
@@ -18,7 +19,16 @@ export const useArtifact = (artifactId: string): UseArtifactReturn => {
       setLoading(true);
       setError(null);
 
-      const data = await artifactAPI.getArtifact(artifactId);
+      // Check if user is logged in
+      let isLoggedIn = false;
+      try {
+        await getCurrentUser();
+        isLoggedIn = true;
+      } catch {
+        isLoggedIn = false;
+      }
+
+      const data = await artifactAPI.getArtifact(isLoggedIn, artifactId);
       setArtifact(data);
     } catch (err) {
       console.error('Error fetching artifact:', err);

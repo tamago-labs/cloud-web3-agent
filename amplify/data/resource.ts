@@ -170,8 +170,8 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     dataValidation: a.json(), // data quality metrics
     metadata: a.json(), // additional metadata like colors, formatting, contracts analyzed, specific txs analyzed
   }).authorization((allow) => [
-    allow.guest().to(["read"]),
-    allow.authenticated().to(["read"]),
+    allow.guest().to(["read", "update"]),
+    allow.authenticated().to(["read", "update"]),
     allow.owner()
   ])
 }).authorization((allow) => [
