@@ -16,26 +16,29 @@ const backend = defineBackend({
 });
 
 // create a new Lambda stack for the chat function
-const chatStack = backend.createStack("chat-lambda-stack");
+// const chatStack = backend.createStack("chat-lambda-stack");
 
 // Get the Lambda function
 const lambdaFunction = backend.chatApiFunction.resources.lambda as LambdaFunction;
 
 // Create Function URL with streaming enabled
-const functionUrl = new FunctionUrl(chatStack, "ChatFunctionUrl", {
-  function: lambdaFunction,
+// const functionUrl = new FunctionUrl(chatStack, "ChatFunctionUrl", {
+//   function: lambdaFunction,
+//   authType: FunctionUrlAuthType.NONE,
+//   invokeMode: InvokeMode.RESPONSE_STREAM, // Enable streaming
+//   cors: {
+//     allowCredentials: true,
+//     allowedOrigins: ["*"], // Restrict this in production
+//     allowedMethods: [HttpMethod.POST, HttpMethod.OPTIONS],
+//     allowedHeaders: ["*"],
+//     maxAge: Duration.minutes(5),
+//   },
+// });
+
+const functionUrl = lambdaFunction.addFunctionUrl({
   authType: FunctionUrlAuthType.NONE,
-  invokeMode: InvokeMode.RESPONSE_STREAM, // Enable streaming
-  cors: {
-    allowCredentials: true,
-    allowedOrigins: ["*"], // Restrict this in production
-    allowedMethods: [HttpMethod.POST, HttpMethod.OPTIONS],
-    allowedHeaders: ["*"],
-    maxAge: Duration.minutes(5),
-  },
 });
  
-
 // Add permissions for authenticated users to invoke the function URL
 // const invokePolicy = new PolicyStatement({
 //   actions: ["lambda:InvokeFunctionUrl"],
