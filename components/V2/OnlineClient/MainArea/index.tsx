@@ -1015,7 +1015,11 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
             // Send request to chat API with MCP enabled
             const response = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                },
                 body: JSON.stringify({
                     messages: chatHistory,
                     currentMessage: currentMessage,
@@ -1054,7 +1058,8 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
             // Reload user credits after completion
             await loadUserCredits();
 
-        } catch (error) {
+        } catch (error) { 
+            
             if (error instanceof Error && error.name === 'AbortError') {
                 console.log('Streaming cancelled by user');
             } else {

@@ -68,14 +68,18 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        // Return streaming response with proper SSE headers
+        // Return streaming response with Amplify/CloudFront specific headers
         return new Response(stream, {
             headers: {
                 'Content-Type': 'text/event-stream',
-                'Cache-Control': 'no-cache',
+                'Cache-Control': 'no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0',
                 'Connection': 'keep-alive',
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                'X-Accel-Buffering': 'no',
+                'X-Content-Type-Options': 'nosniff',
+                'Pragma': 'no-cache',
+                'CloudFront-Is-SmartTV-Viewer': 'false', // Prevent CloudFront buffering
             },
         });
 
@@ -95,7 +99,7 @@ export async function OPTIONS() {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
     });
 }
