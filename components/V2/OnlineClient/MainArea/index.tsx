@@ -5,7 +5,7 @@ import { ServerContext } from '@/contexts/server';
 import { creditAPI, conversationAPI, messageAPI, toolResultAPI, enhancedMessageAPI, enhancedToolResultAPI, artifactAPI } from '@/lib/api';
 import { X, Square, Trash2, BarChart3 } from 'lucide-react';
 import { createAIHooks } from "@aws-amplify/ui-react-ai";
-import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
+
 
 // Import our MCP components
 import { MCPManagementModal } from "../../../mcp/MCPManagementModal"

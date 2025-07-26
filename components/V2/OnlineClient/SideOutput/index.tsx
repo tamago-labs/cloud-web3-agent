@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { BarChart3, FileText, Eye, Trash2, TrendingUp, X, EyeOff } from 'lucide-react';
-import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
+
 import { AccountContext } from '@/contexts/account';
 import { artifactAPI } from '@/lib/api';
 import ChartView from '../../ChartView';

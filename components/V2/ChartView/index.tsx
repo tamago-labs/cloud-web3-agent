@@ -3,13 +3,13 @@
 import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 
 
-const ChartView = ({ data, chartType, trend }: { data: any[], chartType: string, trend?: string }) => {
+const ChartView = ({ data, chartType, trend, height = "h-64" }: { data: any[], chartType: string, trend?: string, height?: string }) => {
     console.log('📊 Chart render attempt:', { data, chartType, trend });
 
         if (!data || !Array.isArray(data) || data.length === 0) {
             console.log('❌ No valid data for chart');
             return (
-                <div className="h-64 w-full flex items-center justify-center bg-gray-100 rounded-lg">
+                <div className={`${height} w-full flex items-center justify-center bg-gray-100 rounded-lg`}>
                     <p className="text-gray-500">No chart data available</p>
                 </div>
             );
@@ -20,7 +20,7 @@ const ChartView = ({ data, chartType, trend }: { data: any[], chartType: string,
         if (chartType === 'pie') {
             console.log('🥧 Rendering PIE chart with data:', data);
             return (
-                <div className="h-64 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+                <div className={`${height} w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
                     <ResponsiveContainer width="90%" height="90%">
                         <RechartsPie>
                             <Pie
@@ -60,7 +60,7 @@ const ChartView = ({ data, chartType, trend }: { data: any[], chartType: string,
         if (chartType === 'donut') {
             console.log('🍩 Rendering DONUT chart with data:', data);
             return (
-                <div className="h-64 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+                <div className={`${height} w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
                     <ResponsiveContainer width="90%" height="90%">
                         <RechartsPie>
                             <Pie
@@ -100,7 +100,7 @@ const ChartView = ({ data, chartType, trend }: { data: any[], chartType: string,
         if (chartType === 'bar') {
             console.log('📊 Rendering BAR chart with data:', data);
             return (
-                <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                <div className={`${height} w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4`}>
                     <ResponsiveContainer width="100%" height="100%">
                         <RechartsBar data={data}>
                             <XAxis
@@ -140,7 +140,7 @@ const ChartView = ({ data, chartType, trend }: { data: any[], chartType: string,
         if (chartType === 'area') {
             console.log('📈 Rendering AREA chart with data:', data);
             return (
-                <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                <div className={`${height} w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4`}>
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={data}>
                             <defs>
@@ -185,7 +185,7 @@ const ChartView = ({ data, chartType, trend }: { data: any[], chartType: string,
         if (chartType === 'horizontal_bar') {
             console.log('↔️ Rendering HORIZONTAL BAR chart with data:', data);
             return (
-                <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                <div className={`${height} w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4`}>
                     <ResponsiveContainer width="100%" height="100%">
                         <RechartsBar
                             data={data}
@@ -228,7 +228,7 @@ const ChartView = ({ data, chartType, trend }: { data: any[], chartType: string,
         // Default line chart
         console.log('📈 Rendering LINE chart with data:', data);
         return (
-            <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+            <div className={`${height} w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4`}>
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data}>
                         <XAxis

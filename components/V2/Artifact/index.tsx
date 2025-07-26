@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, TrendingDown, ArrowLeft, Heart, Share2, Download, Play, ExternalLink, Copy, Eye, Calendar, User, Code, RefreshCw, ChevronDown, FileText } from 'lucide-react';
-import { PieChart as RechartsPie, Pie, Cell, BarChart as RechartsBar, Bar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Area, AreaChart } from 'recharts';
 import Link from "next/link";
 import Header from "../Landing/Header";
 import { useArtifact } from '@/hooks/useArtifact';
+import ChartView from '../ChartView';
 
 const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
     const [isFavorited, setIsFavorited] = useState(false);
@@ -50,252 +50,6 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
             default:
                 return <BarChart3 className="w-6 h-6" />;
         }
-    };
-
-    const ProfessionalChart = ({ data, chartType, trend }: { data: any[], chartType: string, trend: string }) => {
-        const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
-
-        if (chartType === 'pie') {
-            return (
-                <div className="h-96 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPie>
-                            <Pie
-                                data={data}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={0}
-                                outerRadius={120}
-                                paddingAngle={2}
-                                dataKey="value"
-                            >
-                                {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                formatter={(value: any) => [`${value}%`, 'Share']}
-                                contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}
-                            />
-                            <Legend
-                                verticalAlign="bottom"
-                                height={60}
-                                fontSize={14}
-                                wrapperStyle={{ paddingTop: '20px' }}
-                            />
-                        </RechartsPie>
-                    </ResponsiveContainer>
-                </div>
-            );
-        }
-
-        if (chartType === 'donut') {
-            return (
-                <div className="h-96 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPie>
-                            <Pie
-                                data={data}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={80}
-                                outerRadius={120}
-                                paddingAngle={2}
-                                dataKey="value"
-                            >
-                                {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                formatter={(value: any) => [`${value}%`, 'Share']}
-                                contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}
-                            />
-                            <Legend
-                                verticalAlign="bottom"
-                                height={60}
-                                fontSize={14}
-                                wrapperStyle={{ paddingTop: '20px' }}
-                            />
-                        </RechartsPie>
-                    </ResponsiveContainer>
-                </div>
-            );
-        }
-
-        if (chartType === 'bar') {
-            return (
-                <div className="h-96 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBar data={data}>
-                            <XAxis
-                                dataKey="name"
-                                fontSize={14}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <YAxis
-                                fontSize={14}
-                                axisLine={false}
-                                tickLine={false}
-                                tickFormatter={(value) => `$${value}B`}
-                            />
-                            <Tooltip
-                                formatter={(value: any) => [`$${value}B`, 'Value']}
-                                contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}
-                            />
-                            <Bar
-                                dataKey="value"
-                                fill="#3B82F6"
-                                radius={[6, 6, 0, 0]}
-                            />
-                        </RechartsBar>
-                    </ResponsiveContainer>
-                </div>
-            );
-        }
-
-        if (chartType === 'area') {
-            return (
-                <div className="h-96 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data}>
-                            <defs>
-                                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={trendColor} stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor={trendColor} stopOpacity={0.1} />
-                                </linearGradient>
-                            </defs>
-                            <XAxis
-                                dataKey="time"
-                                fontSize={14}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <YAxis
-                                fontSize={14}
-                                axisLine={false}
-                                tickLine={false}
-                                tickFormatter={(value) => `${value} gwei`}
-                            />
-                            <Tooltip
-                                formatter={(value: any) => [`${value} gwei`, 'Gas Price']}
-                                contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="price"
-                                stroke={trendColor}
-                                strokeWidth={3}
-                                fillOpacity={1}
-                                fill="url(#colorGradient)"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-            );
-        }
-
-        if (chartType === 'horizontal_bar') {
-            return (
-                <div className="h-96 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBar
-                            data={data}
-                            layout="horizontal"
-                            margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-                        >
-                            <XAxis
-                                type="number"
-                                fontSize={14}
-                                axisLine={false}
-                                tickLine={false}
-                                tickFormatter={(value) => `$${value}M`}
-                            />
-                            <YAxis
-                                type="category"
-                                dataKey="name"
-                                fontSize={12}
-                                axisLine={false}
-                                tickLine={false}
-                                width={90}
-                            />
-                            <Tooltip
-                                formatter={(value: any) => [`$${value}M`, 'Volume']}
-                                contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}
-                            />
-                            <Bar
-                                dataKey="value"
-                                fill="#8B5CF6"
-                                radius={[0, 6, 6, 0]}
-                            />
-                        </RechartsBar>
-                    </ResponsiveContainer>
-                </div>
-            );
-        }
-
-        // Default line chart
-        return (
-            <div className="h-96 w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data}>
-                        <XAxis
-                            dataKey="time"
-                            fontSize={14}
-                            axisLine={false}
-                            tickLine={false}
-                        />
-                        <YAxis
-                            fontSize={14}
-                            axisLine={false}
-                            tickLine={false}
-                        />
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                            }}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="value"
-                            stroke={trendColor}
-                            strokeWidth={3}
-                            dot={{ fill: trendColor, strokeWidth: 2, r: 4 }}
-                            activeDot={{ r: 6 }}
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        );
     };
 
     // Loading State
@@ -451,7 +205,7 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                 <div className="bg-gray-50 rounded-xl p-6">
                                     <div className="space-y-3">
                                         <Link 
-                                            href="/chat"
+                                            href="/client"
                                             className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium flex items-center justify-center gap-2"
                                         >
                                             <Play className="w-5 h-5" />
@@ -559,11 +313,14 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                 )}
                             </div>
                             
-                            <ProfessionalChart
-                                data={artifact.data}
-                                chartType={artifact.chartType}
-                                trend={trend}
-                            />
+                            <div className="h-96">
+                                <ChartView
+                                    data={artifact.data}
+                                    chartType={artifact.chartType}
+                                    trend={trend}
+                                    height="h-full"
+                                />
+                            </div>
                         </div>
 
                         {/* Data Summary */}
