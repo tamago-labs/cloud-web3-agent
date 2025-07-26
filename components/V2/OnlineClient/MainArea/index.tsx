@@ -1013,7 +1013,9 @@ const MainArea = ({ selectedConversation, onConversationCreated, refreshTrigger,
             console.log("enabledServers (including defaults):", enabledServers);
 
             // Send request to chat API with MCP enabled
-            const response = await fetch('/api/chat', {
+            // https://o7zpyq27kxgdaj5s645jn5ekyq0aumlu.lambda-url.ap-southeast-1.on.aws/
+            // /api/chat
+            const response = await fetch('https://o7zpyq27kxgdaj5s645jn5ekyq0aumlu.lambda-url.ap-southeast-1.on.aws', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
