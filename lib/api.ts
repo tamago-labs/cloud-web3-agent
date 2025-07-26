@@ -1090,7 +1090,7 @@ export const artifactAPI = {
         }
     },
 
-    // Get specific artifact by ID
+    // Get specific artifact by ID and increment views
     async getArtifact(artifactId: string) {
         try {
             const client = generateClient<Schema>({
@@ -1105,11 +1105,20 @@ export const artifactAPI = {
                 throw new Error('Artifact not found');
             }
 
+            // Increment views
+            await client.models.Artifact.update({
+                id: artifactId,
+                views: (artifact.views || 0) + 1
+            });
+
             return {
                 ...artifact,
                 data: artifact.data ? JSON.parse(artifact.data) : [],
                 sourceData: artifact.sourceData ? JSON.parse(artifact.sourceData) : null,
-                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null
+                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null,
+                queryParameters: artifact.queryParameters ? JSON.parse(artifact.queryParameters) : null,
+                dataValidation: artifact.dataValidation ? JSON.parse(artifact.dataValidation) : null,
+                views: (artifact.views || 0) + 1 // Return incremented views
             };
         } catch (error) {
             console.error('Error fetching artifact:', error);
