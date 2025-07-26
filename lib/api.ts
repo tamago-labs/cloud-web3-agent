@@ -904,18 +904,21 @@ export const artifactAPI = {
         isPublic?: boolean;
         sourceData?: any;
         metadata?: any;
+        blockchainNetwork?: any;
+        dataFreshness?: any;
+        queryParameters?: any;
     }) {
         try {
             const client = generateClient<Schema>({
                 authMode: "userPool"
             });
  
-  
             const response = await client.models.Artifact.create({
                 ...artifactData,
                 data: JSON.stringify(artifactData.data),
                 sourceData: artifactData.sourceData ? JSON.stringify(artifactData.sourceData) : undefined,
                 metadata: artifactData.metadata ? JSON.stringify(artifactData.metadata) : undefined,
+                queryParameters: artifactData.queryParameters ? JSON.stringify(artifactData.queryParameters) : undefined,
                 likes: 0,
                 views: 0,
                 isPublic: artifactData.isPublic || false
