@@ -5,6 +5,10 @@ import { getCurrentUser } from 'aws-amplify/auth';
 interface ArtifactFilters {
   searchQuery?: string;
   category?: string;
+  blockchainNetwork?: string[];
+  dataFreshness?: string;
+  chartType?: string;
+  qualityFilter?: string;
   sortBy?: 'popular' | 'recent' | 'liked';
   limit?: number;
   isPublic?: boolean;
@@ -40,7 +44,11 @@ export const usePublicArtifacts = (filters: ArtifactFilters = {}): UsePublicArti
         category: filters.category,
         searchQuery: filters.searchQuery,
         sortBy: filters.sortBy || 'recent',
-        limit: filters.limit || 50
+        limit: filters.limit || 50,
+        blockchainNetwork: filters.blockchainNetwork,
+        dataFreshness: filters.dataFreshness,
+        chartType: filters.chartType,
+        qualityFilter: filters.qualityFilter
       });
 
       setArtifacts(data || []);
@@ -55,7 +63,16 @@ export const usePublicArtifacts = (filters: ArtifactFilters = {}): UsePublicArti
 
   useEffect(() => {
     fetchArtifacts();
-  }, [filters.searchQuery, filters.category, filters.sortBy, filters.limit]);
+  }, [
+    filters.searchQuery, 
+    filters.category, 
+    filters.blockchainNetwork, 
+    filters.dataFreshness,
+    filters.chartType,
+    filters.qualityFilter,
+    filters.sortBy, 
+    filters.limit
+  ]);
 
   const refetch = () => {
     fetchArtifacts();

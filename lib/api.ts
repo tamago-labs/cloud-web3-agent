@@ -965,6 +965,10 @@ export const artifactAPI = {
     async getPublicArtifacts(isLoggedIn: boolean, filters?: {
         category?: string;
         searchQuery?: string;
+        blockchainNetwork?: string[];
+        dataFreshness?: string;
+        chartType?: string;
+        qualityFilter?: string;
         sortBy?: 'popular' | 'recent' | 'liked';
         limit?: number;
     }) {
@@ -986,6 +990,13 @@ export const artifactAPI = {
                 };
             }
 
+            // Add chart type filter
+            if (filters?.chartType && filters.chartType !== 'All') {
+                filterCondition.chartType = {
+                    eq: filters.chartType
+                };
+            }
+
             const { data: artifacts } = await client.models.Artifact.list({
                 filter: filterCondition
             });
@@ -994,7 +1005,9 @@ export const artifactAPI = {
                 ...artifact,
                 data: artifact.data ? JSON.parse(artifact.data) : [],
                 sourceData: artifact.sourceData ? JSON.parse(artifact.sourceData) : null,
-                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null
+                metadata: artifact.metadata ? JSON.parse(artifact.metadata) : null,
+                queryParameters: artifact.queryParameters ? JSON.parse(artifact.queryParameters) : null,
+                dataValidation: artifact.dataValidation ? JSON.parse(artifact.dataValidation) : null
             }));
 
             // Apply search filter
@@ -1003,7 +1016,49 @@ export const artifactAPI = {
                 filteredArtifacts = filteredArtifacts.filter(artifact =>
                     artifact.title?.toLowerCase().includes(query) ||
                     artifact.description?.toLowerCase().includes(query) ||
-                    artifact.tags?.some((tag: string) => tag.toLowerCase().includes(query))
+                    artifact.tags?.some((tag: string) => tag.toLowerCase().includes(query)) ||
+                    artifact.category?.toLowerCase().includes(query)
+                );
+            }
+
+            // Apply blockchain network filter
+            if (filters?.blockchainNetwork && filters.blockchainNetwork.length > 0) {
+                filteredArtifacts = filteredArtifacts.filter(artifact =>
+                    artifact.blockchainNetwork && 
+                    artifact.blockchainNetwork.some((network: string) => 
+                        filters.blockchainNetwork!.includes(network)
+                    )
+                );
+            }
+
+            // Apply data freshness filter
+            if (filters?.dataFreshness && filters.dataFreshness !== 'All') {
+                const now = new Date();
+                filteredArtifacts = filteredArtifacts.filter(artifact => {
+                    if (!artifact.dataFreshness) return false;
+                    
+                    const freshness = new Date(artifact.dataFreshness);
+                    const diffHours = Math.abs(now.getTime() - freshness.getTime()) / (1000 * 60 * 60);
+                    
+                    switch (filters.dataFreshness) {
+                        case 'real-time':
+                            return diffHours < 1;
+                        case 'recent':
+                            return diffHours < 24;
+                        case 'daily':
+                            return diffHours >= 24 && diffHours < 168; // 1 week
+                        case 'historical':
+                            return diffHours >= 168;
+                        default:
+                            return true;
+                    }
+                });
+            }
+
+            // Apply quality filter
+            if (filters?.qualityFilter && filters.qualityFilter !== 'All') {
+                filteredArtifacts = filteredArtifacts.filter(artifact =>
+                    artifact.dataValidation?.accuracy === filters.qualityFilter
                 );
             }
 
