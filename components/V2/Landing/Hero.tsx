@@ -1,11 +1,11 @@
 "use client"
 
-import React, {  useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { BookOpen, Cpu, Code, Zap, Cloud, Database, Key, Puzzle, Infinity, FileJson, Network, BrainCircuit, Layers, Globe, ArrowRight, ArrowRightLeft, MessageSquare, ServerCrash, SmartphoneNfc, BadgeCheck, Share2, Blocks, Play, Sparkles, BarChart3 } from 'lucide-react';
 import Link from "next/link"
 
 const Hero = () => {
- 
+
     return (
         <>
             <div className="absolute inset-0 z-0">
@@ -22,13 +22,16 @@ const Hero = () => {
                                 🎉 New users get $10 free credits
                             </span>
                         </div>
-
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                        <div className='w-full max-w-xl'>
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
                                 Web3 Analytics via Chat with AI<br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                                     No SQL Required
                                 </span>
                             </h1>
+                        </div>
+
+
 
                         <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
                             Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
@@ -62,7 +65,7 @@ const Hero = () => {
                             </div>
                         </div>
                     </div>
- 
+
                 </div>
             </div>
         </>

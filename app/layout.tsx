@@ -10,9 +10,7 @@ const InterFont = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Web3 Analytics via Chat – No SQL Needed",
-  // title: "Dune Analytics via Chat – No SQL Needed",
-  // title: "The MCP Hub for Web3",
+  title: "Web3 Analytics via Chat – No SQL Needed", 
   description: "Ask questions like 'Show Aave TVL' or 'Track Vitalik’s wallet' and get real-time blockchain charts instantly—no SQL, no setup, just chat.",
 };
 
