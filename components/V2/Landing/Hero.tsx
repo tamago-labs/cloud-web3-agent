@@ -1,19 +1,11 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, {  useRef, useEffect } from 'react';
 import { BookOpen, Cpu, Code, Zap, Cloud, Database, Key, Puzzle, Infinity, FileJson, Network, BrainCircuit, Layers, Globe, ArrowRight, ArrowRightLeft, MessageSquare, ServerCrash, SmartphoneNfc, BadgeCheck, Share2, Blocks, Play, Sparkles, BarChart3 } from 'lucide-react';
 import Link from "next/link"
 
 const Hero = () => {
-
-    const [heroType, setHeroType] = useState(2);
-
-    // useEffect(() => {
-    //     const currentDomain = window.location.origin
-    //     setHeroType(currentDomain.includes("tamagolabs.com") ? 1 : 2); // or window.location.hostname
-    // }, []);
-
-
+ 
     return (
         <>
             <div className="absolute inset-0 z-0">
@@ -31,34 +23,12 @@ const Hero = () => {
                             </span>
                         </div>
 
-                        {heroType === 1 && (
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                                Chat with AI for<br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                                    Web3 Insight
-                                </span>
-                            </h1>
-                        )}
-                        {heroType === 2 && (
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
                                 Web3 Analytics via Chat with AI<br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                                     No SQL Required
                                 </span>
                             </h1>
-                        )}
-
-                        {/* {heroType === 1 && (
-                            <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
-                                Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
-                            </p>
-                        )}
-
-                        {heroType === 2 && (
-                            <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
-                                Ask questions like <strong>"Show Aave TVL"</strong> or <strong>"Track Vitalik’s wallet"</strong> and get real-time blockchain charts and analytics instantly. No SQL, no setup — just chat, powered by various MCP servers.
-                            </p>
-                        )} */}
 
                         <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
                             Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
@@ -92,10 +62,7 @@ const Hero = () => {
                             </div>
                         </div>
                     </div>
-
-                    <div className="w-full mt-[-200px] opacity-60 md:opacity-100 z-10 md:mt-0 lg:w-1/2">
-                        {/*<OrbitalParticles /> */}
-                    </div>
+ 
                 </div>
             </div>
         </>

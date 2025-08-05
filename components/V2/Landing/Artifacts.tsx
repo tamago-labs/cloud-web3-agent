@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Eye, Heart, ArrowUpRight, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, ArrowUpRight } from 'lucide-react';
 import Link from "next/link";
 import { usePublicArtifacts } from '@/hooks/usePublicArtifacts';
 import EmptyState from '@/components/UI/EmptyState';

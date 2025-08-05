@@ -25,26 +25,8 @@ const QuickFeatures = () => {
         },
     ];
 
-    const benefits = [
-        {
-            icon: <Shield className="w-6 h-6" />,
-            title: "Private by Design",
-            description: "Your data never leaves AWS. Private AI processing with no model training."
-        },
-        {
-            icon: <Zap className="w-6 h-6" />,
-            title: "Real-time Insights",
-            description: "Live blockchain data from multiple chains updated every block."
-        },
-        {
-            icon: <Blocks className="w-6 h-6" />,
-            title: "Multi-chain Support",
-            description: "Ethereum, Polygon, Arbitrum, Base, Optimism, and more chains supported."
-        }
-    ];
-
     return (
-        <div className="bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden py-20 relative">
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50 overflow-hidden py-20 relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* How it Works */}
                 <div className="mb-6">
@@ -70,28 +52,13 @@ const QuickFeatures = () => {
                                                 {feature.text}
                                             </p>
                                         </div>
-                                    </div>
-                                    {/* <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                        {feature.step}
-                                    </div> */}
+                                    </div> 
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
-
-                {/* Key Benefits */}
-                {/* <div className="grid md:grid-cols-3 gap-6">
-                    {benefits.map((benefit: any, index: number) => (
-                        <div key={index} className="text-center">
-                            <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 mx-auto mb-4">
-                                {benefit.icon}
-                            </div>
-                            <h3 className="font-semibold text-gray-900 mb-2">{benefit.title}</h3>
-                            <p className="text-gray-600 text-sm">{benefit.description}</p>
-                        </div>
-                    ))}
-                </div> */}
+ 
             </div>
         </div>
     );

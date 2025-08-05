@@ -1,8 +1,7 @@
 "use client"
 
 
-import Link from "next/link"
-import { ExternalLink } from "lucide-react"
+import Link from "next/link" 
 import { useEffect, useContext, useState } from "react";
 import { AccountContext } from "@/contexts/account";
 
@@ -44,11 +43,7 @@ const Header = ({ bgColor }: any) => {
                         </Link>
                         <Link href="/server-status" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                             Status
-                        </Link>
-                        {/* <a href="https://docs.tamagolabs.com" target="_blank" className="text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center">
-                            Docs
-                            <ExternalLink className="ml-1 h-4 w-4" />
-                        </a> */}
+                        </Link> 
                     </nav>
 
                     {/* CTA Buttons */}
