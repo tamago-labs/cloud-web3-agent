@@ -140,7 +140,7 @@ const ServerCard = ({
                         {server.category}
                     </span>
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
                     {server.description}
                 </p>
             </div>
