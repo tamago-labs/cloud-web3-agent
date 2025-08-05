@@ -1,12 +1,11 @@
-
-
-
 import Header from "./Header"
 import Hero from "./Hero"
-import QuickFeatures from "./QuickFeatures"
-import OnlineHostedServers from "./OnlineHostedServers"
+import HowItWorks from "./HowItWorks" 
 import Artifacts from "./Artifacts"  
+import SampleConversations from "./SampleConversations"
 import Problem from "./Problem"
+import OnlineHostedServers from "./OnlineHostedServers"
+import CTASection from "./CTASection"
 
 const LandingContainer = () => {
 
@@ -14,10 +13,13 @@ const LandingContainer = () => {
         <div>
             <Header />
             <Hero />
-            <Problem />
+            <Problem />  
             <Artifacts />
-            <QuickFeatures /> 
-            <OnlineHostedServers />  
+            <HowItWorks /> 
+            <OnlineHostedServers/>
+            <CTASection/>
+            {/* <ProjectsGrid /> */}
+            {/* <SampleConversations /> */}
         </div>
     )
 }

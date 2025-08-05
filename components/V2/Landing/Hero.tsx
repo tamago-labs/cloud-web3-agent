@@ -16,7 +16,7 @@ const Hero = () => {
                     <div className="w-full px-4 md:px-0 lg:w-3/4 z-20 text-gray-900">
                         <div className="flex flex-col md:flex-row items-center mb-4 gap-2 md:gap-0">
                             <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                                The MCP Hub for Web3
+                                ChatGPT for Web3 Data
                             </span>
                             <span className="px-3 py-1  bg-green-100 text-green-800 text-sm font-medium rounded-full flex ml-2">
                                 🎉 New users get $10 free credits
@@ -31,12 +31,9 @@ const Hero = () => {
                             </h1>
                         </div>
 
-
-
                         <p className="text-sm md:text-lg text-gray-600 mb-6 max-w-xl">
-                            Discover plug-and-play tools that let you chat with AI to analyze portfolios, track whale movements, optimize gas fees, and provide blockchain intelligence for various blockchains.
+                            Analyze wallets, protocols, and DeFi trends using natural language. Get instant insights across Ethereum, Aptos and more.
                         </p>
-
 
                         <div className="grid grid-cols-2 md:flex  flex-row gap-2 text-sm md:text-base md:gap-4">
                             <Link href="/discover" className="px-2 md:px-7 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg font-medium text-white transition flex items-center justify-center group">
@@ -49,11 +46,10 @@ const Hero = () => {
                             </Link>
                         </div>
 
-
                         <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span>50+ MCP Tools</span>
+                                <span>10+ Projects</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
