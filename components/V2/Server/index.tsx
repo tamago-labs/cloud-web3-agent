@@ -12,17 +12,65 @@ const ServerContainer = ({ serverId }: any) => {
 
     const [loading, setLoading] = useState(true)
     const [isFavorited, setIsFavorited] = useState(false);
-    const [ serverData, setServerData] = useState<any>(undefined)
+    const [serverData, setServerData] = useState<any>(undefined)
 
     useEffect(() => {
         setLoading(true)
         getServer(serverId).then(
-            (data:any) => {
+            (data: any) => {
                 setServerData(data)
                 setLoading(false)
             }
         )
-    },[serverId])
+    }, [serverId])
+
+    // Share functionality utilities
+    const createShareData = (serverData: any) => {
+        return {
+            title: `${serverData.name} - MCP Server`,
+            text: `Check out ${serverData.name}: ${serverData.description}`,
+            url: window.location.href
+        };
+    }
+
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-4 right-4 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+            toast.classList.add('translate-y-0', 'opacity-100');
+        }, 100);
+
+        // Remove after delay
+        setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => {
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    const handleShare = async (serverData: any) => {
+        try {
+            const shareData = createShareData(serverData);
+
+            if (navigator.share && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback to clipboard
+                await navigator.clipboard.writeText(window.location.href);
+                showToast('Link copied to clipboard!');
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+            showToast('Unable to share. Please try again.', 'error');
+        }
+    }
 
     // Helper functions
     const getCategoryIcon = (category: string) => {
@@ -60,7 +108,7 @@ const ServerContainer = ({ serverId }: any) => {
                 return 'from-gray-500 to-gray-600';
         }
     };
- 
+
     return (
         <>
             <Header bgColor="bg-white" />
@@ -79,7 +127,7 @@ const ServerContainer = ({ serverId }: any) => {
                                         {/* Info Block */}
                                         <div className="flex-1 space-y-2">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <div className="h-8 w-48 bg-gray-300 rounded" /> 
+                                                <div className="h-8 w-48 bg-gray-300 rounded" />
                                             </div>
 
                                             <div className="h-4 w-full bg-gray-200 rounded" />
@@ -153,22 +201,36 @@ const ServerContainer = ({ serverId }: any) => {
                                                     </span>
                                                 </div>
                                             </div>
+
                                         </div>
+                                        {serverData.features && serverData.features.length > 0 && (
+                                            <div className="p-2">
+                                                <h3 className="text-xl font-semibold text-gray-900 mb-4">Features</h3>
+                                                <div className="grid md:grid-cols-2 gap-3">
+                                                    {serverData.features.map((feature: string, index: number) => (
+                                                        <div key={index} className="flex items-center gap-2">
+                                                            <Check className="w-4 h-4 text-green-600" />
+                                                            <span className="text-gray-700">{feature}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Right: Actions */}
                                     <div className="lg:w-80 flex-shrink-0">
                                         <div className="bg-gray-50 rounded-xl p-6">
                                             <div className="space-y-3">
-                                                <Link 
+                                                <Link
                                                     href="/client"
                                                     className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium flex items-center justify-center gap-2"
                                                 >
                                                     <Play className="w-5 h-5" />
                                                     Try Online Now
                                                 </Link>
-                                                {/* <div className="grid grid-cols-2 gap-2">
-                                                    <button
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    {/* <button
                                                         onClick={() => setIsFavorited(!isFavorited)}
                                                         className={`px-3 py-2 border rounded-lg transition-colors flex items-center justify-center gap-2 ${isFavorited
                                                             ? 'border-red-300 bg-red-50 text-red-600'
@@ -177,12 +239,12 @@ const ServerContainer = ({ serverId }: any) => {
                                                     >
                                                         <Heart className={`w-4 h-4 ${isFavorited ? 'fill-red-600' : ''}`} />
                                                         <span className="text-sm">{isFavorited ? 'Saved' : 'Save'}</span>
-                                                    </button>
-                                                    <button className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                                                    </button> */}
+                                                    <button onClick={() => handleShare(serverData)} className="px-3 py-2 border cursor-pointer  border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
                                                         <Share2 className="w-4 h-4" />
                                                         <span className="text-sm">Share</span>
                                                     </button>
-                                                </div> */}
+                                                </div>
                                             </div>
 
                                             {/* Quick Info - Real Data */}
@@ -258,45 +320,7 @@ const ServerContainer = ({ serverId }: any) => {
 
                         {/* Simple About Section */}
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <div className="bg-white rounded-xl border border-gray-200 p-8">
-                                <div className="space-y-6">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Server</h2>
-                                        <p className="text-gray-600 leading-relaxed">{serverData.description}</p>
-                                    </div>
-
-                                    {serverData.features && serverData.features.length > 0 && (
-                                        <div>
-                                            <h3 className="text-xl font-semibold text-gray-900 mb-4">Features</h3>
-                                            <div className="grid md:grid-cols-2 gap-3">
-                                                {serverData.features.map((feature: string, index: number) => (
-                                                    <div key={index} className="flex items-center gap-2">
-                                                        <Check className="w-4 h-4 text-green-600" />
-                                                        <span className="text-gray-700">{feature}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Getting Started */}
-                                    <div>
-                                        <h3 className="text-xl font-semibold text-gray-900 mb-4">Getting Started</h3>
-                                        <div className="bg-gray-50 rounded-lg p-6">
-                                            <p className="text-gray-600 mb-4">
-                                                Ready to try {serverData.name}? Click the "Try Online Now" button above to start using this MCP server in our interactive chat interface.
-                                            </p>
-                                            <Link 
-                                                href="/client"
-                                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                            >
-                                                <Play className="w-4 h-4" />
-                                                Try {serverData.name} Now
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
                         </div>
                     </>
                 )}
@@ -306,7 +330,7 @@ const ServerContainer = ({ serverId }: any) => {
                         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">Server Not Found</h2>
                             <p className="text-gray-600 mb-6">The requested MCP server could not be found.</p>
-                            <Link 
+                            <Link
                                 href="/browse"
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
