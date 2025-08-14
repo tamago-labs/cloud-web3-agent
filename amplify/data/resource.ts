@@ -1,4 +1,6 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { createWallet } from "../functions/createWallet/resource"
+
 
 const schema = a.schema({
   extractChartData: a.generation({
@@ -44,6 +46,18 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
       })
     )
     .authorization((allow) => allow.authenticated()),
+  CreateWallet: a
+    .query()
+    .arguments({
+      userId: a.string(),
+      blockchain: a.string()
+    })
+    .returns(a.boolean())
+    .handler(a.handler.function(createWallet))
+    .authorization((allow) => [
+      allow.authenticated()
+    ])
+  ,
   User: a
     .model({
       username: a.string().required(),
@@ -56,13 +70,61 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
       servers: a.hasMany("Servers", "userId"),
       usageLogs: a.hasMany("UsageLogs", "userId"),
       conversations: a.hasMany("Conversation", "userId"),
-      artifacts: a.hasMany("Artifact", "userId"),
-      projects: a.hasMany("Project", "userId")
+      artifacts: a.hasMany("Artifact", "userId")
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
       allow.owner()
     ]),
+  UserWallet: a.model({
+    userId: a.id().required(),
+    user: a.belongsTo('User', "userId"),
+    // Wallet identifiers
+    address: a.string().required(), // unique deposit address for this user
+    privateKeyEncrypted: a.string(), // encrypted private key (if you manage keys)
+    derivationPath: a.string(), // HD wallet path like m/44'/60'/0'/0/123
+    walletIndex: a.integer(), // sequential index for HD wallet generation 
+    // Network/chain info
+    network: a.string().required(), // "ethereum", "polygon", "bsc", "arbitrum"
+    chainId: a.integer().required(), // 1, 137, 56, 42161 
+    // Status
+    isActive: a.boolean().default(true),
+    isMonitored: a.boolean().default(true), // whether we're watching for deposits
+    lastChecked: a.datetime(), // last time we checked for transactions 
+    // Relationships
+    deposits: a.hasMany("CryptoDeposit", "walletId")
+  }).authorization((allow) => [
+    allow.owner()
+  ]),
+  CryptoDeposit: a.model({
+    userId: a.id().required(),
+    user: a.belongsTo('User', "userId"),
+    walletId: a.id().required(),
+    wallet: a.belongsTo('UserWallet', "walletId"),
+    // Transaction details
+    txHash: a.string().required(),
+    blockNumber: a.integer(),
+    blockHash: a.string(),
+    transactionIndex: a.integer(),
+    // Token/amount info
+    tokenAddress: a.string(), // contract address (null for native token like ETH)
+    tokenSymbol: a.string().required(), // "ETH", "USDC", "MATIC"
+    tokenDecimals: a.integer().default(18),
+    rawAmount: a.string().required(), // raw amount in wei/smallest unit
+    formattedAmount: a.string().required(), // human readable amount "1.5"
+    // USD conversion (at time of deposit)
+    usdRate: a.float(), // token price in USD when deposited
+    usdValue: a.float(), // total USD value of deposit
+    creditsGranted: a.float().required(), // how many credits this deposit gave
+    conversionRate: a.float().required(), // USD to credits rate used   
+    // Metadata
+    fromAddress: a.string(), // who sent the payment 
+    notes: a.string(), // any special notes about this deposit 
+  }).authorization((allow) => [
+    allow.guest().to(["read"]),
+    allow.authenticated().to(["read"]),
+    allow.owner()
+  ]),
   Servers: a.model({
     userId: a.id().required(),
     user: a.belongsTo('User', "userId"),
@@ -71,7 +133,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     image: a.string(),
     name: a.string(),
     description: a.string(),
-    category: a.string(),
+    category: a.string(), // e.g., "DeFi Research", "NFT Analytics", "Trading Strategy" 
     author: a.string(),
     features: a.string().array(),
     color: a.string(),
@@ -83,7 +145,17 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     usageLogs: a.hasMany("UsageLogs", "serverId"),
     likeCount: a.integer().default(0),
     isWeb3: a.boolean().default(true),
-    supportedChains: a.string().array()
+    supportedChains: a.string().array(),
+    objective: a.string(), // what the project aims to achieve
+    status: a.enum(["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"]),
+    isPublic: a.boolean().default(false),
+    isVerified: a.boolean().default(false),
+    coverImage: a.string(), // URL to cover image
+    tags: a.string().array(),
+    // Stats
+    likes: a.integer().default(0),
+    views: a.integer().default(0),
+    collection: a.string().array()
   }).authorization((allow) => [
     allow.guest().to(["read"]),
     allow.authenticated().to(["read"]),
@@ -170,31 +242,6 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     queryParameters: a.json(), // original query params for reproducibility
     dataValidation: a.json(), // data quality metrics
     metadata: a.json(), // additional metadata like colors, formatting, contracts analyzed, specific txs analyzed
-  }).authorization((allow) => [
-    allow.guest().to(["read", "update"]),
-    allow.authenticated().to(["read", "update"]),
-    allow.owner()
-  ]),
-  Project: a.model({
-    userId: a.id().required(),
-    user: a.belongsTo('User', "userId"),
-    name: a.string().required(),
-    description: a.string(),
-    image: a.string(),
-    objective: a.string(), // what the project aims to achieve
-    status: a.enum(["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"]),
-    isPublic: a.boolean().default(false),
-    isVerified: a.boolean().default(false),
-    isFeatured: a.boolean().default(false), // for curated/featured projects
-    coverImage: a.string(), // URL to cover image
-    tags: a.string().array(),
-    category: a.string(), // e.g., "DeFi Research", "NFT Analytics", "Trading Strategy" 
-    // Stats
-    likes: a.integer().default(0),
-    views: a.integer().default(0),
-    // Metadata
-    blockchainNetworks: a.string().array(),
-    serverNeeded: a.string().array()
   }).authorization((allow) => [
     allow.guest().to(["read", "update"]),
     allow.authenticated().to(["read", "update"]),

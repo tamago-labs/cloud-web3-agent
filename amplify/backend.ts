@@ -7,17 +7,19 @@ import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { storage } from "./storage/resource";
 import { chatApiFunction } from "./functions/chat-api/resource";
+import { createWallet } from "./functions/createWallet/resource"
 
 const backend = defineBackend({
   auth,
   data,
   storage,
   chatApiFunction,
+  createWallet
 });
- 
+
 // Get the Lambda function
 const lambdaFunction = backend.chatApiFunction.resources.lambda as LambdaFunction;
- 
+
 const functionUrl = lambdaFunction.addFunctionUrl({
   authType: FunctionUrlAuthType.NONE,
   invokeMode: InvokeMode.RESPONSE_STREAM, // Enable streaming
@@ -29,7 +31,7 @@ const functionUrl = lambdaFunction.addFunctionUrl({
     maxAge: Duration.minutes(5),
   },
 });
- 
+
 
 // Add outputs to the configuration file
 backend.addOutput({
