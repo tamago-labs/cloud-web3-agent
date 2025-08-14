@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, TrendingDown, ArrowLeft, Eye, Calendar, User, Globe, Clock, Database, Zap } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, ArrowLeft, Eye, Calendar, User, Globe, Clock, Database, Zap, Brain, Server, Wrench, Coffee } from 'lucide-react';
 import Link from "next/link";
 import Header from "../Landing/Header";
 import { useArtifact } from '@/hooks/useArtifact';
@@ -54,7 +54,7 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
         const now = new Date();
         const freshness = new Date(artifact.dataFreshness);
         const diffHours = Math.abs(now.getTime() - freshness.getTime()) / (1000 * 60 * 60);
-        
+
         if (diffHours < 1) return 'Real-time';
         if (diffHours < 24) return `${Math.round(diffHours)}h ago`;
         const diffDays = Math.round(diffHours / 24);
@@ -122,7 +122,7 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                 >
                                     Try Again
                                 </button>
-                                <Link 
+                                <Link
                                     href="/discover"
                                     className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                                 >
@@ -147,7 +147,7 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">Artifact Not Found</h2>
                             <p className="text-gray-600 mb-6">The requested analytics artifact could not be found.</p>
-                            <Link 
+                            <Link
                                 href="/discover"
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
@@ -191,10 +191,10 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
                                             Public
                                         </span>
-                                    )}
+                                    )} 
                                 </div>
                                 <p className="text-gray-600 mb-4">{artifact.description}</p>
-                                
+
                                 {/* Metadata Row */}
                                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
                                     <span className="flex items-center gap-1">
@@ -212,6 +212,11 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                     <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
                                         {artifact.category}
                                     </span>
+                                    {/* {artifact.likes !== undefined && (
+                                        <span className="flex items-center gap-1">
+                                            ❤️ {artifact.likes} likes
+                                        </span>
+                                    )} */}
                                 </div>
 
                                 {/* Blockchain Networks */}
@@ -286,7 +291,7 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                     )}
                                 </div>
                             </div>
-                            
+
                             <div className="h-96">
                                 <ChartView
                                     data={artifact.data}
@@ -305,7 +310,7 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                 <div className="space-y-4">
                                     <div className="border-b border-gray-100 pb-3">
                                         <dt className="text-sm font-medium text-gray-500">Data Points</dt>
-                                        <dd className="text-lg font-semibold text-gray-900">{artifact.data?.length || 0}</dd>
+                                        <dd className="text-lg font-semibold text-gray-900">{artifact.data?.length || artifact.metadata?.dataPoints || 0}</dd>
                                     </div>
                                     <div className="border-b border-gray-100 pb-3">
                                         <dt className="text-sm font-medium text-gray-500">Chart Type</dt>
@@ -344,13 +349,14 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                     <div className="border-b border-gray-100 pb-3">
                                         <dt className="text-sm font-medium text-gray-500">Data Quality</dt>
                                         <dd className="text-lg font-semibold text-gray-900 capitalize">
-                                            {artifact.dataValidation?.accuracy || 'Unknown'}
+                                            {artifact.dataValidation?.accuracy || 'Not Validated'}
                                         </dd>
                                     </div>
+
                                     <div className="border-b border-gray-100 pb-3">
                                         <dt className="text-sm font-medium text-gray-500">Networks</dt>
                                         <dd className="text-lg font-semibold text-gray-900">
-                                            {artifact.blockchainNetwork && artifact.blockchainNetwork.length > 0 
+                                            {artifact.blockchainNetwork && artifact.blockchainNetwork.length > 0
                                                 ? artifact.blockchainNetwork.join(', ')
                                                 : 'Not specified'
                                             }
@@ -358,6 +364,69 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* AI Generation & Tools Used Section */}
+                            {artifact.metadata && (
+                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                    <h4 className="text-sm font-medium text-gray-500 mb-3">Generation Details</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {artifact.metadata.aiGenerated && (
+                                            <div className="bg-purple-50 rounded-lg p-4">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Coffee className="w-4 h-4 text-purple-600" />
+                                                    <span className="text-sm font-medium text-purple-900">AI Generated</span>
+                                                </div>
+                                                <p className="text-sm text-purple-700">This artifact was generated using AI analysis</p>
+                                                {artifact.metadata.version && (
+                                                    <p className="text-xs text-purple-600 mt-1">Version: {artifact.metadata.version}</p>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {artifact.metadata.serverNames && artifact.metadata.serverNames.length > 0 && (
+                                            <div className="bg-blue-50 rounded-lg p-4">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Server className="w-4 h-4 text-blue-600" />
+                                                    <span className="text-sm font-medium text-blue-900">Data Sources</span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {artifact.metadata.serverNames.slice(0, 3).map((server: string, index: number) => (
+                                                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                                                            {server}
+                                                        </span>
+                                                    ))}
+                                                    {artifact.metadata.serverNames.length > 3 && (
+                                                        <span className="px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded font-medium">
+                                                            +{artifact.metadata.serverNames.length - 3}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {artifact.metadata.toolsUsed && artifact.metadata.toolsUsed.length > 0 && (
+                                        <div className="mt-4 bg-gray-50 rounded-lg p-4">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Wrench className="w-4 h-4 text-gray-600" />
+                                                <span className="text-sm font-medium text-gray-900">Tools Used</span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {artifact.metadata.toolsUsed.slice(0, 4).map((tool: string, index: number) => (
+                                                    <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-mono">
+                                                        {tool}
+                                                    </span>
+                                                ))}
+                                                {artifact.metadata.toolsUsed.length > 4 && (
+                                                    <span className="px-2 py-1 bg-gray-200 text-gray-800 text-xs rounded font-medium">
+                                                        +{artifact.metadata.toolsUsed.length - 4} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Tags */}
                             {artifact.tags && artifact.tags.length > 0 && (
@@ -383,28 +452,63 @@ const ArtifactContainer = ({ artifactId }: { artifactId: string }) => {
                                 </div>
                             )}
 
-                            {/* Source Data Information */}
-                            {artifact.sourceData && (
+                            {/* Conversation Context */}
+                            {artifact.queryParameters?.conversationContext && (
                                 <div className="mt-6 pt-6 border-t border-gray-200">
-                                    <dt className="text-sm font-medium text-gray-500 mb-3">Source Information</dt>
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                            {artifact.sourceData.conversationId && (
-                                                <div>
-                                                    <span className="text-gray-600">Conversation ID:</span>
-                                                    <span className="ml-2 font-mono text-gray-900">{artifact.sourceData.conversationId.slice(0, 8)}...</span>
+                                    <dt className="text-sm font-medium text-gray-500 mb-3">Conversation Context</dt>
+                                    <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                        {artifact.queryParameters.conversationContext.map((msg: any, index: number) => (
+                                            <div key={index} className="mb-4 last:mb-0">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${msg.role === 'user'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-green-100 text-green-700'
+                                                        }`}>
+                                                        {msg.role === 'user' ? 'User' : 'AI-Assistant'}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400">Message {index + 1}</span>
                                                 </div>
-                                            )}
-                                            {artifact.sourceData.generatedAt && (
-                                                <div>
-                                                    <span className="text-gray-600">Generated:</span>
-                                                    <span className="ml-2 text-gray-900">{new Date(artifact.sourceData.generatedAt).toLocaleDateString()}</span>
+                                                <div className={`p-3 rounded-lg border-l-4 ${msg.role === 'user'
+                                                    ? 'bg-blue-50 border-l-blue-300'
+                                                    : 'bg-green-50 border-l-green-300'
+                                                    }`}>
+                                                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                                        {msg.content.length > 500
+                                                            ? `${msg.content.substring(0, 500)}...`
+                                                            : msg.content
+                                                        }{`...`}
+                                                    </p>
+                                                    {msg.content.length > 500 && (
+                                                        <button
+                                                            className="text-xs text-blue-600 hover:text-blue-800 mt-2"
+                                                            onClick={() => {
+                                                                const element = document.getElementById(`full-content-${index}`);
+                                                                if (element) {
+                                                                    element.style.display = element.style.display === 'none' ? 'block' : 'none';
+                                                                }
+                                                            }}
+                                                        >
+                                                            Show full content
+                                                        </button>
+                                                    )}
+                                                    {msg.content.length > 500 && (
+                                                        <div id={`full-content-${index}`} style={{ display: 'none' }} className="mt-2 pt-2 border-t border-gray-200">
+                                                            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                                                {msg.content}
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-2 text-xs text-gray-500">
+                                        {artifact.queryParameters.conversationContext.length} message(s) in conversation
                                     </div>
                                 </div>
                             )}
+
+
                         </div>
                     </div>
                 </div>
