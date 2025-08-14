@@ -17,9 +17,7 @@ const LandingContainer = () => {
             <Artifacts />
             <HowItWorks /> 
             <OnlineHostedServers/>
-            <CTASection/>
-            {/* <ProjectsGrid /> */}
-            {/* <SampleConversations /> */}
+            <CTASection/> 
         </div>
     )
 }

@@ -29,7 +29,6 @@ const Header = ({ bgColor }: any) => {
                         </Link>
                     </div>
 
-
                     {/* Desktop navigation */}
                     <nav className="hidden md:flex space-x-2 md:space-x-8">
                         <Link href="/discover" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">

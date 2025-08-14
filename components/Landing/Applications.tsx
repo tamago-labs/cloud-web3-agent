@@ -70,11 +70,7 @@ const Applications = () => {
                                     aria-label={`Show application ${index + 1}`}
                                 />
                             ))}
-                        </div>
-
-                        {/* <button className="flex items-center bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium transition-all hover:bg-indigo-50">
-                        Explore Use Cases 
-                    </button> */}
+                        </div> 
                     </div>
                 </div>
             </div>

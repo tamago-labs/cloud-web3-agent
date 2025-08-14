@@ -109,13 +109,7 @@ const ServerCard = ({
 
     return (
         <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow relative">
-            {/* Featured Badge */}
-            {/*{server.isFeatured && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <Star className="w-3 h-3 text-white fill-white" />
-                </div>
-            )}*/}
-
+          
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
                 <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${getCategoryGradient(server.category)} flex items-center justify-center text-white`}>
@@ -125,11 +119,7 @@ const ServerCard = ({
                     <div className="flex items-center gap-1">
                         <span className="text-xs px-2.5 py-0.5 text-white font-medium bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center ">{"Featured"}</span>
                     </div>
-                )}
-                {/*<div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium text-gray-700">{server.stars || '4.8'}</span>
-                </div>*/}
+                )} 
             </div>
 
             {/* Content */}
@@ -167,31 +157,19 @@ const ServerCard = ({
             )}
 
             {/* Features */}
-            <div className="mb-6">
-                {/* <div className="flex flex-wrap gap-1 mb-2">
-                    {server.features.slice(0, 3).map((feature: string, idx: number) => (
-                        <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
-                            {feature}
-                        </span>
-                    ))}
-                    {server.features.length > 3 && (
-                        <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded">
-                            +{server.features.length - 3} more
-                        </span>
-                    )}
-                </div> */}
+            <div className="mb-6"> 
                 <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>by {server.author}</span>
                 </div>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 ">
                 <Link href="/client" className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 group">
                     <span>Try Online</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    {/*<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />*/}
                 </Link>
-                <Link href={`/servers/${server.id}`} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                <Link href={`/servers/${server.id}`} className="px-3 flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
                     <span className="text-sm text-gray-600">Details</span>
                 </Link>
             </div>
@@ -206,8 +184,7 @@ export function ServerCardSkeleton() {
             <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 bg-gray-300 rounded-lg" />
                 <div className="w-16 h-6 bg-gray-200 rounded-full" />
-            </div>
-
+            </div> 
             {/* Title & Category */}
             <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -216,26 +193,15 @@ export function ServerCardSkeleton() {
                 </div>
                 <div className="h-4 w-full bg-gray-200 rounded mb-1" />
                 <div className="h-4 w-5/6 bg-gray-200 rounded" />
-            </div>
-
+            </div> 
             {/* Supported Chains */}
             <div className="flex gap-2 mb-4">
                 {[...Array(3)].map((_, i) => (
                     <div key={i} className="w-16 h-5 bg-gray-200 rounded-full" />
                 ))}
-            </div>
-
-            {/* Features */}
-            {/* <div className="flex flex-wrap gap-2 mb-6">
-                {[...Array(3)].map((_, i) => (
-                    <div key={i} className="w-20 h-5 bg-gray-200 rounded" />
-                ))}
-                <div className="w-12 h-5 bg-gray-100 rounded" />
-            </div> */}
-
+            </div>  
             {/* Footer */}
-            <div className="h-4 w-24 bg-gray-300 rounded mb-4" />
-
+            <div className="h-4 w-24 bg-gray-300 rounded mb-4" /> 
             {/* Actions */}
             <div className="flex gap-2">
                 <div className="flex-1 h-10 bg-gray-300 rounded-lg" />
