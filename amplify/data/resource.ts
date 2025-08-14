@@ -70,7 +70,9 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
       servers: a.hasMany("Servers", "userId"),
       usageLogs: a.hasMany("UsageLogs", "userId"),
       conversations: a.hasMany("Conversation", "userId"),
-      artifacts: a.hasMany("Artifact", "userId")
+      artifacts: a.hasMany("Artifact", "userId"),
+      wallets: a.hasMany("UserWallet", "userId"),
+      cryptoDeposits: a.hasMany("CryptoDeposit", "userId"),
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
@@ -85,8 +87,8 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     derivationPath: a.string(), // HD wallet path like m/44'/60'/0'/0/123
     walletIndex: a.integer(), // sequential index for HD wallet generation 
     // Network/chain info
-    network: a.string().required(), // "ethereum", "polygon", "bsc", "arbitrum"
-    chainId: a.integer().required(), // 1, 137, 56, 42161 
+    network: a.string().required(), // "evm", "aptos", "sui"
+    chainIds: a.integer().array(), // 1, 137, 56, 42161 
     // Status
     isActive: a.boolean().default(true),
     isMonitored: a.boolean().default(true), // whether we're watching for deposits
