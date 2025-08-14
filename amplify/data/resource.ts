@@ -57,6 +57,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
       usageLogs: a.hasMany("UsageLogs", "userId"),
       conversations: a.hasMany("Conversation", "userId"),
       artifacts: a.hasMany("Artifact", "userId"),
+      projects: a.hasMany("Project", "userId")
     })
     .authorization((allow) => [
       allow.authenticated().to(["read"]),
@@ -169,6 +170,31 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     queryParameters: a.json(), // original query params for reproducibility
     dataValidation: a.json(), // data quality metrics
     metadata: a.json(), // additional metadata like colors, formatting, contracts analyzed, specific txs analyzed
+  }).authorization((allow) => [
+    allow.guest().to(["read", "update"]),
+    allow.authenticated().to(["read", "update"]),
+    allow.owner()
+  ]),
+  Project: a.model({
+    userId: a.id().required(),
+    user: a.belongsTo('User', "userId"),
+    name: a.string().required(),
+    description: a.string(),
+    image: a.string(),
+    objective: a.string(), // what the project aims to achieve
+    status: a.enum(["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"]),
+    isPublic: a.boolean().default(false),
+    isVerified: a.boolean().default(false),
+    isFeatured: a.boolean().default(false), // for curated/featured projects
+    coverImage: a.string(), // URL to cover image
+    tags: a.string().array(),
+    category: a.string(), // e.g., "DeFi Research", "NFT Analytics", "Trading Strategy" 
+    // Stats
+    likes: a.integer().default(0),
+    views: a.integer().default(0),
+    // Metadata
+    blockchainNetworks: a.string().array(),
+    serverNeeded: a.string().array()
   }).authorization((allow) => [
     allow.guest().to(["read", "update"]),
     allow.authenticated().to(["read", "update"]),
