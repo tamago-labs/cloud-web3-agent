@@ -66,8 +66,8 @@ const DiscoverContainer = () => {
     }, [artifacts]);
 
     const handleBlockchainToggle = (blockchain: string) => {
-        setBlockchainFilter(prev => 
-            prev.includes(blockchain) 
+        setBlockchainFilter(prev =>
+            prev.includes(blockchain)
                 ? prev.filter(b => b !== blockchain)
                 : [...prev, blockchain]
         );
@@ -98,7 +98,7 @@ const DiscoverContainer = () => {
         const now = new Date();
         const freshness = new Date(artifact.dataFreshness);
         const diffHours = Math.abs(now.getTime() - freshness.getTime()) / (1000 * 60 * 60);
-        
+
         if (diffHours < 1) return 'Real-time';
         if (diffHours < 24) return `${Math.round(diffHours)}h ago`;
         const diffDays = Math.round(diffHours / 24);
@@ -355,7 +355,7 @@ const DiscoverContainer = () => {
                             {!loading && artifacts.length === 0 && (
                                 <EmptyState
                                     title={searchQuery || categoryFilter !== 'All' || blockchainFilter.length > 0 ? "No analytics found" : "No analytics yet"}
-                                    description={searchQuery || categoryFilter !== 'All' || blockchainFilter.length > 0 
+                                    description={searchQuery || categoryFilter !== 'All' || blockchainFilter.length > 0
                                         ? "Try adjusting your search or filters to find what you're looking for."
                                         : "Be the first to create and share an analytics chart with the community."
                                     }
@@ -368,7 +368,7 @@ const DiscoverContainer = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {artifacts.map((artifact) => {
                                         const trend = artifact.change?.startsWith('+') ? 'up' : 'down';
-                                        
+
                                         return (
                                             <Link key={artifact.id} href={`/artifact/${artifact.id}`}>
                                                 <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer group">
@@ -441,11 +441,11 @@ const DiscoverContainer = () => {
 
                                                             <div className="text-right">
                                                                 <div className="flex items-center gap-4 text-sm text-gray-500">
-                                                                    <span className="flex items-center gap-1">
+                                                                    {/* <span className="flex items-center gap-1">
                                                                         <Heart className="w-4 h-4" />
                                                                         {artifact.likes || 0}
-                                                                    </span>
-                                                                    <span className="flex items-center gap-1">
+                                                                    </span> */}
+                                                                    <span className="flex items-center gap-1 ml-auto">
                                                                         <Eye className="w-4 h-4" />
                                                                         {artifact.views || 0}
                                                                     </span>
