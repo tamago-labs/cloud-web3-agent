@@ -96,6 +96,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     // Relationships
     deposits: a.hasMany("CryptoDeposit", "walletId")
   }).authorization((allow) => [
+    allow.authenticated().to(["read"]),
     allow.owner()
   ]),
   CryptoDeposit: a.model({
