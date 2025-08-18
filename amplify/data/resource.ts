@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createWallet } from "../functions/createWallet/resource"
+import { checkWalletTransactions } from "../functions/checkWalletTransactions/resource"
 
 
 const schema = a.schema({
@@ -56,8 +57,26 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     .handler(a.handler.function(createWallet))
     .authorization((allow) => [
       allow.authenticated()
-    ])
-  ,
+    ]),
+  CheckWalletTransactions: a
+    .query()
+    .arguments({
+      userId: a.string().required(),
+      blockchainId: a.string().required()
+    })
+    .returns(
+      a.customType({
+        success: a.boolean().required(),
+        walletsChecked: a.integer().required(),
+        newTransactions: a.integer().required(),
+        creditsAdded: a.float().required(),
+        error: a.string()
+      })
+    )
+    .handler(a.handler.function(checkWalletTransactions))
+    .authorization((allow) => [
+      allow.authenticated()
+    ]),
   User: a
     .model({
       username: a.string().required(),
@@ -251,7 +270,8 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     allow.owner()
   ])
 }).authorization((allow) => [
-   allow.resource(createWallet)
+   allow.resource(createWallet),
+   allow.resource(checkWalletTransactions)
 ]);
 
 export type Schema = ClientSchema<typeof schema>;
