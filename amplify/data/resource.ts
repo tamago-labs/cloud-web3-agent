@@ -250,7 +250,7 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     allow.owner()
   ])
 }).authorization((allow) => [
-  // allow.resource(scheduler)
+   allow.resource(createWallet)
 ]);
 
 export type Schema = ClientSchema<typeof schema>;
