@@ -34,6 +34,7 @@ interface TransactionResult {
 }
 
 export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
+    
     const { userId, blockchainId }: any = event.arguments;
 
     try {
@@ -51,12 +52,7 @@ export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
 
         if (!wallets || wallets.length === 0) {
             console.log(`No monitored wallets found for user ${userId} on ${blockchainId}`);
-            return {
-                success: true,
-                walletsChecked: 0,
-                newTransactions: 0,
-                creditsAdded: 0
-            };
+            return true
         }
 
         let totalNewTransactions = 0;
