@@ -58,21 +58,13 @@ Focus on actionable insights from Web3 data like portfolio values, protocol metr
     .authorization((allow) => [
       allow.authenticated()
     ]),
-  CheckWalletTransactions: a
+  CheckTxs: a
     .query()
     .arguments({
-      userId: a.string().required(),
-      blockchainId: a.string().required()
+      userId: a.string(),
+      blockchainId: a.string()
     })
-    .returns(
-      a.customType({
-        success: a.boolean().required(),
-        walletsChecked: a.integer().required(),
-        newTransactions: a.integer().required(),
-        creditsAdded: a.float().required(),
-        error: a.string()
-      })
-    )
+    .returns(a.boolean())
     .handler(a.handler.function(checkWalletTransactions))
     .authorization((allow) => [
       allow.authenticated()

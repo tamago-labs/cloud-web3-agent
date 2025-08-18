@@ -5,6 +5,7 @@ import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtim
 import { generateClient } from 'aws-amplify/data';
 import { env } from '$amplify/env/checkWalletTransactions';
 
+
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
 Amplify.configure(resourceConfig, libraryOptions);
@@ -137,22 +138,24 @@ export const handler: Schema["CheckWalletTransactions"]["functionHandler"] = asy
 
         console.log(`Completed check: ${totalNewTransactions} new transactions, ${totalCreditsAdded} credits added`);
 
-        return {
-            success: true,
-            walletsChecked: wallets.length,
-            newTransactions: totalNewTransactions,
-            creditsAdded: totalCreditsAdded
-        };
+        // return {
+        //     success: true,
+        //     walletsChecked: wallets.length,
+        //     newTransactions: totalNewTransactions,
+        //     creditsAdded: totalCreditsAdded
+        // };
+        return true
 
     } catch (error) {
         console.error('Error checking wallet transactions:', error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            walletsChecked: 0,
-            newTransactions: 0,
-            creditsAdded: 0
-        };
+        return false
+        // return {
+        //     success: false,
+        //     error: error instanceof Error ? error.message : 'Unknown error',
+        //     walletsChecked: 0,
+        //     newTransactions: 0,
+        //     creditsAdded: 0
+        // };
     }
 };
 
