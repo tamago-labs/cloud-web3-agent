@@ -5,6 +5,11 @@ import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtim
 import { generateClient } from 'aws-amplify/data';
 import { env } from '$amplify/env/checkWalletTransactions';
 
+// SDK Imports
+import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { createPublicClient, http, parseAbiItem, getAddress } from 'viem';
+import { mainnet, base, optimism } from 'viem/chains';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -133,25 +138,12 @@ export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
         }
 
         console.log(`Completed check: ${totalNewTransactions} new transactions, ${totalCreditsAdded} credits added`);
-
-        // return {
-        //     success: true,
-        //     walletsChecked: wallets.length,
-        //     newTransactions: totalNewTransactions,
-        //     creditsAdded: totalCreditsAdded
-        // };
+ 
         return true
 
     } catch (error) {
         console.error('Error checking wallet transactions:', error);
         return false
-        // return {
-        //     success: false,
-        //     error: error instanceof Error ? error.message : 'Unknown error',
-        //     walletsChecked: 0,
-        //     newTransactions: 0,
-        //     creditsAdded: 0
-        // };
     }
 };
 
@@ -185,54 +177,53 @@ async function getWalletTransactions(
     }
 }
 
-// Aptos transaction fetching
+// Aptos transaction fetching using @aptos-labs/ts-sdk
 async function getAptosTransactions(address: string, since: Date): Promise<TransactionResult[]> {
     try {
-        const aptosUrl = env.APTOS_NODE_URL || 'https://fullnode.mainnet.aptoslabs.com/v1';
+        const aptosConfig = new AptosConfig({ network: Network.MAINNET });
+        const aptos = new Aptos(aptosConfig);
+        
+        const results: TransactionResult[] = [];
         
         // Get account transactions
-        const response = await fetch(
-            `${aptosUrl}/accounts/${address}/transactions?limit=100`,
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+        const accountTransactions = await aptos.getAccountTransactions({ 
+            accountAddress: address,
+            options: {
+                offset: 0,
+                limit: 100
             }
-        );
+        });
+        
 
-        if (!response.ok) {
-            throw new Error(`Aptos API error: ${response.status}`);
-        }
+        for (let tx of accountTransactions as any[]) {
 
-        const transactions = await response.json();
-        const results: TransactionResult[] = [];
+            if (!tx.timestamp) {
+                continue;
+            }
 
-        for (const tx of transactions) {
             // Check if transaction is after our 'since' timestamp
             const txTimestamp = parseInt(tx.timestamp);
             if (txTimestamp < since.getTime() * 1000) { // Aptos uses microseconds
                 continue;
             }
 
-            // Check for USDC FA transfers to our address
-            if (tx.type === 'user_transaction' && tx.payload?.function) {
-                const changes = tx.changes || [];
-                
-                for (const change of changes) {
-                    if (change.type === 'write_resource' && 
-                        change.data?.type?.includes('fungible_asset') &&
-                        change.address === address) {
+            // Check for fungible asset transfers (FA events)
+            if (tx.type === 'user_transaction' && 'events' in tx) {
+                for (const event of tx.events) {
+                    // Check for deposit events to our address
+                    if (event.type.includes('DepositEvent') && 
+                        event.data && 
+                        'account' in event.data && 
+                        event.data.account === address) {
                         
-                        // This is a simplified check - in production, you'd want more robust FA parsing
-                        const amount = change.data?.value || '0';
+                        const amount = event.data.amount || '0';
                         if (amount !== '0') {
                             results.push({
                                 txHash: tx.hash,
                                 blockNumber: parseInt(tx.version),
                                 amount: amount,
                                 formattedAmount: (parseInt(amount) / 1000000).toString(), // USDC has 6 decimals
-                                fromAddress: tx.sender || 'unknown',
+                                fromAddress: 'sender' in tx ? tx.sender : 'unknown',
                                 timestamp: Math.floor(txTimestamp / 1000000) // Convert to seconds
                             });
                         }
@@ -248,68 +239,90 @@ async function getAptosTransactions(address: string, since: Date): Promise<Trans
     }
 }
 
-// Sui transaction fetching
+// Sui transaction fetching using @mysten/sui SDK
 async function getSuiTransactions(address: string, since: Date): Promise<TransactionResult[]> {
     try {
-        const suiUrl = env.SUI_RPC_URL || 'https://fullnode.mainnet.sui.io:443';
-        
-        // Get objects owned by address
-        const response = await fetch(suiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: 1,
-                method: 'suix_queryTransactionBlocks',
-                params: [
-                    {
-                        filter: {
-                            ToAddress: address
-                        },
-                        options: {
-                            showInput: true,
-                            showEffects: true,
-                            showEvents: true
-                        }
-                    },
-                    null,
-                    100,
-                    'descending'
-                ]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Sui API error: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const suiClient = new SuiClient({ url: getFullnodeUrl('mainnet') });
         const results: TransactionResult[] = [];
 
-        if (data.result?.data) {
-            for (const tx of data.result.data) {
-                // Check timestamp
-                const txTime = new Date(parseInt(tx.timestampMs));
-                if (txTime < since) {
-                    continue;
-                }
+        // Query transaction blocks
+        const txBlocks = await suiClient.queryTransactionBlocks({
+            filter: {
+                ToAddress: address
+            },
+            options: {
+                showInput: true,
+                showEffects: true,
+                showEvents: true,
+                showObjectChanges: true
+            },
+            limit: 100,
+            order: 'descending'
+        });
 
-                // Check for USDC transfers in events
-                const events = tx.events || [];
-                for (const event of events) {
-                    if (event.type?.includes('usdc') && 
-                        event.parsedJson?.recipient === address) {
+        for (const txBlock of txBlocks.data) {
+            // Check timestamp
+            const txTime = new Date(parseInt(txBlock.timestampMs!));
+            if (txTime < since) {
+                continue;
+            }
+
+            // Check events for USDC transfers
+            if (txBlock.events) {
+                for (const event of txBlock.events as any[]) {
+                    // Check if this is a USDC transfer event
+                    if (event.type.includes('usdc') && 
+                        event.parsedJson && 
+                        typeof event.parsedJson === 'object' &&
+                        'recipient' in event.parsedJson &&
+                        event.parsedJson.recipient === address) {
                         
-                        const amount = event.parsedJson?.amount || '0';
+                        const amount = event.parsedJson.amount as string || '0';
                         results.push({
-                            txHash: tx.digest,
+                            txHash: txBlock.digest,
                             amount: amount,
                             formattedAmount: (parseInt(amount) / 1000000).toString(), // USDC has 6 decimals
-                            fromAddress: event.parsedJson?.sender || 'unknown',
-                            timestamp: Math.floor(parseInt(tx.timestampMs) / 1000)
+                            fromAddress: (event.parsedJson.sender as string) || 'unknown',
+                            timestamp: Math.floor(parseInt(txBlock.timestampMs!) / 1000)
                         });
+                    }
+                }
+            }
+
+            // Also check object changes for coin balance changes
+            if (txBlock.objectChanges) {
+                for (const change of txBlock.objectChanges) {
+                    if (change.type === 'created' && 
+                        change.objectType.includes('Coin') &&
+                        change.objectType.includes('USDC') &&
+                        change.owner === address) {
+                        
+                        // This indicates a new USDC coin was created for this address
+                        // You'd need to fetch the coin object to get the balance
+                        try {
+                            const coinObject = await suiClient.getObject({
+                                id: change.objectId,
+                                options: { showContent: true }
+                            });
+                            
+                            if (coinObject.data?.content && 
+                                'fields' in coinObject.data.content &&
+                                coinObject.data.content.fields &&
+                                typeof coinObject.data.content.fields === 'object' &&
+                                'balance' in coinObject.data.content.fields) {
+                                
+                                const balance = coinObject.data.content.fields.balance as string;
+                                results.push({
+                                    txHash: txBlock.digest,
+                                    amount: balance,
+                                    formattedAmount: (parseInt(balance) / 1000000).toString(),
+                                    fromAddress: 'unknown', // Would need to trace the transaction sender
+                                    timestamp: Math.floor(parseInt(txBlock.timestampMs!) / 1000)
+                                });
+                            }
+                        } catch (objError) {
+                            console.warn('Error fetching coin object:', objError);
+                        }
                     }
                 }
             }
@@ -322,32 +335,35 @@ async function getSuiTransactions(address: string, since: Date): Promise<Transac
     }
 }
 
-// EVM transaction fetching (Ethereum, Base, Optimism)
+// EVM transaction fetching using Viem
 async function getEVMTransactions(address: string, chain: string, since: Date): Promise<TransactionResult[]> {
     try {
-        // This is a simplified implementation - in production you'd use services like:
-        // - Alchemy API
-        // - Moralis API  
-        // - The Graph Protocol
-        // - Direct RPC calls with event filtering
+        // Get the appropriate chain configuration and RPC URL
+        let chainConfig;
+        let rpcUrl: string;
 
-        const alchemyKey = env.ALCHEMY_API_KEY;
-        if (!alchemyKey) {
-            console.warn('No Alchemy API key provided for EVM transactions');
-            return [];
+        switch (chain) {
+            case 'ethereum':
+                chainConfig = mainnet;
+                rpcUrl = env.ETHEREUM_RPC_URL || `https://eth-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
+                break;
+            case 'base':
+                chainConfig = base;
+                rpcUrl = env.BASE_RPC_URL || `https://base-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
+                break;
+            case 'optimism':
+                chainConfig = optimism;
+                rpcUrl = env.OPTIMISM_RPC_URL || `https://opt-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
+                break;
+            default:
+                console.warn(`Unsupported EVM chain: ${chain}`);
+                return [];
         }
 
-        const chainUrls = {
-            ethereum: `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`,
-            base: `https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`,
-            optimism: `https://opt-mainnet.g.alchemy.com/v2/${alchemyKey}`
-        };
-
-        const rpcUrl = chainUrls[chain as keyof typeof chainUrls];
-        if (!rpcUrl) {
-            console.warn(`Unsupported EVM chain: ${chain}`);
-            return [];
-        }
+        const publicClient = createPublicClient({
+            chain: chainConfig,
+            transport: http(rpcUrl)
+        });
 
         const usdcAddress = getUSDCAddress(chain);
         if (!usdcAddress) {
@@ -355,76 +371,51 @@ async function getEVMTransactions(address: string, chain: string, since: Date): 
             return [];
         }
 
-        // Get latest block number
-        const latestBlockResponse = await fetch(rpcUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_blockNumber',
-                params: [],
-                id: 1
-            })
+        // Get current block number
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock - BigInt(1000); // Check last ~1000 blocks
+
+        // Get Transfer events
+        const logs = await publicClient.getLogs({
+            address: getAddress(usdcAddress),
+            event: parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)'),
+            args: {
+                to: getAddress(address) // Filter for transfers TO our address
+            },
+            fromBlock: fromBlock,
+            toBlock: 'latest'
         });
 
-        const latestBlockData = await latestBlockResponse.json();
-        const latestBlock = parseInt(latestBlockData.result, 16);
-        const fromBlock = Math.max(0, latestBlock - 1000); // Check last ~1000 blocks
-
-        // Get USDC transfer events
-        const logsResponse = await fetch(rpcUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_getLogs',
-                params: [{
-                    fromBlock: `0x${fromBlock.toString(16)}`,
-                    toBlock: 'latest',
-                    address: usdcAddress,
-                    topics: [
-                        '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer event signature
-                        null, // from (any address)
-                        `0x000000000000000000000000${address.slice(2).toLowerCase()}` // to (our address)
-                    ]
-                }],
-                id: 2
-            })
-        });
-
-        const logsData = await logsResponse.json();
         const results: TransactionResult[] = [];
 
-        if (logsData.result) {
-            for (const log of logsData.result) {
-                // Decode transfer amount (last 32 bytes of data)
-                const amountHex = log.data.slice(-64);
-                const amount = BigInt('0x' + amountHex).toString();
-                const formattedAmount = (parseInt(amount) / 1000000).toString(); // USDC has 6 decimals
+        for (const log of logs) {
+            // Get transaction details
+            const transaction = await publicClient.getTransaction({
+                hash: log.transactionHash
+            });
 
-                // Get transaction details
-                const txResponse = await fetch(rpcUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        jsonrpc: '2.0',
-                        method: 'eth_getTransactionByHash',
-                        params: [log.transactionHash],
-                        id: 3
-                    })
-                });
+            // Get block for timestamp
+            const block = await publicClient.getBlock({
+                blockHash: log.blockHash
+            });
 
-                const txData = await txResponse.json();
-                if (txData.result) {
-                    results.push({
-                        txHash: log.transactionHash,
-                        blockNumber: parseInt(log.blockNumber, 16),
-                        amount: amount,
-                        formattedAmount: formattedAmount,
-                        fromAddress: txData.result.from || 'unknown'
-                    });
-                }
+            // Check if transaction is after our 'since' timestamp
+            const txTime = new Date(Number(block.timestamp) * 1000);
+            if (txTime < since) {
+                continue;
             }
+
+            const amount = log.args.value?.toString() || '0';
+            const formattedAmount = (parseInt(amount) / 1000000).toString(); // USDC has 6 decimals
+
+            results.push({
+                txHash: log.transactionHash,
+                blockNumber: Number(log.blockNumber),
+                amount: amount,
+                formattedAmount: formattedAmount,
+                fromAddress: transaction.from,
+                timestamp: Number(block.timestamp)
+            });
         }
 
         return results;
