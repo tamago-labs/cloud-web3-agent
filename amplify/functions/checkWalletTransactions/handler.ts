@@ -345,15 +345,15 @@ async function getEVMTransactions(address: string, chain: string, since: Date): 
         switch (chain) {
             case 'ethereum':
                 chainConfig = mainnet;
-                rpcUrl = env.ETHEREUM_RPC_URL || `https://eth-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
+                rpcUrl =  `https://eth-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
                 break;
             case 'base':
                 chainConfig = base;
-                rpcUrl = env.BASE_RPC_URL || `https://base-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
+                rpcUrl = `https://base-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
                 break;
             case 'optimism':
                 chainConfig = optimism;
-                rpcUrl = env.OPTIMISM_RPC_URL || `https://opt-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
+                rpcUrl = `https://opt-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
                 break;
             default:
                 console.warn(`Unsupported EVM chain: ${chain}`);
