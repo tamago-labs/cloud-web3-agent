@@ -33,7 +33,7 @@ interface TransactionResult {
     timestamp?: number;
 }
 
-export const handler: Schema["CheckWalletTransactions"]["functionHandler"] = async (event) => {
+export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
     const { userId, blockchainId }: any = event.arguments;
 
     try {
