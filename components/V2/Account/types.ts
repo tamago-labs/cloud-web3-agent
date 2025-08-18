@@ -38,21 +38,14 @@ export interface BlockchainInfo {
     icon: string;
     description: string;
     chainType: 'evm' | 'aptos' | 'sui';
+    depositToken: string;
+    chainId?: number; // For EVM chains
 }
 
 export type TabType = 'overview' | 'credits' | 'wallets' | 'settings';
 
-// Supported blockchains with real chain data
+// Supported blockchains - 5 separate tabs but EVM chains share the same address
 export const supportedBlockchains: BlockchainInfo[] = [
-    {
-        id: 'sui',
-        name: 'Sui',
-        symbol: 'SUI',
-        color: 'bg-blue-100 text-blue-800 border-blue-200',
-        icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/20947.png',
-        description: 'Fast, secure, and developer-friendly blockchain',
-        chainType: 'sui'
-    },
     {
         id: 'aptos',
         name: 'Aptos',
@@ -60,8 +53,19 @@ export const supportedBlockchains: BlockchainInfo[] = [
         color: 'bg-green-100 text-green-800 border-green-200',
         icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/21794.png',
         description: 'Scalable, safe, and upgradeable Web3 infrastructure',
-        chainType: 'aptos'
+        chainType: 'aptos',
+        depositToken: 'USDC'
     },
+    {
+        id: 'sui',
+        name: 'Sui',
+        symbol: 'SUI',
+        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/20947.png',
+        description: 'Fast, secure, and developer-friendly blockchain',
+        chainType: 'sui',
+        depositToken: 'USDC'
+    }, 
     {
         id: 'ethereum',
         name: 'Ethereum',
@@ -69,7 +73,9 @@ export const supportedBlockchains: BlockchainInfo[] = [
         color: 'bg-gray-100 text-gray-800 border-gray-200',
         icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png',
         description: 'The world\'s programmable blockchain',
-        chainType: 'evm'
+        chainType: 'evm',
+        depositToken: 'USDC',
+        chainId: 1
     },
     {
         id: 'base',
@@ -78,7 +84,9 @@ export const supportedBlockchains: BlockchainInfo[] = [
         color: 'bg-blue-100 text-blue-800 border-blue-200',
         icon: 'https://images.blockscan.com/chain-logos/base.svg',
         description: 'Coinbase\'s secure, low-cost Ethereum L2',
-        chainType: 'evm'
+        chainType: 'evm',
+        depositToken: 'USDC',
+        chainId: 8453
     },
     {
         id: 'optimism',
@@ -87,6 +95,17 @@ export const supportedBlockchains: BlockchainInfo[] = [
         color: 'bg-red-100 text-red-800 border-red-200',
         icon: 'https://optimistic.etherscan.io/assets/optimism/images/svg/logos/token-secondary-light.svg?v=25.7.5.2',
         description: 'Fast, stable, and scalable Ethereum L2',
-        chainType: 'evm'
+        chainType: 'evm',
+        depositToken: 'USDC',
+        chainId: 10
     }
 ];
+
+// Helper function to get EVM chains
+export const getEVMChains = () => supportedBlockchains.filter(chain => chain.chainType === 'evm');
+
+// Helper function to check if blockchain uses shared EVM address
+export const isEVMChain = (blockchainId: string) => {
+    const chain = supportedBlockchains.find(c => c.id === blockchainId);
+    return chain?.chainType === 'evm';
+};

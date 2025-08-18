@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Wallet, Plus, Copy, AlertCircle } from 'lucide-react';
-import { WalletInfo, supportedBlockchains } from './types';
+import { Wallet, Plus, Copy, AlertCircle, ExternalLink } from 'lucide-react';
+import { WalletInfo, supportedBlockchains, getEVMChains, isEVMChain } from './types';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 import { AccountContext } from '@/contexts/account';
 import { QRCodeComponent } from './QRCodeComponent';
 
-const client = generateClient<Schema>();
+const client = generateClient<Schema>({
+    authMode: "userPool"
+});
 
 interface WalletsTabProps {
     selectedBlockchain: string;
@@ -45,13 +47,15 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
         setError(null);
         
         try {
+ 
+
             const { data: userWallets } = await client.models.UserWallet.list({
                 filter: {
                     userId: { eq: profile.id },
                     isActive: { eq: true }
                 }
             });
-
+ 
             const walletsMap: Record<string, WalletInfo | null> = {};
             
             // Initialize all supported blockchains as null
@@ -62,22 +66,26 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
             // Fill in existing wallets
             userWallets.forEach(wallet => {
                 if (wallet.network && wallet.address) {
-                    // Map the network from the database to our blockchain IDs
-                    let blockchainId = wallet.network;
-                    
-                    // Handle EVM chains
                     if (wallet.network === 'evm') {
-                        // For EVM, we need to determine which specific chain this is
-                        // For now, we'll default to ethereum, but this could be enhanced
-                        blockchainId = 'ethereum';
+                        // For EVM chains, set the same wallet for all EVM blockchain IDs
+                        const evmChains = getEVMChains();
+                        evmChains.forEach(evmChain => {
+                            walletsMap[evmChain.id] = {
+                                address: wallet.address,
+                                qrCode: wallet.address,
+                                balance: '0.00', // TODO: Fetch real USDC balance
+                                network: wallet.network
+                            };
+                        });
+                    } else {
+                        // For non-EVM chains, map directly
+                        walletsMap[wallet.network] = {
+                            address: wallet.address,
+                            qrCode: wallet.address,
+                            balance: '0.00',
+                            network: wallet.network
+                        };
                     }
-
-                    walletsMap[blockchainId] = {
-                        address: wallet.address,
-                        qrCode: wallet.address, // QR code will show the address
-                        balance: '0.00', // TODO: Fetch real balance
-                        network: wallet.network
-                    };
                 }
             });
 
@@ -105,19 +113,14 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                 throw new Error('Invalid blockchain selected');
             }
 
-            // Map our blockchain IDs to the backend's expected format
-            let backendBlockchainId = selectedChain.chainType;
-            
-            // For EVM chains, use 'evm' as the network type
-            if (selectedChain.chainType === 'evm') {
-                backendBlockchainId = 'evm';
-            }
-
+            // Use the chainType for backend call
+            const backendBlockchainId = selectedChain.chainType;
+ 
             const { data: success } = await client.queries.CreateWallet({
                 userId: profile.id,
                 blockchain: backendBlockchainId
             });
-
+ 
             if (success) {
                 // Reload wallets after successful creation
                 await loadUserWallets();
@@ -134,6 +137,22 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
 
     const selectedWallet = realWallets[selectedBlockchain];
     const selectedChain = supportedBlockchains.find(chain => chain.id === selectedBlockchain);
+    const isSelectedChainEVM = isEVMChain(selectedBlockchain);
+    const evmChains = getEVMChains();
+
+    // Get explorer URL based on chain
+    const getExplorerUrl = (address: string, chainId: string) => {
+        switch(chainId) {
+            case 'ethereum':
+                return `https://etherscan.io/address/${address}`;
+            case 'base':
+                return `https://basescan.org/address/${address}`;
+            case 'optimism':
+                return `https://optimistic.etherscan.io/address/${address}`;
+            default:
+                return `https://etherscan.io/address/${address}`;
+        }
+    };
 
     if (loading) {
         return (
@@ -149,9 +168,7 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Web3 Wallets</h2>
-            <p className="text-gray-600">Manage your wallets for depositing tokens and interacting with Web3 protocols</p>
-
+            <h2 className="text-2xl font-bold text-gray-900">Web3 Wallets</h2> 
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <div className="flex items-center">
@@ -187,7 +204,7 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                 />
                                 <div className="text-left flex-1">
                                     <div className="font-medium">{blockchain.name}</div>
-                                    <div className="text-sm text-gray-500">{blockchain.symbol}</div>
+                                    <div className="text-xs text-gray-500 uppercase">{blockchain.chainType}</div>
                                 </div>
                                 {realWallets[blockchain.id] && (
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -204,17 +221,19 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                             <h3 className="text-lg font-semibold text-gray-900">
                                 {selectedChain?.name} Wallet
                             </h3>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium border ${selectedChain?.color}`}>
-                                {selectedChain?.symbol}
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium border uppercase ${selectedChain?.color}`}>
+                                {selectedChain?.chainType}
                             </span>
                         </div>
 
                         {selectedWallet ? (
                             <div className="space-y-6">
+                              
+
                                 {/* Wallet Address */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Wallet Address
+                                        Deposit Address 
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <div className="flex-1 p-3 bg-gray-50 rounded-lg font-mono text-sm break-all">
@@ -230,44 +249,94 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                     </div>
                                 </div>
 
+                                {/* Network Information for EVM chains */}
+                                {isSelectedChainEVM && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Compatible Networks
+                                        </label>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {evmChains.map((chain) => (
+                                                <div 
+                                                    key={chain.id} 
+                                                    className={`flex items-center gap-3 p-3 rounded-lg border ${
+                                                        chain.id === selectedBlockchain 
+                                                            ? 'bg-blue-50 border-blue-200' 
+                                                            : 'bg-gray-50 border-gray-200'
+                                                    }`}
+                                                >
+                                                    <img 
+                                                        src={chain.icon} 
+                                                        alt={chain.name}
+                                                        className="w-6 h-6 rounded-full"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-sm">{chain.name}</div>
+                                                        <div className="text-xs text-gray-500">Chain ID: {chain.chainId}</div>
+                                                    </div>
+                                                    {/* <div className="text-sm text-green-600 font-medium">USDC Supported</div> */}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Balance */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Balance
+                                        {selectedChain?.depositToken} Balance
                                     </label>
                                     <div className="text-2xl font-bold text-gray-900">
-                                        {selectedWallet.balance} {selectedChain?.symbol}
+                                        {selectedWallet.balance} {selectedChain?.depositToken}
                                     </div>
                                     <div className="text-sm text-gray-500 mt-1">
-                                        Balance updates may take a few minutes
+                                        Balance updates may take a few minutes after deposit
                                     </div>
                                 </div>
 
                                 {/* QR Code */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        QR Code
+                                        QR Code for Deposits
                                     </label>
                                     <div className="flex items-center gap-4">
                                         <QRCodeComponent value={selectedWallet.address} />
                                         <div className="text-sm text-gray-600">
-                                            <p className="mb-2">Scan this QR code to send {selectedChain?.symbol} tokens to this wallet.</p>
-                                            <p className="text-xs text-gray-500">
-                                                {selectedChain?.description}
+                                            <p className="mb-2">
+                                                Scan this QR code to send {selectedChain?.depositToken} to this wallet.
                                             </p>
+                                            {/* <p className="text-xs text-gray-500 mb-2">
+                                                {selectedChain?.description}
+                                            </p> */}
+                                            {isSelectedChainEVM && (
+                                                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                                    <strong>Multi-Network:</strong> This address works on Ethereum, Base, and Optimism
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                                {/* <div className="flex gap-3 pt-4 border-t border-gray-200">
                                     <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                         View Transactions
                                     </button>
                                     <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                                         Refresh Balance
                                     </button>
-                                </div>
+                                    {isSelectedChainEVM && (
+                                        <a
+                                            href={getExplorerUrl(selectedWallet.address, selectedBlockchain)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                            View on Explorer
+                                        </a>
+                                    )}
+                                </div> */}
                             </div>
                         ) : (
                             <div className="text-center py-12">
@@ -278,7 +347,7 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                     No {selectedChain?.name} Wallet
                                 </h4>
                                 <p className="text-gray-600 mb-6">
-                                    Create a wallet to start depositing {selectedChain?.symbol} tokens and interact with {selectedChain?.name}
+                                    Create a wallet to start depositing {selectedChain?.depositToken} on {selectedChain?.name}
                                 </p>
                                 <button
                                     onClick={handleCreateWallet}
@@ -297,6 +366,7 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                         </>
                                     )}
                                 </button>
+                                 
                             </div>
                         )}
                     </div>

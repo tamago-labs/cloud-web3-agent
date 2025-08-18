@@ -17,9 +17,9 @@ import { WalletsTab } from './WalletsTab';
 import { SettingsTab } from './SettingsTab';
 
 // Import types
-import { CreditInfo, UsageStats, ConversationData, WalletInfo, TabType } from './types';
+import { CreditInfo, UsageStats, ConversationData, TabType } from './types';
 
-// Modal component
+
 const AddCreditsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
     if (!isOpen) return null;
 
@@ -55,21 +55,13 @@ const AddCreditsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
     );
 };
 
-// Mock wallet data
-const mockWallets: Record<string, WalletInfo | null> = {
-    aptos: null,
-    sui: null
-};
-
 const AccountContainer = () => {
     const { profile, updateProfile, clearProfile } = useContext(AccountContext);
     const router = useRouter();
 
     // State
     const [activeTab, setActiveTab] = useState<TabType>('overview');
-    const [selectedBlockchain, setSelectedBlockchain] = useState('aptos');
-    const [wallets, setWallets] = useState<Record<string, WalletInfo | null>>(mockWallets);
-    const [isCreatingWallet, setIsCreatingWallet] = useState(false);
+    const [selectedBlockchain, setSelectedBlockchain] = useState('aptos'); // Default to SUI
     const [userCredits, setUserCredits] = useState<CreditInfo | null>(null);
     const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
     const [conversations, setConversations] = useState<ConversationData[]>([]);
