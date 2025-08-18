@@ -8,13 +8,15 @@ import { data } from './data/resource';
 import { storage } from "./storage/resource";
 import { chatApiFunction } from "./functions/chat-api/resource";
 import { createWallet } from "./functions/createWallet/resource"
+import { checkWalletTransactions } from "./functions/checkWalletTransactions/resource"
 
 const backend = defineBackend({
   auth,
   data,
   storage,
   chatApiFunction,
-  createWallet
+  createWallet,
+  checkWalletTransactions
 });
 
 // Get the Lambda function
