@@ -30,12 +30,12 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
                         </div>
                         <div className="text-right">
                             <div className="text-2xl font-bold text-blue-900">${userCredits.current.toFixed(4)}</div>
-                            <button 
+                            {/* <button 
                                 onClick={onShowAddCreditsModal}
                                 className="text-blue-600 hover:text-blue-700 text-sm"
                             >
                                 Add Credits
-                            </button>
+                            </button> */}
                         </div>
                     </div>
                     <div className="w-full bg-blue-200 rounded-full h-2">
