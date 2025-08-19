@@ -73,6 +73,8 @@ export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
                 wallet.lastChecked
             );
 
+            console.log("transactions:", transactions)
+
             // Process each new transaction
             for (const tx of transactions) {
                 // Check if we already processed this transaction
@@ -160,6 +162,8 @@ async function getWalletTransactions(
 ): Promise<TransactionResult[]> {
     const since = lastChecked ? new Date(lastChecked) : new Date(Date.now() - 24 * 60 * 60 * 1000); // Default to 24h ago
 
+    console.log("since :", since)
+
     switch (blockchain) {
         case 'aptos':
             return getAptosTransactions(address, since);
@@ -180,6 +184,9 @@ async function getWalletTransactions(
 // Aptos transaction fetching using GraphQL
 async function getAptosTransactions(address: string, since: Date): Promise<TransactionResult[]> {
     try {
+
+        console.log("check aptos tx :", address, since)
+
         const indexerUrl = 'https://indexer.mainnet.aptoslabs.com/v1/graphql';
         const usdcAssetType = USDC_ADDRESSES.aptos; // USDC FA asset address
         
@@ -290,6 +297,8 @@ async function getSuiTransactions(address: string, since: Date): Promise<Transac
         const suiClient = new SuiClient({ url: getFullnodeUrl('mainnet') });
         const results: TransactionResult[] = [];
 
+        console.log("since :", since)
+
         // Query transaction blocks
         const txBlocks = await suiClient.queryTransactionBlocks({
             filter: {
@@ -304,6 +313,8 @@ async function getSuiTransactions(address: string, since: Date): Promise<Transac
             limit: 100,
             order: 'descending'
         });
+
+        console.log("txBlocks :", txBlocks)
 
         for (const txBlock of txBlocks.data) {
             // Check timestamp
@@ -347,6 +358,8 @@ async function getSuiTransactions(address: string, since: Date): Promise<Transac
                 }
             }
         }
+
+        console.log("resultts: ", results)
 
         return results;
     } catch (error) {
