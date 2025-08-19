@@ -39,7 +39,7 @@ interface TransactionResult {
 }
 
 export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
-    
+
     const { userId, blockchainId }: any = event.arguments;
 
     try {
@@ -66,9 +66,9 @@ export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
         // Check each wallet for new transactions
         for (const wallet of wallets) {
             console.log(`Checking wallet ${wallet.address} on ${blockchainId}`);
-            
+
             const transactions = await getWalletTransactions(
-                wallet.address, 
+                wallet.address,
                 blockchainId,
                 wallet.lastChecked
             );
@@ -116,7 +116,7 @@ export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
                 if (user) {
                     const newCredits = (user.credits || 0) + creditsToGrant;
                     const newTotalCredits = (user.totalCredits || 0) + creditsToGrant;
-                    
+
                     await client.models.User.update({
                         id: userId,
                         credits: newCredits,
@@ -138,7 +138,7 @@ export const handler: Schema["CheckTxs"]["functionHandler"] = async (event) => {
         }
 
         console.log(`Completed check: ${totalNewTransactions} new transactions, ${totalCreditsAdded} credits added`);
- 
+
         return true
 
     } catch (error) {
@@ -154,12 +154,12 @@ function getUSDCAddress(blockchain: string): string {
 
 // Main function to get wallet transactions based on blockchain
 async function getWalletTransactions(
-    address: string, 
-    blockchain: string, 
+    address: string,
+    blockchain: string,
     lastChecked?: any
 ): Promise<TransactionResult[]> {
     const since = lastChecked ? new Date(lastChecked) : new Date(Date.now() - 24 * 60 * 60 * 1000); // Default to 24h ago
-    
+
     switch (blockchain) {
         case 'aptos':
             return getAptosTransactions(address, since);
@@ -177,64 +177,109 @@ async function getWalletTransactions(
     }
 }
 
-// Aptos transaction fetching using @aptos-labs/ts-sdk
+// Aptos transaction fetching using GraphQL
 async function getAptosTransactions(address: string, since: Date): Promise<TransactionResult[]> {
     try {
-        const aptosConfig = new AptosConfig({ network: Network.MAINNET });
-        const aptos = new Aptos(aptosConfig);
+        const indexerUrl = 'https://indexer.mainnet.aptoslabs.com/v1/graphql';
+        const usdcAssetType = USDC_ADDRESSES.aptos; // USDC FA asset address
         
-        const results: TransactionResult[] = [];
-        
-        // Get account transactions
-        const accountTransactions = await aptos.getAccountTransactions({ 
-            accountAddress: address,
-            options: {
-                offset: 0,
-                limit: 100
-            }
-        });
-        
-
-        for (let tx of accountTransactions as any[]) {
-
-            if (!tx.timestamp) {
-                continue;
-            }
-
-            // Check if transaction is after our 'since' timestamp
-            const txTimestamp = parseInt(tx.timestamp);
-            if (txTimestamp < since.getTime() * 1000) { // Aptos uses microseconds
-                continue;
-            }
-
-            // Check for fungible asset transfers (FA events)
-            if (tx.type === 'user_transaction' && 'events' in tx) {
-                for (const event of tx.events) {
-                    // Check for deposit events to our address
-                    if (event.type.includes('DepositEvent') && 
-                        event.data && 
-                        'account' in event.data && 
-                        event.data.account === address) {
-                        
-                        const amount = event.data.amount || '0';
-                        if (amount !== '0') {
-                            results.push({
-                                txHash: tx.hash,
-                                blockNumber: parseInt(tx.version),
-                                amount: amount,
-                                formattedAmount: (parseInt(amount) / 1000000).toString(), // USDC has 6 decimals
-                                fromAddress: 'sender' in tx ? tx.sender : 'unknown',
-                                timestamp: Math.floor(txTimestamp / 1000000) // Convert to seconds
-                            });
-                        }
+        const query = `
+            query GetIncomingUSDCTransfers($owner_address: String!, $since: timestamp!, $asset_type: String!) {
+                fungible_asset_activities(
+                    where: {
+                        owner_address: {_eq: $owner_address}
+                        transaction_timestamp: {_gte: $since}
+                        asset_type: {_eq: $asset_type}
+                        amount: {_gt: "0"}
+                        is_transaction_success: {_eq: true}
+                        type: {_ilike: "%deposit%"}
                     }
+                    order_by: {transaction_timestamp: desc}
+                    limit: 100
+                ) {
+                    transaction_version
+                    transaction_timestamp
+                    amount
+                    asset_type
+                    owner_address
+                    type
+                    storage_id
+                    gas_fee_payer_address
+                    entry_function_id_str
+                    block_height
+                    is_transaction_success
                 }
             }
+        `;
+
+        const response = await fetch(indexerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query,
+                variables: {
+                    owner_address: address,
+                    since: since.toISOString(),
+                    asset_type: usdcAssetType
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`GraphQL API error: ${response.status}`);
         }
 
+        const data = await response.json();
+        
+        if (data.errors) {
+            console.error('GraphQL errors:', data.errors);
+            return [];
+        }
+
+        if (!data.data?.fungible_asset_activities) {
+            console.log('No fungible asset activities found');
+            return [];
+        }
+
+        const results: TransactionResult[] = [];
+        
+        for (const activity of data.data.fungible_asset_activities) {
+            // Skip if not a successful transaction
+            if (!activity.is_transaction_success) {
+                continue;
+            }
+
+            // Convert amount (assuming USDC has 6 decimals)
+            const rawAmount = activity.amount || '0';
+            const formattedAmount = (parseInt(rawAmount) / 1000000).toString();
+
+            // Determine the sender address
+            // gas_fee_payer_address is usually the sender for transfers
+            let fromAddress = activity.gas_fee_payer_address || 'unknown';
+            
+            // If gas fee payer is the same as owner, this might be a self-transaction
+            // In that case, we might need to look at the transaction details
+            if (fromAddress === address) {
+                fromAddress = 'self-transfer';
+            }
+
+            results.push({
+                txHash: activity.transaction_version.toString(), // Use version as hash for now
+                blockNumber: parseInt(activity.block_height),
+                amount: rawAmount,
+                formattedAmount: formattedAmount,
+                fromAddress: fromAddress,
+                timestamp: Math.floor(new Date(activity.transaction_timestamp).getTime() / 1000)
+            });
+        }
+
+        console.log(`Found ${results.length} incoming USDC transfers for ${address}`);
         return results;
+
     } catch (error) {
-        console.error('Error fetching Aptos transactions:', error);
+        console.error('Error fetching Aptos incoming transactions via GraphQL:', error);
         return [];
     }
 }
@@ -267,50 +312,25 @@ async function getSuiTransactions(address: string, since: Date): Promise<Transac
                 continue;
             }
 
-            // Check events for USDC transfers
-            if (txBlock.events) {
-                for (const event of txBlock.events as any[]) {
-                    // Check if this is a USDC transfer event
-                    if (event.type.includes('usdc') && 
-                        event.parsedJson && 
-                        typeof event.parsedJson === 'object' &&
-                        'recipient' in event.parsedJson &&
-                        event.parsedJson.recipient === address) {
-                        
-                        const amount = event.parsedJson.amount as string || '0';
-                        results.push({
-                            txHash: txBlock.digest,
-                            amount: amount,
-                            formattedAmount: (parseInt(amount) / 1000000).toString(), // USDC has 6 decimals
-                            fromAddress: (event.parsedJson.sender as string) || 'unknown',
-                            timestamp: Math.floor(parseInt(txBlock.timestampMs!) / 1000)
-                        });
-                    }
-                }
-            }
-
-            // Also check object changes for coin balance changes
+            // Check object changes for coin balance changes
             if (txBlock.objectChanges) {
-                for (const change of txBlock.objectChanges) {
-                    if (change.type === 'created' && 
-                        change.objectType.includes('Coin') &&
-                        change.objectType.includes('USDC') &&
-                        change.owner === address) {
-                        
-                        // This indicates a new USDC coin was created for this address
-                        // You'd need to fetch the coin object to get the balance
+                for (const change of txBlock.objectChanges as any[]) {
+                    if (change.type === 'created' &&
+                        change.objectType === "0x2::coin::Coin<0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC>" &&
+                        change.owner.AddressOwner === address) {
+
                         try {
                             const coinObject = await suiClient.getObject({
                                 id: change.objectId,
                                 options: { showContent: true }
                             });
-                            
-                            if (coinObject.data?.content && 
+
+                            if (coinObject.data?.content &&
                                 'fields' in coinObject.data.content &&
                                 coinObject.data.content.fields &&
                                 typeof coinObject.data.content.fields === 'object' &&
                                 'balance' in coinObject.data.content.fields) {
-                                
+
                                 const balance = coinObject.data.content.fields.balance as string;
                                 results.push({
                                     txHash: txBlock.digest,
@@ -345,7 +365,7 @@ async function getEVMTransactions(address: string, chain: string, since: Date): 
         switch (chain) {
             case 'ethereum':
                 chainConfig = mainnet;
-                rpcUrl =  `https://eth-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
+                rpcUrl = `https://eth-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}`;
                 break;
             case 'base':
                 chainConfig = base;
