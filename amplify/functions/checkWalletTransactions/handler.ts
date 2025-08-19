@@ -191,11 +191,10 @@ async function getAptosTransactions(address: string, since: Date): Promise<Trans
         const usdcAssetType = USDC_ADDRESSES.aptos; // USDC FA asset address
         
         const query = `
-            query GetIncomingUSDCTransfers($owner_address: String!, $since: timestamp!, $asset_type: String!) {
+            query GetIncomingUSDCTransfers($owner_address: String!, $asset_type: String!) {
                 fungible_asset_activities(
                     where: {
-                        owner_address: {_eq: $owner_address}
-                        transaction_timestamp: {_gte: $since}
+                        owner_address: {_eq: $owner_address} 
                         asset_type: {_eq: $asset_type}
                         amount: {_gt: "0"}
                         is_transaction_success: {_eq: true}
@@ -228,7 +227,7 @@ async function getAptosTransactions(address: string, since: Date): Promise<Trans
                 query,
                 variables: {
                     owner_address: address,
-                    since: since.toISOString(),
+                    // since: since.toISOString(),
                     asset_type: usdcAssetType
                 }
             })
@@ -318,10 +317,10 @@ async function getSuiTransactions(address: string, since: Date): Promise<Transac
 
         for (const txBlock of txBlocks.data) {
             // Check timestamp
-            const txTime = new Date(parseInt(txBlock.timestampMs!));
-            if (txTime < since) {
-                continue;
-            }
+            // const txTime = new Date(parseInt(txBlock.timestampMs!));
+            // if (txTime < since) {
+            //     continue;
+            // }
 
             // Check object changes for coin balance changes
             if (txBlock.objectChanges) {
@@ -433,10 +432,10 @@ async function getEVMTransactions(address: string, chain: string, since: Date): 
             });
 
             // Check if transaction is after our 'since' timestamp
-            const txTime = new Date(Number(block.timestamp) * 1000);
-            if (txTime < since) {
-                continue;
-            }
+            // const txTime = new Date(Number(block.timestamp) * 1000);
+            // if (txTime < since) {
+            //     continue;
+            // }
 
             const amount = log.args.value?.toString() || '0';
             const formattedAmount = (parseInt(amount) / 1000000).toString(); // USDC has 6 decimals
