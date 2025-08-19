@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Wallet, Plus, Copy, AlertCircle, ExternalLink } from 'lucide-react';
+import { Wallet, Plus, Copy, AlertCircle, ExternalLink, RefreshCw, History } from 'lucide-react';
 import { WalletInfo, supportedBlockchains, getEVMChains, isEVMChain } from './types';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
@@ -19,6 +19,20 @@ interface WalletsTabProps {
     onCopyToClipboard: (text: string) => void;
 }
 
+// Interface for crypto deposits
+interface CryptoDeposit {
+    id: string;
+    txHash: string;
+    tokenSymbol: string;
+    formattedAmount: string;
+    usdValue?: number;
+    creditsGranted: number;
+    createdAt: string;
+    blockNumber?: number;
+    fromAddress?: string;
+    notes?: string;
+}
+
 export const WalletsTab: React.FC<WalletsTabProps> = ({
     selectedBlockchain,
     setSelectedBlockchain,
@@ -29,25 +43,29 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
 }) => {
     const { profile } = useContext(AccountContext);
     const [realWallets, setRealWallets] = useState<Record<string, WalletInfo | null>>({});
+    const [cryptoDeposits, setCryptoDeposits] = useState<CryptoDeposit[]>([]);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
+    const [checkingTransactions, setCheckingTransactions] = useState(false); 
     const [error, setError] = useState<string | null>(null);
+    const [showDeposits, setShowDeposits] = useState(false);
 
-    // Load user's existing wallets on component mount
+    // Load user's existing wallets and deposits on component mount
     useEffect(() => {
         if (profile?.id) {
             loadUserWallets();
+            loadCryptoDeposits();
         }
     }, [profile]);
 
     const loadUserWallets = async () => {
         if (!profile?.id) return;
-        
+
         setLoading(true);
         setError(null);
-        
+
         try {
- 
+
 
             const { data: userWallets } = await client.models.UserWallet.list({
                 filter: {
@@ -55,9 +73,9 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                     isActive: { eq: true }
                 }
             });
- 
+
             const walletsMap: Record<string, WalletInfo | null> = {};
-            
+
             // Initialize all supported blockchains as null
             supportedBlockchains.forEach(blockchain => {
                 walletsMap[blockchain.id] = null;
@@ -98,6 +116,36 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
         }
     };
 
+    const loadCryptoDeposits = async () => {
+        if (!profile?.id) return;
+        
+        try {
+            const { data: deposits } = await client.models.CryptoDeposit.list({
+                filter: {
+                    userId: { eq: profile.id }
+                },
+                limit: 10 // Get recent 10 deposits
+            });
+ 
+            const formattedDeposits: CryptoDeposit[] = deposits.map(deposit => ({
+                id: deposit.id || '',
+                txHash: deposit.txHash || '',
+                tokenSymbol: deposit.tokenSymbol || 'USDC',
+                formattedAmount: deposit.formattedAmount || '0',
+                usdValue: deposit.usdValue || 0,
+                creditsGranted: deposit.creditsGranted || 0,
+                createdAt: deposit.createdAt || '',
+                blockNumber: deposit.blockNumber || undefined,
+                fromAddress: deposit.fromAddress || undefined,
+                notes: deposit.notes || ""
+            }));
+
+            setCryptoDeposits(formattedDeposits);
+        } catch (err) {
+            console.error('Error loading crypto deposits:', err);
+        }
+    };
+
     const handleCreateWallet = async () => {
         if (!profile?.id) {
             setError('Please log in to create a wallet');
@@ -115,12 +163,12 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
 
             // Use the chainType for backend call
             const backendBlockchainId = selectedChain.chainType;
- 
+
             const { data: success } = await client.queries.CreateWallet({
                 userId: profile.id,
                 blockchain: backendBlockchainId
             });
- 
+
             if (success) {
                 // Reload wallets after successful creation
                 await loadUserWallets();
@@ -135,6 +183,56 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
         }
     };
 
+    const handleCheckTransactions = async () => {
+        if (!profile?.id) {
+            setError('Please log in to check transactions');
+            return;
+        }
+
+        setCheckingTransactions(true);
+        setError(null);
+
+        try {
+            const selectedChain = supportedBlockchains.find(chain => chain.id === selectedBlockchain);
+            if (!selectedChain) {
+                throw new Error('Invalid blockchain selected');
+            }
+
+            // Use the chainType for backend call
+            const backendBlockchainId = selectedChain.chainType;
+ 
+            try {
+                const { data: result } = await client.queries.CheckTxs({
+                    userId: profile.id,
+                    blockchainId: backendBlockchainId
+                });
+ 
+                if (result) {
+                    // Reload wallets to get updated balances and deposits
+                    await Promise.all([
+                        loadUserWallets(),
+                        loadCryptoDeposits()
+                    ]);
+ 
+                } else {
+                    throw new Error('Failed to check transactions');
+                }
+            } catch (backendError) {
+                console.log("backendError: ", backendError)
+                // If backend function doesn't exist yet, fall back to just loading existing deposits
+                console.log('Backend checkTxs not implemented yet, loading existing deposits...');
+                await loadCryptoDeposits();
+                setShowDeposits(true);
+            }
+            
+        } catch (err) {
+            console.error('Error checking transactions:', err);
+            setError(err instanceof Error ? err.message : 'Failed to check transactions');
+        } finally {
+            setCheckingTransactions(false);
+        }
+    };
+ 
     const selectedWallet = realWallets[selectedBlockchain];
     const selectedChain = supportedBlockchains.find(chain => chain.id === selectedBlockchain);
     const isSelectedChainEVM = isEVMChain(selectedBlockchain);
@@ -142,13 +240,17 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
 
     // Get explorer URL based on chain
     const getExplorerUrl = (address: string, chainId: string) => {
-        switch(chainId) {
+        switch (chainId) {
             case 'ethereum':
                 return `https://etherscan.io/address/${address}`;
             case 'base':
                 return `https://basescan.org/address/${address}`;
             case 'optimism':
                 return `https://optimistic.etherscan.io/address/${address}`;
+            case 'aptos':
+                return `https://explorer.aptoslabs.com/account/${address}?network=mainnet`;
+            case 'sui':
+                return `https://suiscan.xyz/mainnet/account/${address}`;
             default:
                 return `https://etherscan.io/address/${address}`;
         }
@@ -168,7 +270,7 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Web3 Wallets</h2> 
+            <h2 className="text-2xl font-bold text-gray-900">Web3 Wallets</h2>
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <div className="flex items-center">
@@ -187,14 +289,13 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                             <button
                                 key={blockchain.id}
                                 onClick={() => setSelectedBlockchain(blockchain.id)}
-                                className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all ${
-                                    selectedBlockchain === blockchain.id
+                                className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all ${selectedBlockchain === blockchain.id
                                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                }`}
+                                    }`}
                             >
-                                <img 
-                                    src={blockchain.icon} 
+                                <img
+                                    src={blockchain.icon}
                                     alt={blockchain.name}
                                     className="w-8 h-8 rounded-full"
                                     onError={(e) => {
@@ -228,12 +329,12 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
 
                         {selectedWallet ? (
                             <div className="space-y-6">
-                              
+
 
                                 {/* Wallet Address */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Deposit Address 
+                                        Deposit Address
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <div className="flex-1 p-3 bg-gray-50 rounded-lg font-mono text-sm break-all">
@@ -257,42 +358,27 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                         </label>
                                         <div className="grid grid-cols-1 gap-2">
                                             {evmChains.map((chain) => (
-                                                <div 
-                                                    key={chain.id} 
-                                                    className={`flex items-center gap-3 p-3 rounded-lg border ${
-                                                        chain.id === selectedBlockchain 
-                                                            ? 'bg-blue-50 border-blue-200' 
+                                                <div
+                                                    key={chain.id}
+                                                    className={`flex items-center gap-3 p-3 rounded-lg border ${chain.id === selectedBlockchain
+                                                            ? 'bg-blue-50 border-blue-200'
                                                             : 'bg-gray-50 border-gray-200'
-                                                    }`}
+                                                        }`}
                                                 >
-                                                    <img 
-                                                        src={chain.icon} 
+                                                    <img
+                                                        src={chain.icon}
                                                         alt={chain.name}
                                                         className="w-6 h-6 rounded-full"
                                                     />
                                                     <div className="flex-1">
                                                         <div className="font-medium text-sm">{chain.name}</div>
                                                         <div className="text-xs text-gray-500">Chain ID: {chain.chainId}</div>
-                                                    </div>
-                                                    {/* <div className="text-sm text-green-600 font-medium">USDC Supported</div> */}
+                                                    </div> 
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 )}
-
-                                {/* Balance */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        {selectedChain?.depositToken} Balance
-                                    </label>
-                                    <div className="text-2xl font-bold text-gray-900">
-                                        {selectedWallet.balance} {selectedChain?.depositToken}
-                                    </div>
-                                    <div className="text-sm text-gray-500 mt-1">
-                                        Balance updates may take a few minutes after deposit
-                                    </div>
-                                </div>
 
                                 {/* QR Code */}
                                 <div>
@@ -304,10 +390,7 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                         <div className="text-sm text-gray-600">
                                             <p className="mb-2">
                                                 Scan this QR code to send {selectedChain?.depositToken} to this wallet.
-                                            </p>
-                                            {/* <p className="text-xs text-gray-500 mb-2">
-                                                {selectedChain?.description}
-                                            </p> */}
+                                            </p> 
                                             {isSelectedChainEVM && (
                                                 <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
                                                     <strong>Multi-Network:</strong> This address works on Ethereum, Base, and Optimism
@@ -316,16 +399,27 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                         </div>
                                     </div>
                                 </div>
-
+ 
                                 {/* Actions */}
-                                {/* <div className="flex gap-3 pt-4 border-t border-gray-200">
-                                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                        View Transactions
-                                    </button>
-                                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                                        Refresh Balance
-                                    </button>
-                                    {isSelectedChainEVM && (
+                                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                                    <button 
+                                        onClick={handleCheckTransactions}
+                                        disabled={checkingTransactions}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {checkingTransactions ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                Checking...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <History className="w-4 h-4" />
+                                                Check Deposits
+                                            </>
+                                        )}
+                                    </button> 
+                                    {selectedWallet && (
                                         <a
                                             href={getExplorerUrl(selectedWallet.address, selectedBlockchain)}
                                             target="_blank"
@@ -336,7 +430,45 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                             View on Explorer
                                         </a>
                                     )}
-                                </div> */}
+                                </div>
+
+                                {/* Crypto Deposits */}
+                                {  cryptoDeposits.length > 0 && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Recent Deposits
+                                        </label>
+                                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                                            {cryptoDeposits.map((deposit) => (
+                                                <div key={deposit.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-sm">
+                                                            {deposit.formattedAmount} {deposit.tokenSymbol}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {new Date(deposit.createdAt).toLocaleDateString()}
+                                                        </div>
+                                                        {deposit.fromAddress && (
+                                                            <div className="text-xs text-gray-500 font-mono">
+                                                                From: {deposit.notes}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-sm font-medium text-green-600">
+                                                            +{deposit.creditsGranted} credits
+                                                        </div>
+                                                        {deposit.usdValue && (
+                                                            <div className="text-xs text-gray-500">
+                                                                ${deposit.usdValue.toFixed(2)}
+                                                            </div>
+                                                        )}
+                                                    </div> 
+                                                </div>
+                                            ))}
+                                        </div> 
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="text-center py-12">
@@ -365,8 +497,7 @@ export const WalletsTab: React.FC<WalletsTabProps> = ({
                                             Create {selectedChain?.name} Wallet
                                         </>
                                     )}
-                                </button>
-                                 
+                                </button> 
                             </div>
                         )}
                     </div>

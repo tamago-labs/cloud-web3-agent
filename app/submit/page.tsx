@@ -1,15 +1,14 @@
- 
+
 import SubmitContainer from "@/components/V2/Submit";
 import Footer from "@/components/Footer"
 
-const SubmitServerPage = () => { 
+const SubmitServerPage = () => {
 
     return (
-       <>
-       <SubmitContainer/>
-       <Footer/>
-       </>
-       
+        <>
+            <SubmitContainer />
+            <Footer />
+        </> 
     );
 };
 
