@@ -1,13 +1,39 @@
 "use client"
 
-import React, { useRef, useEffect } from 'react';
-import { BookOpen, Cpu, Code, Zap, Cloud, Database, Key, Puzzle, Infinity, FileJson, Network, BrainCircuit, Layers, Globe, ArrowRight, ArrowRightLeft, MessageSquare, ServerCrash, SmartphoneNfc, BadgeCheck, Share2, Blocks, Play, Sparkles, BarChart3 } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { X, Coins, ExternalLink, MessageSquare, BarChart3 } from 'lucide-react';
 import Link from "next/link"
+import TopUpModal from './TopUpModal'
 
 const Hero = () => {
 
+    const [showTopUpModal, setShowTopUpModal] = useState(false);
+
+    useEffect(() => {
+        // Check if modal was shown today
+        const lastShown = localStorage.getItem('topup-modal-last-shown');
+        const today = new Date().toDateString();
+
+        if (lastShown !== today) {
+            // Show modal after a short delay
+            const timer = setTimeout(() => {
+                setShowTopUpModal(true);
+                localStorage.setItem('topup-modal-last-shown', today);
+            }, 2000); // Show after 2 seconds
+
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
+    const handleCloseModal = () => {
+        setShowTopUpModal(false);
+    };
+
     return (
         <>
+
+            <TopUpModal isOpen={showTopUpModal} onClose={handleCloseModal} />
+
             <div className="absolute inset-0 z-0">
                 <GeometricGrid />
             </div>
@@ -42,7 +68,7 @@ const Hero = () => {
                             </Link>
                             <Link href="/discover" className="px-2 md:px-7 py-3 bg-white hover:bg-gray-50 rounded-lg font-medium text-gray-700 flex items-center justify-center transition border border-gray-300 hover:border-gray-400 group">
                                 <BarChart3 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                                Discover 
+                                Discover
                             </Link>
                         </div>
 
