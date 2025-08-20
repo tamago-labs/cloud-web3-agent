@@ -3,6 +3,7 @@ import "./globals.css";
 import Head from 'next/head' 
 import { Inter } from "next/font/google";
 import { Providers } from "./providers"
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const InterFont = Inter({
   weight: ["400", "500", "700"],
@@ -33,6 +34,7 @@ export default function RootLayout({
           </div>
         </Providers>
       </body>
+      <GoogleAnalytics gaId="G-SL6YBGX66C" />
     </html>
   );
 }
