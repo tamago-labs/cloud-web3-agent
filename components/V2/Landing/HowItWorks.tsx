@@ -14,7 +14,7 @@ const HowItWorks = () => {
             icon: <Search className="w-5 h-5" />,
             description: "Browse ready-to-use MCP servers for real-time Web3 data across multiple chains.",
             bullets: [
-                "Choose from curated MCP servers covering 20+ DeFi protocols",
+                "Choose from curated MCP servers covering 100+ DeFi protocols",
                 "Each server provides specialized tools for real-time data access",
                 "Filter by category: Lending, DEX, Staking, Multi-Chain protocols",
                 "One-click connection with no setup or installation required"

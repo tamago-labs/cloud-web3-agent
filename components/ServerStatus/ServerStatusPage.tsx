@@ -78,7 +78,7 @@ const aiServers: AIServerInfo[] = [
         capabilities: ['Text Generation', 'Code Analysis', 'Tool Usage', 'Reasoning', 'Math'],
         latency: 980,
         uptime: 'N/A',
-        lastUsed: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
+        lastUsed: new Date(Date.now() - 50000 * 60 * 1000).toISOString(), // 45 minutes ago
         description: 'This is an alternative model within the system, currently not available to public users.',
         icon: Globe,
         statusColor: 'text-yellow-600 bg-yellow-50',
@@ -95,7 +95,7 @@ const aiServers: AIServerInfo[] = [
         capabilities: ['Text Generation', 'Code Analysis', 'Tool Usage', 'Reasoning', 'Math'],
         latency: 980,
         uptime: 'N/A',
-        lastUsed: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
+        lastUsed: new Date(Date.now() - 50000 * 60 * 1000).toISOString(), // 45 minutes ago
         description: 'This is also an alternative model within the system, currently not available to public users.',
         icon: Database,
         statusColor: 'text-yellow-600 bg-yellow-50',
@@ -300,7 +300,7 @@ const EnhancedServerStatusPage = () => {
                 {activeTab === 'overview' && (
                     <div className="space-y-8">
                         {/* Status Overview Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div className="bg-white rounded-lg p-6 border border-gray-200">
                                 <div className="flex items-center">
                                     <Server className="w-8 h-8 text-blue-600" />
@@ -335,7 +335,7 @@ const EnhancedServerStatusPage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-lg p-6 border border-gray-200">
+                            {/* <div className="bg-white rounded-lg p-6 border border-gray-200">
                                 <div className="flex items-center">
                                     <Shield className="w-8 h-8 text-indigo-600" />
                                     <div className="ml-4">
@@ -343,7 +343,7 @@ const EnhancedServerStatusPage = () => {
                                         <div className="text-sm text-gray-600">Uptime</div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Quick Status Summary */}

@@ -75,11 +75,11 @@ const Hero = () => {
                         <div className="mt-8 flex items-center gap-3 md:gap-6 text-xs md:text-sm text-gray-500">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span>10+ Projects</span>
+                                <span>100+ Projects</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span>10+ Chains Supported</span>
+                                <span>20+ Chains Supported</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
