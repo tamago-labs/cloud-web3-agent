@@ -11,8 +11,8 @@ const InterFont = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Web3 Analytics via Chat – No SQL Needed", 
-  description: "Ask questions like 'Show Aave TVL' or 'Track Vitalik’s wallet' and get real-time blockchain charts instantly—no SQL, no setup, just chat.",
+  title: "Autonomous AI Agents for DeFi Strategies", 
+  description: "Set your DeFi strategy in natural language and let AI execute 24/7. From leverage management to yield optimization—autonomous agents handle complex DeFi operations while you stay in control.",
 };
 
 export default function RootLayout({
