@@ -1,0 +1,140 @@
+{
+  "navigation": {
+    "projects": "Projects",
+    "services": "Services",
+    "about": "About"
+  },
+  "hero": {
+    "buildingFuture": "Building the Future of",
+    "decentralizedFinance": "Decentralized Finance",
+    "description": "Expert Web3 development studio specializing in DeFi protocols, AI-powered automation, and cutting-edge blockchain solutions.",
+    "whatWereWorkingOn": "What We're Working On",
+    "ourServices": "Our Services",
+    "deliveredProjects": "Delivered Projects",
+    "blockchains": "Blockchains",
+    "securityFocus": "Security Focus",
+    "established": "Established"
+  },
+  "technology": {
+    "title": "Technology Stack",
+    "description": "Expert proficiency across multiple blockchain languages"
+  },
+  "blockchains": {
+    "title": "Supported Blockchains",
+    "description": "Multi-chain expertise across leading blockchain ecosystems"
+  },
+  "services": {
+    "title": "Our Services",
+    "description": "Comprehensive Web3 development services for your blockchain journey",
+    "smartContract": {
+      "title": "Smart Contract Development",
+      "description": "End-to-end development of secure and efficient smart contracts in Solidity and Move, tailored for DeFi, NFT, and DAO use cases.",
+      "features": ["DeFi Protocols", "NFT Contracts", "DAO Governance", "Gas Optimization"]
+    },
+    "aiAgent": {
+      "title": "AI Agent Development",
+      "description": "Build intelligent automation for DeFi operations, from strategy execution frameworks to autonomous agents that monitor, analyze, and execute complex blockchain transactions.",
+      "features": ["Portfolio Management", "Risk Monitoring", "Yield Optimization", "Strategy Automation"]
+    },
+    "integration": {
+      "title": "Integration Services",
+      "description": "Seamlessly integrate Web3 functionality into existing applications with custom APIs and SDKs. Full-stack blockchain integration for enterprises and startups.",
+      "features": ["API Development", "SDK Creation", "Wallet Integration", "Oracle Solutions", "Cross-chain Bridges"]
+    }
+  },
+  "projects": {
+    "title": "Our Projects",
+    "description": "We build and operate innovative DeFi protocols and AI-powered blockchain solutions, maintaining them end-to-end with hands-on control and continuous innovation",
+    "exploreProject": "Explore Project",
+    "allFeatures": "All Features",
+    "keyFeatures": "Key Features",
+    "bodhiTree": {
+      "name": "Bodhi Tree",
+      "tagline": "Open-Source Autonomous AI Agent Framework for DeFi",
+      "description": "An intelligent AI framework designed for DeFi operations. Bodhi Tree enables users to set up sophisticated strategies and lets AI execute complex DeFi tasks autonomously.",
+      "features": [
+        "Leverage Assets: Supply assets to lending pools, borrow stablecoins and swap back for increased exposure",
+        "Automated Leverage/De-leverage: AI manages position sizing based on market conditions",
+        "Portfolio Rebalancing: Automatically optimize positions across protocols",
+        "Yield Optimization: Move funds between protocols for best APY",
+        "Risk Management: Detect protocol risks and auto-exit before exploits",
+        "Cross-chain Arbitrage: Execute opportunities across multiple chains"
+      ]
+    },
+    "kilolend": {
+      "name": "KiloLend",
+      "tagline": "AI-Powered Lending Protocol on Kaia Chain",
+      "description": "A decentralized lending and borrowing protocol with AI guidance, built on Kaia Chain and integrated with LINE Mini DApp. Winner of Kaia 'Stablecoin Summer' hackathon.",
+      "features": [
+        "AI-Driven Assistance: Smart guidance for lending and borrowing decisions",
+        "Stablecoin Focus: Optimized for USDT and stablecoin operations",
+        "Real-time Oracles: Dynamic pricing and risk management",
+        "LINE Integration: Seamless access through LINE Mini DApp",
+        "AWS Bedrock Powered: Advanced AI model integration",
+        "Live on Mainnet: Currently operational on Kaia Chain"
+      ]
+    },
+    "mcpSdk": {
+      "name": "MCP SDK",
+      "tagline": "Open-Source Tools for AI-Blockchain Integration",
+      "description": "A comprehensive Model Context Protocol (MCP) tool that enables MCP-compatible AI like Claude and ChatGPT to seamlessly connect with blockchain data across all supported chains. An open-source solution for developers building AI-blockchain applications.",
+      "features": [
+        "Multi-Chain Support: Connect to Ethereum, EVM chains, Aptos, Sui, and Kaia",
+        "AI-Compatible: Works with Claude, ChatGPT, and other MCP-compatible AI models",
+        "Real-Time Data: Access live blockchain data and transaction states",
+        "Open Source: Fully open-source with MIT license for community development",
+        "Easy Integration: Simple APIs for quick AI-blockchain integration",
+        "Comprehensive Documentation: Detailed guides and examples for developers"
+      ]
+    }
+  },
+  "about": {
+    "title": "About Us",
+    "description": "Building innovative blockchain solutions from Fukuoka, Japan",
+    "companyInfo": "Company Information",
+    "getInTouch": "Get In Touch",
+    "contactDescription": "Ready to start your Web3 project? Contact us to discuss how we can help bring your vision to life with cutting-edge blockchain technology.",
+    "contactUs": "Contact Us",
+    "companyName": "Tamago Blockchain Labs Co., Ltd.",
+    "address": "Co-Working Q, 1-1, JR Hakata City B1F<br />Hakata, Fukuoka, Japan 812-0012",
+    "established": "Established: September 2022",
+    "phone": "(81) 80-4894-2495",
+    "email": "support@tamagolabs.com"
+  },
+  "techStack": {
+    "solidity": {
+      "name": "Solidity",
+      "description": "EVM smart contracts"
+    },
+    "rust": {
+      "name": "Rust",
+      "description": "Solana & NEAR"
+    },
+    "move": {
+      "name": "Move",
+      "description": "Aptos & Sui development"
+    }
+  },
+  "blockchainList": {
+    "ethereum": {
+      "name": "Ethereum",
+      "description": "Leading smart contract platform"
+    },
+    "evmCompatible": {
+      "name": "EVM Compatible",
+      "description": "Polygon, BSC, Avalanche & more"
+    },
+    "aptos": {
+      "name": "Aptos",
+      "description": "High-performance Move VM"
+    },
+    "sui": {
+      "name": "Sui",
+      "description": "Scalable Move-based chain"
+    },
+    "kaia": {
+      "name": "Kaia",
+      "description": "EVM for millions of users across Asia."
+    }
+  }
+}

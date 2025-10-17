@@ -4,10 +4,15 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Code, Cpu, Triangle, Zap, Bot, Plug } from "lucide-react"
 
+// Import translation files
+import enTranslations from './translations/en.json'
+import jaTranslations from './translations/ja.json'
+
 const LandingTamagoLabs = () => {
     const [activeProject, setActiveProject] = useState(0)
     const [hoveredTech, setHoveredTech] = useState<string | null>(null)
     const [language, setLanguage] = useState<'en' | 'ja'>('ja')
+    const [translations, setTranslations] = useState(enTranslations)
 
     useEffect(() => {
         const savedLanguage = localStorage.getItem('language') as 'en' | 'ja' | null
@@ -18,91 +23,50 @@ const LandingTamagoLabs = () => {
         }
     }, [])
 
+    useEffect(() => {
+        // Load translations based on language
+        if (language === 'ja') {
+            setTranslations(jaTranslations)
+        } else {
+            setTranslations(enTranslations)
+        }
+    }, [language])
+
     const toggleLanguage = () => {
         const newLanguage = language === 'en' ? 'ja' : 'en'
         setLanguage(newLanguage)
         localStorage.setItem('language', newLanguage)
     }
 
-    const t = {
-        en: {
-            about: "About",
-            projects: "Projects",
-            services: "Services",
-            buildingFuture: "Building the Future of",
-            decentralizedFinance: "Decentralized Finance",
-            description: "Expert Web3 development studio specializing in DeFi protocols, AI-powered automation, and cutting-edge blockchain solutions.",
-            exploreProjects: "Explore Our Projects",
-            ourServices: "Our Services",
-            liveProjects: "Live Projects",
-            blockchains: "Blockchains",
-            securityFocus: "Security Focus",
-            established: "Established"
-        },
-        ja: {
-            about: "会社概要",
-            projects: "プロジェクト",
-            services: "サービス",
-            buildingFuture: "の未来を構築",
-            decentralizedFinance: "分散型金融",
-            description: "DeFiプロトコル、AI自動化、最先端のブロックチェーンソリューションを専門とするWeb3開発スタジオ。",
-            exploreProjects: "プロジェクトを見る",
-            ourServices: "サービス",
-            liveProjects: "稼働中プロジェクト",
-            blockchains: "ブロックチェーン",
-            securityFocus: "セキュリティ重視",
-            established: "設立"
-        }
-    }
+    const t = translations
 
     const projects = [
         {
             id: "bodhi-tree",
-            name: "Bodhi Tree",
-            tagline: "Open-Source Autonomous AI Agent Framework for DeFi",
-            description: "An intelligent AI framework designed for DeFi operations. Bodhi Tree enables users to set up sophisticated strategies and lets AI execute complex DeFi tasks autonomously.",
-            features: [
-                "Leverage Assets: Supply assets to lending pools, borrow stablecoins and swap back for increased exposure",
-                "Automated Leverage/De-leverage: AI manages position sizing based on market conditions",
-                "Portfolio Rebalancing: Automatically optimize positions across protocols",
-                "Yield Optimization: Move funds between protocols for best APY",
-                "Risk Management: Detect protocol risks and auto-exit before exploits",
-                "Cross-chain Arbitrage: Execute opportunities across multiple chains"
-            ],
+            name: t.projects.bodhiTree.name,
+            tagline: t.projects.bodhiTree.tagline,
+            description: t.projects.bodhiTree.description,
+            features: t.projects.bodhiTree.features,
             logo: "./assets/images/bodhi-tree-logo.png",
             gradient: "from-emerald-400 to-teal-500",
             link: "https://www.bodhitree.pro/"
         },
         {
             id: "kilolend",
-            name: "KiloLend",
-            tagline: "AI-Powered Lending Protocol on Kaia Chain",
-            description: "A decentralized lending and borrowing protocol with AI guidance, built on Kaia Chain and integrated with LINE Mini DApp. Winner of Kaia 'Stablecoin Summer' hackathon.",
-            features: [
-                "AI-Driven Assistance: Smart guidance for lending and borrowing decisions",
-                "Stablecoin Focus: Optimized for USDT and stablecoin operations",
-                "Real-time Oracles: Dynamic pricing and risk management",
-                "LINE Integration: Seamless access through LINE Mini DApp",
-                "AWS Bedrock Powered: Advanced AI model integration",
-                "Live on Mainnet: Currently operational on Kaia Chain"
-            ],
+            name: t.projects.kilolend.name,
+            tagline: t.projects.kilolend.tagline,
+            description: t.projects.kilolend.description,
+            features: t.projects.kilolend.features,
             logo: "https://kilolend.xyz/images/kilolend-logo.png",
             gradient: "from-orange-400 to-pink-500",
             link: "https://kilolend.xyz/"
         },
         {
             id: "mcp-tool",
-            name: "MCP SDK",
-            tagline: "Open-Source Tools for AI-Blockchain Integration",
-            description: "A comprehensive Model Context Protocol (MCP) tool that enables MCP-compatible AI like Claude and ChatGPT to seamlessly connect with blockchain data across all supported chains. An open-source solution for developers building AI-blockchain applications.",
-            features: [
-                "Multi-Chain Support: Connect to Ethereum, EVM chains, Aptos, Sui, and Kaia",
-                "AI-Compatible: Works with Claude, ChatGPT, and other MCP-compatible AI models",
-                "Real-Time Data: Access live blockchain data and transaction states",
-                "Open Source: Fully open-source with MIT license for community development",
-                "Easy Integration: Simple APIs for quick AI-blockchain integration",
-                "Comprehensive Documentation: Detailed guides and examples for developers"
-            ],
+            name: t.projects.mcpSdk.name,
+            tagline: t.projects.mcpSdk.tagline,
+            description: t.projects.mcpSdk.description,
+            features: t.projects.mcpSdk.features,
             icon: "🔗",
             gradient: "from-blue-500 to-purple-600",
             link: "https://github.com/tamago-labs"
@@ -111,43 +75,94 @@ const LandingTamagoLabs = () => {
 
     const services = [
         {
-            title: "Smart Contract Development",
-            description: "End-to-end development of secure and efficient smart contracts in Solidity and Move, tailored for DeFi, NFT, and DAO use cases.",
+            title: t.services.smartContract.title,
+            description: t.services.smartContract.description,
             icon: <Zap className="w-8 h-8 text-white" />,
             gradient: "from-blue-500 to-indigo-600",
-            features: ["DeFi Protocols", "NFT Contracts", "DAO Governance", "Gas Optimization"]
+            features: t.services.smartContract.features
         },
         {
-            title: "AI Agent Development",
-            description: "Build intelligent automation for DeFi operations, from strategy execution frameworks to autonomous agents that monitor, analyze, and execute complex blockchain transactions.",
+            title: t.services.aiAgent.title,
+            description: t.services.aiAgent.description,
             icon: <Bot className="w-8 h-8 text-white" />,
             gradient: "from-purple-500 to-pink-600",
-            features: ["Portfolio Management", "Risk Monitoring", "Yield Optimization", "Strategy Automation"]
+            features: t.services.aiAgent.features
         },
         {
-            title: "Integration Services",
-            description: "Seamlessly integrate Web3 functionality into existing applications with custom APIs and SDKs. Full-stack blockchain integration for enterprises and startups.",
+            title: t.services.integration.title,
+            description: t.services.integration.description,
             icon: <Plug className="w-8 h-8 text-white" />,
             gradient: "from-orange-500 to-red-600",
-            features: ["API Development", "SDK Creation", "Wallet Integration", "Oracle Solutions", "Cross-chain Bridges"]
+            features: t.services.integration.features
         }
     ]
 
     const techStack = [
-        { name: "Solidity", description: "EVM smart contracts", icon: <Code className="w-8 h-8" />, color: "text-gray-700", bgColor: "bg-gray-100" },
-        { name: "Rust", description: "Solana & NEAR", icon: <Cpu className="w-8 h-8" />, color: "text-orange-700", bgColor: "bg-orange-100" },
-        { name: "Move", description: "Aptos & Sui development", icon: <Triangle className="w-8 h-8" />, color: "text-blue-700", bgColor: "bg-blue-100" }
+        { 
+            key: "solidity", 
+            name: t.techStack.solidity.name, 
+            description: t.techStack.solidity.description, 
+            icon: <Code className="w-8 h-8" />, 
+            color: "text-gray-700", 
+            bgColor: "bg-gray-100" 
+        },
+        { 
+            key: "rust", 
+            name: t.techStack.rust.name, 
+            description: t.techStack.rust.description, 
+            icon: <Cpu className="w-8 h-8" />, 
+            color: "text-orange-700", 
+            bgColor: "bg-orange-100" 
+        },
+        { 
+            key: "move", 
+            name: t.techStack.move.name, 
+            description: t.techStack.move.description, 
+            icon: <Triangle className="w-8 h-8" />, 
+            color: "text-blue-700", 
+            bgColor: "bg-blue-100" 
+        }
     ]
 
     const blockchains = [
         [
-            { name: "Ethereum", description: "Leading smart contract platform", logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png", gradient: "from-indigo-500 to-purple-600" },
-            { name: "EVM Compatible", description: "Polygon, BSC, Avalanche & more", logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png", gradient: "from-purple-500 to-pink-600" },
-            { name: "Aptos", description: "High-performance Move VM", logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/21794.png", gradient: "from-green-500 to-teal-600" }
+            { 
+                key: "ethereum",
+                name: t.blockchainList.ethereum.name, 
+                description: t.blockchainList.ethereum.description, 
+                logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png", 
+                gradient: "from-indigo-500 to-purple-600" 
+            },
+            { 
+                key: "evmCompatible",
+                name: t.blockchainList.evmCompatible.name, 
+                description: t.blockchainList.evmCompatible.description, 
+                logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png", 
+                gradient: "from-purple-500 to-pink-600" 
+            },
+            { 
+                key: "aptos",
+                name: t.blockchainList.aptos.name, 
+                description: t.blockchainList.aptos.description, 
+                logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/21794.png", 
+                gradient: "from-green-500 to-teal-600" 
+            }
         ],
         [
-            { name: "Sui", description: "Scalable Move-based chain", logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/20947.png", gradient: "from-blue-500 to-cyan-600" },
-            { name: "Kaia", description: "EVM for millions of users across Asia.", logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/32880.png", gradient: "from-orange-500 to-red-600" }
+            { 
+                key: "sui",
+                name: t.blockchainList.sui.name, 
+                description: t.blockchainList.sui.description, 
+                logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/20947.png", 
+                gradient: "from-blue-500 to-cyan-600" 
+            },
+            { 
+                key: "kaia",
+                name: t.blockchainList.kaia.name, 
+                description: t.blockchainList.kaia.description, 
+                logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/32880.png", 
+                gradient: "from-orange-500 to-red-600" 
+            }
         ]
     ]
 
@@ -172,13 +187,13 @@ const LandingTamagoLabs = () => {
                         <nav className="flex-1 flex justify-center">
                             <div className="hidden md:flex space-x-8">
                                 <a href="#projects" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">
-                                    {t[language].projects}
+                                    {t.navigation.projects}
                                 </a>
                                 <a href="#services" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">
-                                    {t[language].services}
+                                    {t.navigation.services}
                                 </a>
                                 <a href="#about-us" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">
-                                    {t[language].about}
+                                    {t.navigation.about}
                                 </a>
                             </div>
                         </nav>
@@ -223,29 +238,28 @@ const LandingTamagoLabs = () => {
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
                     <div className="text-center">
                         <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 tracking-tight">
-                            Building the Future of
+                            {t.hero.buildingFuture}
                             <span className="block bg-gradient-to-r from-gray-700 via-slate-600 to-gray-600 bg-clip-text text-transparent">
-                                Decentralized Finance
+                                {t.hero.decentralizedFinance}
                             </span>
                         </h1>
                         <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-                            Expert Web3 development studio specializing in DeFi protocols, AI-powered automation,
-                            and cutting-edge blockchain solutions.
+                            {t.hero.description}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                             <a href="#projects" className="px-8 py-4 bg-gradient-to-r from-gray-700 to-slate-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
-                                What We're Working On
+                                {t.hero.whatWereWorkingOn}
                             </a>
                             <a href="#services" className="px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 border-2 border-gray-200">
-                                Our Services
+                                {t.hero.ourServices}
                             </a>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 max-w-4xl mx-auto">
-                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">5+</div><div className="text-gray-600 mt-1">Delivered Projects</div></div>
-                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">10+</div><div className="text-gray-600 mt-1">Blockchains</div></div>
-                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">100%</div><div className="text-gray-600 mt-1">Security Focus</div></div>
-                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">2022</div><div className="text-gray-600 mt-1">Established</div></div>
+                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">5+</div><div className="text-gray-600 mt-1">{t.hero.deliveredProjects}</div></div>
+                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">10+</div><div className="text-gray-600 mt-1">{t.hero.blockchains}</div></div>
+                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">100%</div><div className="text-gray-600 mt-1">{t.hero.securityFocus}</div></div>
+                            <div className="text-center"><div className="text-4xl font-bold text-gray-900">2022</div><div className="text-gray-600 mt-1">{t.hero.established}</div></div>
                         </div>
                     </div>
                 </div>
@@ -257,8 +271,8 @@ const LandingTamagoLabs = () => {
                 </div>
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Technology Stack</h2>
-                        <p className="text-xl text-gray-600 max-w-2xl mx-auto">Expert proficiency across multiple blockchain languages</p>
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{t.technology.title}</h2>
+                        <p className="text-xl text-gray-600 max-w-2xl mx-auto">{t.technology.description}</p>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                         {techStack.map((tech, idx) => (
@@ -283,8 +297,8 @@ const LandingTamagoLabs = () => {
             <section className="py-20 bg-white/70 backdrop-blur-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Supported Blockchains</h2>
-                        <p className="text-lg text-gray-600">Multi-chain expertise across leading blockchain ecosystems</p>
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{t.blockchains.title}</h2>
+                        <p className="text-lg text-gray-600">{t.blockchains.description}</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 max-w-5xl mx-auto">
                         {blockchains[0].map((chain, idx) => (
@@ -317,8 +331,8 @@ const LandingTamagoLabs = () => {
                 </div>
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Our Services</h2>
-                        <p className="text-xl text-gray-600 max-w-2xl mx-auto">Comprehensive Web3 development services for your blockchain journey</p>
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{t.services.title}</h2>
+                        <p className="text-xl text-gray-600 max-w-2xl mx-auto">{t.services.description}</p>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                         {services.map((service, idx) => (
@@ -345,9 +359,9 @@ const LandingTamagoLabs = () => {
             <section id="projects" className="py-24 bg-white/50 backdrop-blur-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
-                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Our Projects</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{t.projects.title}</h2>
                         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                            We build and operate innovative DeFi protocols and AI-powered blockchain solutions, maintaining them end-to-end with hands-on control and continuous innovation
+                            {t.projects.description}
                         </p>
                     </div>
                     <div className="space-y-16">
@@ -361,7 +375,7 @@ const LandingTamagoLabs = () => {
                                         <p className="text-xl text-gray-700 font-semibold mb-4">{project.tagline}</p>
                                         <p className="text-gray-600 leading-relaxed mb-6">{project.description}</p>
                                         <div className="space-y-3 mb-6">
-                                            <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide">Key Features</h4>
+                                            <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide">{t.projects.keyFeatures}</h4>
                                             <div className="space-y-2">
                                                 {project.features.slice(0, 3).map((feature, featureIdx) => (
                                                     <div key={featureIdx} className="flex items-start">
@@ -374,7 +388,7 @@ const LandingTamagoLabs = () => {
                                             </div>
                                         </div>
                                         <a href={project.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-700 to-slate-600 text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
-                                            Explore Project
+                                            {t.projects.exploreProject}
                                             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                             </svg>
@@ -383,7 +397,7 @@ const LandingTamagoLabs = () => {
                                 </div>
                                 <div className="w-full md:w-1/2">
                                     <div className={`bg-gradient-to-br ${project.gradient} rounded-2xl p-8 text-white shadow-xl ${idx % 2 === 1 ? 'md:ml-8' : 'md:mr-8'}`}>
-                                        <h4 className="text-2xl font-bold mb-4">All Features</h4>
+                                        <h4 className="text-2xl font-bold mb-4">{t.projects.allFeatures}</h4>
                                         <div className="space-y-3">
                                             {project.features.map((feature, featureIdx) => (
                                                 <div key={featureIdx} className="flex items-start">
@@ -405,46 +419,46 @@ const LandingTamagoLabs = () => {
             <section id="about-us" className="py-20 bg-white/70 backdrop-blur-sm">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">About Us</h2>
-                        <p className="text-lg text-gray-600">Building innovative blockchain solutions from Fukuoka, Japan</p>
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t.about.title}</h2>
+                        <p className="text-lg text-gray-600">{t.about.description}</p>
                     </div>
                     <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
                         <div className="grid md:grid-cols-2 gap-8">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-4">Company Information</h3>
+                                <h3 className="text-xl font-bold text-gray-900 mb-4">{t.about.companyInfo}</h3>
                                 <div className="space-y-3 text-gray-600">
-                                    <p className="font-semibold text-gray-900">Tamago Blockchain Labs Co., Ltd.</p>
+                                    <p className="font-semibold text-gray-900">{t.about.companyName}</p>
                                     <div className="flex items-start">
                                         <svg className="w-5 h-5 text-gray-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
-                                        <span>Co-Working Q, 1-1, JR Hakata City B1F<br />Hakata, Fukuoka, Japan 812-0012</span>
+                                        <span dangerouslySetInnerHTML={{ __html: t.about.address }} />
                                     </div>
                                     <div className="flex items-center pt-2">
                                         <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 4h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
-                                        <span>Established: September 2022</span>
+                                        <span>{t.about.established}</span>
                                     </div>
                                     <div className="flex items-center">
                                         <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                         </svg>
-                                        <span>(81) 80-4894-2495</span>
+                                        <span>{t.about.phone}</span>
                                     </div>
                                     <div className="flex items-center">
                                         <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                         </svg>
-                                        <span>support@tamagolabs.com</span>
+                                        <span>{t.about.email}</span>
                                     </div> 
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-4">Get In Touch</h3>
-                                <p className="text-gray-600 mb-6">Ready to start your Web3 project? Contact us to discuss how we can help bring your vision to life with cutting-edge blockchain technology.</p>
+                                <h3 className="text-xl font-bold text-gray-900 mb-4">{t.about.getInTouch}</h3>
+                                <p className="text-gray-600 mb-6">{t.about.contactDescription}</p>
                                 <a href="mailto:support@tamagolabs.com" className="inline-block px-6 py-3 bg-gradient-to-r from-gray-700 to-slate-600 text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
-                                    Contact Us
+                                    {t.about.contactUs}
                                 </a>
                             </div>
                         </div>

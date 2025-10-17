@@ -1,0 +1,140 @@
+{
+  "navigation": {
+    "projects": "プロジェクト",
+    "services": "サービス",
+    "about": "会社概要"
+  },
+  "hero": {
+    "buildingFuture": "の未来を構築",
+    "decentralizedFinance": "分散型金融",
+    "description": "DeFiプロトコル、AI自動化、最先端のブロックチェーンソリューションを専門とするWeb3開発スタジオ。",
+    "whatWereWorkingOn": "開発中のプロジェクト",
+    "ourServices": "サービス",
+    "deliveredProjects": "納品済みプロジェクト",
+    "blockchains": "ブロックチェーン",
+    "securityFocus": "セキュリティ重視",
+    "established": "設立"
+  },
+  "technology": {
+    "title": "テクノロジースタック",
+    "description": "複数のブロックチェーン言語における専門的な知識"
+  },
+  "blockchains": {
+    "title": "対応ブロックチェーン",
+    "description": "主要なブロックチェーンエコシステムにおけるマルチチェーン専門知識"
+  },
+  "services": {
+    "title": "サービス",
+    "description": "ブロックチェーンの旅に役立つ包括的なWeb3開発サービス",
+    "smartContract": {
+      "title": "スマートコントラクト開発",
+      "description": "SolidityとMoveによる安全で効率的なスマートコントラクトのエンドツーエンド開発。DeFi、NFT、DAOのユースケースに対応。",
+      "features": ["DeFiプロトコル", "NFTコントラクト", "DAOガバナンス", "ガス最適化"]
+    },
+    "aiAgent": {
+      "title": "AIエージェント開発",
+      "description": "戦略実行フレームワークから、監視、分析、複雑なブロックチェーン取引を実行する自律エージェントまで、DeFiオペレーションのためのインテリジェントな自動化を構築。",
+      "features": ["ポートフォリオ管理", "リスク監視", "イールド最適化", "戦略自動化"]
+    },
+    "integration": {
+      "title": "統合サービス",
+      "description": "カスタムAPIとSDKで既存アプリケーションにWeb3機能をシームレスに統合。企業とスタートアップ向けのフルスタックブロックチェーン統合。",
+      "features": ["API開発", "SDK作成", "ウォレット統合", "オラクルソリューション", "クロスチェーンブリッジ"]
+    }
+  },
+  "projects": {
+    "title": "プロジェクト",
+    "description": "革新的なDeFiプロトコルとAI駆動のブロックチェーンソリューションを構築・運用し、エンドツーエンドで手動管理と継続的イノベーションを維持",
+    "exploreProject": "プロジェクトを見る",
+    "allFeatures": "全機能",
+    "keyFeatures": "主要機能",
+    "bodhiTree": {
+      "name": "Bodhi Tree",
+      "tagline": "DeFi向けオープンソース自律AIエージェントフレームワーク",
+      "description": "DeFiオペレーション用に設計されたインテリジェントなAIフレームワーク。Bodhi Treeは、洗練された戦略を設定し、AIが複雑なDeFiタスクを自律的に実行することを可能にします。",
+      "features": [
+        "レバレッジ資産：レンディングプールに資産を供給し、ステーブルコインを借入してスワップバックでエクスポージャーを増加",
+        "自動レバレッジ/デレバレッジ：AIが市場条件に基づきポジションサイズを管理",
+        "ポートフォリオリバランス：プロトコル間でポジションを自動最適化",
+        "イールド最適化：最高APYのためプロトコル間で資金を移動",
+        "リスク管理：プロトコルリスクを検知し、エクスプロイト前に自動退出",
+        "クロスチェーンアービトラージ：複数チェーンで機会を実行"
+      ]
+    },
+    "kilolend": {
+      "name": "KiloLend",
+      "tagline": "Kaiaチェーン上のAI駆動レンディングプロトコル",
+      "description": "AIガイダンス付きの分散型レンディング・ボローイングプロトコル。Kaiaチェーン上に構築され、LINEミニDAppと統合。Kaia 'Stablecoin Summer'ハッカソン優勝。",
+      "features": [
+        "AI駆動アシスタンス：レンディング・ボローイング決定のためのスマートガイダンス",
+        "ステーブルコイン重視：USDTとステーブルコインオペレーションに最適化",
+        "リアルタイムオラクル：動的プライシングとリスク管理",
+        "LINE統合：LINEミニDAppによるシームレスなアクセス",
+        "AWS Bedrock駆動：高度なAIモデル統合",
+        "メインネット稼働：現在Kaiaチェーンで運用中"
+      ]
+    },
+    "mcpSdk": {
+      "name": "MCP SDK",
+      "tagline": "AI-ブロックチェーン統合向けオープンソースツール",
+      "description": "ClaudeやChatGPTなどのMCP互換AIが、サポートされる全チェーンのブロックチェーンデータにシームレスに接続できるようにする包括的なMCPツール。AI-ブロックチェーンアプリケーションを構築する開発者向けのオープンソースソリューション。",
+      "features": [
+        "マルチチェーンサポート：Ethereum、EVMチェーン、Aptos、Sui、Kaiaに接続",
+        "AI互換：Claude、ChatGPT、その他MCP互換AIモデルで動作",
+        "リアルタイムデータ：ライブブロックチェーンデータとトランザクション状態にアクセス",
+        "オープンソース：コミュニティ開発向けMITライセンスで完全オープンソース",
+        "簡単統合：迅速なAI-ブロックチェーン統合向けシンプルなAPI",
+        "包括的ドキュメント：開発者向け詳細ガイドと例"
+      ]
+    }
+  },
+  "about": {
+    "title": "会社概要",
+    "description": "福岡、日本から革新的なブロックチェーンソリューションを構築",
+    "companyInfo": "会社情報",
+    "getInTouch": "お問い合わせ",
+    "contactDescription": "Web3プロジェクトを開始する準備はできましたか？最先端のブロックチェーン技術でビジョンを実現する方法について話し合うため、お気軽にご連絡ください。",
+    "contactUs": "お問い合わせ",
+    "companyName": "Tamago Blockchain Labs 株式会社",
+    "address": "Co-Working Q, 1-1, JR Hakata City B1F<br />福岡県福岡市博多区 812-0012",
+    "established": "設立：2022年9月",
+    "phone": "(81) 80-4894-2495",
+    "email": "support@tamagolabs.com"
+  },
+  "techStack": {
+    "solidity": {
+      "name": "Solidity",
+      "description": "EVMスマートコントラクト"
+    },
+    "rust": {
+      "name": "Rust",
+      "description": "Solana & NEAR"
+    },
+    "move": {
+      "name": "Move",
+      "description": "Aptos & Sui開発"
+    }
+  },
+  "blockchainList": {
+    "ethereum": {
+      "name": "Ethereum",
+      "description": "主要なスマートコントラクトプラットフォーム"
+    },
+    "evmCompatible": {
+      "name": "EVM互換",
+      "description": "Polygon、BSC、Avalancheなど"
+    },
+    "aptos": {
+      "name": "Aptos",
+      "description": "高性能Move VM"
+    },
+    "sui": {
+      "name": "Sui",
+      "description": "スケーラブルなベースのMoveチェーン"
+    },
+    "kaia": {
+      "name": "Kaia",
+      "description": "アジア数百万人ユーザー向けEVM。"
+    }
+  }
+}
