@@ -11,9 +11,10 @@ const InterFont = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Autonomous AI Agents for DeFi Strategies", 
-  description: "Set your DeFi strategy in natural language and let AI execute 24/7. From leverage management to yield optimization—autonomous agents handle complex DeFi operations while you stay in control.",
+  title: "Tamago Labs - Expert Web3 Development Studio",
+  description: "Building the future of decentralized finance with expert Web3 development services. Specializing in DeFi protocols, AI-powered automation, and cutting-edge blockchain solutions across multiple chains.",
 };
+
 
 export default function RootLayout({
   children,

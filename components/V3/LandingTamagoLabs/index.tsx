@@ -180,7 +180,7 @@ const LandingTamagoLabs = () => {
                     <div className="flex justify-between items-center py-6">
                         <div className="flex justify-start lg:w-0 lg:flex-1">
                             <Link href="/" className="flex items-center">
-                                <img src="./assets/images/tamago-labs-logo.png" className="w-[190px] md:w-[230px]" alt="Tamago Labs" />
+                                <img src="./assets/images/tamago-labs-logo.png" className="w-[160px] md:w-[200px]" alt="Tamago Labs" />
                             </Link>
                         </div>
 
